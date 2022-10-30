@@ -6,17 +6,21 @@ from gdpc import worldLoader as WL
 from gdpc import toolbox as TB
 from gdpc import interface as INTF
 from gdpc import geometry as GEO
-
+import pathfind
+from pathfind import Location
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
 STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 500, 10, 500)
+    0, 1, 0, 500, 256, 500)
 print("Build Area: ", *INTF.requestBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
 #   and any changes you make later on will not be reflected in the world slice
 WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
+
+buildings: list[Location] = []
+roads: list[Location] = []
 
 
 def buildBasicBuilding():
@@ -26,10 +30,22 @@ def buildBasicBuilding():
     for pos in coBuildingList:
         x, z = pos
         x, z = floor(x), floor(z)
-        y = heights[(x, z)]
+        y = int(heights[(x, z)])
         print(x, y, z)
         InitialChalet(x, y, z)
+
         INTF.runCommand(f"tp @a {x} {y} {z}")
+
+        # buildingCenter = (x, y-1, z)
+        road = (x, y-1, z-1)
+        for dx in range(-2, 3):
+            for dz in range(-1, 5):
+                building = (x+dx, y-1, z+dz)
+                if building == road:
+                    continue                
+                buildings.append(building)
+
+        pathfind.buildRoad(road, roads, buildings)
 
 
 if __name__ == '__main__':

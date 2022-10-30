@@ -1,1 +1,2 @@
 git+https://github.com/nilsgawlik/gdmc_http_client_python
+astar==0.94
