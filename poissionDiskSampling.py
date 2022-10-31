@@ -8,7 +8,7 @@ def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
         sx, ex = ex, sx
     if sy > ey:
         sy, ey = ey, sy
-
+    # print("pS: ",sx,sy,ex,ey)
     # maxRange = 2 * minRange
     w = minRange / sqrt(2)
     xlen = ex - sx
@@ -18,8 +18,9 @@ def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
     cells = [[-1 for i in range(cols)] for i in range(rows)]
     activeList = []
     pos = [xlen * random(), ylen * random()]
-    x = floor((pos[0]-sx) / w)
-    y = floor((pos[1]-sy) / w)
+    x = floor((pos[0]+sx) / w)
+    y = floor((pos[1]+sy) / w)
+    print(x,y,pos)
     cells[x][y] = pos
     activeList.append(pos)
     count = 0
@@ -27,15 +28,16 @@ def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
     while len(activeList) > 0 and count < num:
         idx = floor(len(activeList) * random())
         curPos = activeList[idx]
-        found = False
+        found = False   
         for i in range(k):
             rad = 2*pi*random()
             offsetX = cos(rad)
             offsetY = sin(rad)
             mag = random() * minRange + minRange
             samplePoint = [curPos[0] + offsetX*mag, curPos[1] + offsetY*mag]
-            sampleX = floor((samplePoint[0]-sx) / w)
-            sampleY = floor((samplePoint[1]-sy) / w)
+            sampleX = floor(samplePoint[0] / w)
+            sampleY = floor(samplePoint[1] / w)
+            print(samplePoint)
             if sampleX < 0 or sampleY < 0 or sampleX >= cols or sampleY >= rows or cells[sampleX][sampleY] != -1:
                 continue
             flag = True
@@ -61,10 +63,13 @@ def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
         if not found:
             del activeList[idx]
     coords = []
+
     for row in cells:
         for p in row:
             if p != -1:
-                coords.append(p)
+                coords.append([p[0] + sx,p[1] + sy])
+
+
     return coords
 
 # print(poissionSample(0,0,300,300,10,20))
