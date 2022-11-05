@@ -1,6 +1,6 @@
 #! /usr/bin/python3
+import random
 from poissionDiskSampling import poissionSample as pS
-from NTNUBasicBuilding import InitialChalet
 from math import floor
 from gdpc import worldLoader as WL
 from gdpc import toolbox as TB
@@ -8,6 +8,11 @@ from gdpc import interface as INTF
 from gdpc import geometry as GEO
 import pathfind
 from pathfind import Location
+import os
+from nbt import nbt
+import nbt_builder
+import pprint
+import getBuildingEntryInfo as BEI
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
@@ -22,37 +27,72 @@ WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
 buildings: list[Location] = []
 roads: list[Location] = []
 
+STRUCTURE_DIR = os.path.abspath("./data/structures")
+BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
+
+
+def getBuildingDir(name: str):
+    return os.path.join(STRUCTURE_DIR, name)
+
+
+def getBuildingNBTDir(name: str):
+
+    return os.path.join(getBuildingDir(name), f"{name}.nbt")
+
+
+def getBuildingInfoDir(name: str):
+    return os.path.join(getBuildingDir(name), f"{name}Info.json")
+
 
 def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 10)
+    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30)
     print("coBuildingList:", coBuildingList)
+
+    x, z = coBuildingList[0]
+    INTF.runCommand(f"tp @a {x} 100 {z}")
+
     for pos in coBuildingList:
         x, z = pos
         x, z = floor(x), floor(z)
         y = int(heights[(x, z)])
         print(x, y, z)
-        InitialChalet(x, y, z)
 
-        INTF.runCommand(f"tp @a {x} {y} {z}")
+        buildingType = random.choice(BUILDING_TYPE)
 
-        # buildingCenter = (x, y-1, z)
-        road = (x, y-1, z-1)
-        for dx in range(-2, 3):
-            for dz in range(-1, 5):
-                building = (x+dx, y-1, z+dz)
-                if building == road:
-                    continue                
-                buildings.append(building)
+        nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
+        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
 
-        pathfind.buildRoad(road, roads, buildings)
+        sizeX, sizeY, sizeZ = tmp = map(
+            lambda e: int(e.value), nbt_struct["size"])
+        print("tmp:", tmp)
+        print("size x, y, z:", sizeX, sizeY, sizeZ)
+
+        buildingInfo = BEI.BuildingInfo(getBuildingInfoDir(buildingType))
+
+        entryNames = buildingInfo.getBuildingNameList()
+        entry = buildingInfo.getEntryInfo(entryNames[0])
+
+        print("entry pos:", entry.pos)
+        dx, dy, dz = entry.pos
+        entryPos: Location = (x+dx, y+dy, z+dz)
+        print("entry pos(T):", entryPos)
+        for dx in range(sizeX):
+            for dy in range(sizeY):
+                for dz in range(sizeZ):
+                    buildingBlk: Location = (x+dx, y+dy, z+dz)
+                    if buildingBlk == entry.pos:
+                        continue
+                    buildings.append(buildingBlk)
+
+        pathfind.buildRoad(entryPos, roads, buildings)
 
 
 if __name__ == '__main__':
     try:
         height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
-        INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
-        print(f"/tp @a {STARTX} {height} {STARTZ}")
+        # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
+        # print(f"/tp @a {STARTX} {height} {STARTZ}")
         buildBasicBuilding()
 
         print("Done!")
