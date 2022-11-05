@@ -38,9 +38,8 @@ def pathFind(start: Location,
 
     # first init
     if exists == []:
-        exists.append(start)
         INTF.placeBlock(*start, "gravel")
-        return iter(exists)
+        return iter([start])
 
     def neighbors(n: Location):
         # print(f'neighbors: {n}')
