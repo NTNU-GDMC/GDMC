@@ -13,7 +13,10 @@ def parseHeight(heights : []):
                     h = h + heights[i][j]
             h = h // 256
             res[x][y] = h
-
+    print("chunk height average:")
+    for arr in res:
+        print(arr)
+    print()
     return res
             
 def getSmoothChunk(heights : []): # input is a 2d array of blocks height
@@ -37,11 +40,10 @@ def getSmoothChunk(heights : []): # input is a 2d array of blocks height
     resX = -1
     resY = -1
 
-    for arr in chunks:
-        print(arr)
-    for x in range(1):
-        for y in range(1):
-            vis = [[False] * m] * n
+
+    for x in range(n):
+        for y in range(m):
+            vis =  [[False for i in range(m)] for i in range(n)]
             cnt = 1
             q.put([x,y])
             while not q.empty():
@@ -54,10 +56,9 @@ def getSmoothChunk(heights : []): # input is a 2d array of blocks height
                 for i in range(4):
                     nx = cx + dx[i]
                     ny = cy + dy[i]
-                    print(nx,ny)
                     if nx < 0 or ny < 0 or nx == n or ny == m:
                         continue
-                    if abs(chunks[cx][cy] - chunks[nx][ny]) > 1:
+                    if abs(chunks[cx][cy] - chunks[nx][ny]) > 2:
                         continue
                     q.put([nx,ny])
                     
@@ -70,27 +71,42 @@ def getSmoothChunk(heights : []): # input is a 2d array of blocks height
                 resY = y
                 resCnt = cnt
 
-    vis = [[False] * m] * n
+    vis =  [[False for i in range(m)] for i in range(n)]
 
-    res = [[resX,resY]]
+    res = []
     q.put([resX,resY])
+
+    print(resCnt)
     while not q.empty():
         cur = q.get()
+        print(cur)
         cx = cur[0]
         cy = cur[1]
         if vis[cx][cy]:
+            print(cur, " visited")
             continue
+        else:
+            print(cur, " not visited")
+ 
         vis[cx][cy] = True
+        for arr in vis:
+            print(arr)
+        print()   
+        print("append ", (cx,cy))
+        res.append((cx * 16,cy * 16))
         for i in range(4):
             nx = cx + dx[i]
             ny = cy + dy[i]
             if nx < 0 or ny < 0 or nx == n or ny == m:
                 continue
-            if abs(chunks[cx][cy] - chunks[nx][ny]) > 1:
-                continue
-            q.put([nx,ny])
-            res.append([nx* 16,ny * 16])
-         
+            
+            if abs(chunks[cx][cy] - chunks[nx][ny]) <= 2:
+                q.put([nx,ny])
+                print("put ",[nx,ny])
+                 
+            
+    print("analysis done")
+    print(res)
     return res # return the list of smooth chunks,corner location (offset to 0,0)
 
 

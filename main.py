@@ -12,7 +12,7 @@ from gdpc import geometry as GEO
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
 STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 64, 10, 64)
+    0, 1, 0, 100, 255, 100)
 print("Build Area: ", *INTF.requestBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
@@ -22,14 +22,16 @@ WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
 
 def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 10)
     buildArea = getSmoothChunk(heights)
-    print(buildArea)
+    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 40, 10,buildArea)
+
     print("coBuildingList:", coBuildingList)
     for pos in coBuildingList:
         x, z = pos
         x, z = floor(x), floor(z)
         y = heights[(x, z)]
+        x = x + STARTX
+        z = z + STARTZ
         print(x, y, z)
         InitialChalet(x, y, z)
         INTF.runCommand(f"tp @a {x} {y} {z}")
