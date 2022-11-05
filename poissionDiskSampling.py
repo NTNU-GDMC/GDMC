@@ -1,44 +1,52 @@
 from math import sqrt, floor, pi, sin, cos, dist
-from random import random
+from random import random, randint
 
 
-def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
+def poissionSample(sx, sy, ex, ey, num, minRange, acceptPos) -> list:
     k = 30  # sample number
     if sx > ex:
         sx, ex = ex, sx
     if sy > ey:
         sy, ey = ey, sy
-    # print("pS: ",sx,sy,ex,ey)
+    acceptPositionSet = set(acceptPos)
     # maxRange = 2 * minRange
     w = minRange / sqrt(2)
     xlen = ex - sx
     ylen = ey - sy
-    cols = floor(xlen / w)
-    rows = floor(ylen / w)
+    cols = floor(xlen / w) + 1
+    rows = floor(ylen / w) + 1
     cells = [[-1 for i in range(cols)] for i in range(rows)]
     activeList = []
-    pos = [xlen * random(), ylen * random()]
-    x = floor((pos[0]+sx) / w)
-    y = floor((pos[1]+sy) / w)
-    print(x,y,pos)
+    randChunk = acceptPos[randint(0, len(acceptPos) - 1)]
+    pos = [randChunk[0] + randint(0, 16) - sx,
+           randChunk[1] + randint(0, 16) - sy]
+    x = floor((pos[0]-sx) / w)
+    y = floor((pos[1]-sy) / w)
     cells[x][y] = pos
     activeList.append(pos)
     count = 0
-
+    print("init = ", pos)
     while len(activeList) > 0 and count < num:
         idx = floor(len(activeList) * random())
         curPos = activeList[idx]
-        found = False   
+        found = False
         for i in range(k):
             rad = 2*pi*random()
             offsetX = cos(rad)
             offsetY = sin(rad)
             mag = random() * minRange + minRange
             samplePoint = [curPos[0] + offsetX*mag, curPos[1] + offsetY*mag]
-            sampleX = floor(samplePoint[0] / w)
-            sampleY = floor(samplePoint[1] / w)
-            print(samplePoint)
+            sampleChunk = (
+                floor(samplePoint[0] / 16) * 16, floor(samplePoint[1] / 16) * 16)
+
+            sampleX = floor((samplePoint[0]) / w)
+            sampleY = floor((samplePoint[1]) / w)
+
             if sampleX < 0 or sampleY < 0 or sampleX >= cols or sampleY >= rows or cells[sampleX][sampleY] != -1:
+                continue
+
+            if sampleChunk not in acceptPositionSet:
+
                 continue
             flag = True
             for i in range(sampleX-1, sampleX+2):
@@ -67,8 +75,7 @@ def poissionSample(sx, sy, ex, ey, num, minRange) -> list:
     for row in cells:
         for p in row:
             if p != -1:
-                coords.append([p[0] + sx,p[1] + sy])
-
+                coords.append([p[0] + sx, p[1] + sy])
 
     return coords
 

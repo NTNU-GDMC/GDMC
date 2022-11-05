@@ -1,23 +1,25 @@
 #! /usr/bin/python3
+import getBuildingEntryInfo as BEI
+import pprint
+import nbt_builder
+from nbt import nbt
+import os
+from pathfind import Location
+import pathfind
+from gdpc import geometry as GEO
+from gdpc import interface as INTF
+from gdpc import toolbox as TB
+from gdpc import worldLoader as WL
+from math import floor
+from NTNUBasicBuilding import InitialChalet
+from heightAnalysis import getSmoothChunk
 import random
 from poissionDiskSampling import poissionSample as pS
-from math import floor
-from gdpc import worldLoader as WL
-from gdpc import toolbox as TB
-from gdpc import interface as INTF
-from gdpc import geometry as GEO
-import pathfind
-from pathfind import Location
-import os
-from nbt import nbt
-import nbt_builder
-import pprint
-import getBuildingEntryInfo as BEI
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
 STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 500, 256, 500)
+    0, 1, 0, 200, 255, 200)
 print("Build Area: ", *INTF.requestBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
@@ -46,7 +48,10 @@ def getBuildingInfoDir(name: str):
 
 def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30)
+
+    buildArea = getSmoothChunk(heights)
+    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30, buildArea)
+
     print("coBuildingList:", coBuildingList)
 
     x, z = coBuildingList[0]
@@ -55,7 +60,10 @@ def buildBasicBuilding():
     for pos in coBuildingList:
         x, z = pos
         x, z = floor(x), floor(z)
+
         y = int(heights[(x, z)])
+        x = x + STARTX
+        z = z + STARTZ
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
