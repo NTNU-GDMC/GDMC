@@ -7,17 +7,17 @@
         },
         {
             "facing": "west",
-            "position": [-1, -1, 8],
+            "roadStartPosition": [-1, -1, 8],
             "type": "backYardEntry"
         },
         {
             "facing": "north",
-            "position": [25, -1, -1],
+            "roadStartPosition": [25, -1, -1],
             "type": "backEntry"
         },
         {
             "facing": "east",
-            "position": [34, -1, 10],
+            "roadStartPosition": [34, -1, 10],
             "type": "sideEntry"
         }
     ]
