@@ -30,7 +30,8 @@ buildings: list[Location] = []
 roads: list[Location] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
-BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
+# BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
+BUILDING_TYPE = ["nbt_example"]
 
 
 def getBuildingDir(name: str):
@@ -43,7 +44,7 @@ def getBuildingNBTDir(name: str):
 
 
 def getBuildingInfoDir(name: str):
-    return os.path.join(getBuildingDir(name), f"{name}Info.json")
+    return os.path.join(getBuildingDir(name), f"{name}.json")
 
 
 def buildBasicBuilding():
@@ -83,12 +84,12 @@ def buildBasicBuilding():
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
-        entryPos: Location = (x+dx, y+dy, z+dz)
+        entryPos: Location = (x + dx, y + dy, z + dz)
         print("entry pos(T):", entryPos)
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
-                    buildingBlk: Location = (x+dx, y+dy, z+dz)
+                    buildingBlk: Location = (x + dx, y + dy, z + dz)
                     if buildingBlk == entry.pos:
                         continue
                     buildings.append(buildingBlk)
