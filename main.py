@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 from poissionDiskSampling import poissionSample as pS
+from heightAnalysis import getSmoothChunk
 from NTNUBasicBuilding import InitialChalet
 from math import floor
 from gdpc import worldLoader as WL
@@ -11,7 +12,7 @@ from gdpc import geometry as GEO
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
 STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 500, 10, 500)
+    0, 1, 0, 64, 10, 64)
 print("Build Area: ", *INTF.requestBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
@@ -22,6 +23,8 @@ WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
 def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 10)
+    buildArea = getSmoothChunk(heights)
+    print(buildArea)
     print("coBuildingList:", coBuildingList)
     for pos in coBuildingList:
         x, z = pos
