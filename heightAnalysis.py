@@ -1,12 +1,28 @@
 import queue
 import random
 
-def getSmoothChunk(chunks : [][]): # assume the input list element is the average height of the chunk 
+def parseHeight(heights : [][]):
+    mx = (len(heights) // 16) * 16 
+    my = (len(heights[0]) // 16) * 16 
+    res = [[0 for i in range(my)] * mx]
+    for x in range(0,mx,16):
+        for y in range(0,my,16):
+            h = 0
+            for i in range(x):
+                for j in range(j):
+                    h = h + heights[i][j]
+            h = h // 256
+            res[x//16][y//16] = h
+
+    return res
+            
+def getSmoothChunk(heights : [][]): # input is 2 2d array of blocks height
     """
         analysis:
             use any chuck as center and bfs, only adds the neighbor to the queue
             when the level difference is less then 2
     """ 
+    chunks = parseHeight(heights)
     n = len(chunks) 
     if n == 0:
         return []
