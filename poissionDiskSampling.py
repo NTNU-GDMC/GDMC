@@ -1,30 +1,45 @@
-from math import sqrt, floor, pi, sin, cos, dist
+from math import sqrt, floor, pi, sin, cos, dist, abs
 from random import random, randint
 
 
-def poissionSample(sx, sy, ex, ey, num, minRange,acceptPos) -> list:
+def terrainRelief(sx,sz,ex,ez,heights,threshold):
+    avg = 0
+    for x in range(sx,ex):
+        for z in range(sz,ez):
+            avg += heights[x][z]
+
+    avg = avg // (ex - sx) * (ez - sz)
+    diff = 0 
+    for x in range(sx,ex):
+        for z in range(sz,ez):
+            diff += abs(heights[x][z] - avg)
+    
+    return diff <= threshold
+
+def poissionSample(sx, sy, ex, ey, num, minRange,acceptPos,heights) -> list:
     k = 30  # sample number
     if sx > ex:
         sx, ex = ex, sx
     if sy > ey:
         sy, ey = ey, sy
     acceptPositionSet = set(acceptPos)
-    # maxRange = 2 * minRange
     w = minRange / sqrt(2)
     xlen = ex - sx
     ylen = ey - sy
     cols = floor(xlen / w) + 1
     rows = floor(ylen / w) + 1
+
     cells = [[-1 for i in range(cols)] for i in range(rows)]
     activeList = []
     randChunk = acceptPos[randint(0,len(acceptPos) - 1)]
     pos = [ randChunk[0] +randint(0,16) - sx, randChunk[1] + randint(0,16) - sy]
     x = floor((pos[0]-sx) / w)
     y = floor((pos[1]-sy) / w)
+
     cells[x][y] = pos
     activeList.append(pos)
     count = 0
-    print("init = " ,pos)
+
     while len(activeList) > 0 and count < num:
         idx = floor(len(activeList) * random())
         curPos = activeList[idx]
