@@ -52,7 +52,7 @@ def pathFind(start: Location,
                     z1 not in range(STARTZ, ENDZ+1):
                 continue
 
-            y1 = heights[(x1, z1)]-1
+            y1 = int(heights[(x1, z1)])-1
 
             # check if x1, y1, z1 out of bound
             if (INTF.checkOutOfBounds(x1, y1, z1)):

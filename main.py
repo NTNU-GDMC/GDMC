@@ -63,8 +63,8 @@ def buildBasicBuilding():
         x, z = floor(x), floor(z)
 
         y = int(heights[(x, z)])
-        x = x + STARTX
-        z = z + STARTZ
+        x = int(x + STARTX)
+        z = int(z + STARTZ)
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
@@ -84,13 +84,13 @@ def buildBasicBuilding():
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
-        entryPos: Location = (x + dx, y + dy, z + dz)
+        entryPos: Location = (x+dx, y+dy, z+dz)
         print("entry pos(T):", entryPos)
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
-                    buildingBlk: Location = (x + dx, y + dy, z + dz)
-                    if buildingBlk == entry.pos:
+                    buildingBlk: Location = (x+dx, y+dy, z+dz)
+                    if buildingBlk == entryPos:
                         continue
                     buildings.append(buildingBlk)
 
