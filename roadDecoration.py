@@ -17,7 +17,7 @@ flowers = [
 ]
 
 flowerStampSize = [[8, 3], [12, 5], [16, 2]]
-treeStampSize = [4, 3]
+treeStampSize = [8, 3]
 
 # return value is [x,z,flowerName]
 
@@ -49,7 +49,7 @@ def treeDecoration(roadCoord, interval, heights) -> []:
             nz = randint(z - size, z+size)
             if len([x for x in roadCoord if (x[0] == nx and x[2] == nz)]) > 0:
                 continue
-            treeData.append(
-                [nx, heights[nx][nz], nz])
+
+            treeData.append([nx, heights[nx][nz], nz])
 
     return treeData

@@ -24,7 +24,7 @@ def nbtToString(nbt_struct: nbt.TAG):
             return '{}'.format(str(nbt_struct))
 
 
-def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int):
+def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, keep=False):
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:
         x, y, z = map(lambda e: int(e.value), blk["pos"])
@@ -35,9 +35,12 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
                                                for k, v in palatte[state]["Properties"].iteritems()]))
         if "nbt" in blk:
             blkName += nbtToString(blk["nbt"])
-        #INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
-        INTF.runCommand("/setblock {} {} {} {}".format(x +
-                        baseX, y + baseY, z + baseZ, blkName))
+        # INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
+        option = ""
+        if keep:
+            option = "keep"
+        INTF.runCommand("/setblock {} {} {} {} {}".format(x +
+                        baseX, y + baseY, z + baseZ, blkName, option))
 
 
 if __name__ == '__main__':
