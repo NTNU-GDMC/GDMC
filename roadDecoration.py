@@ -1,5 +1,7 @@
 from math import sqrt, floor, pi, sin, cos, dist
 from random import random, randint, choice
+from pathfind import Location
+from operator import itemgetter
 
 flowers = [
     "dandelion",
@@ -20,6 +22,22 @@ flowerStampSize = [[8, 3], [12, 5], [16, 2]]
 treeStampSize = [14, 3]
 
 # return value is [x,y,z,flowerName]
+
+
+def removeNear(l: list[Location], minDis: float):
+    sotredLocs = sorted(l, key=itemgetter(0, 2))
+    res: list[Location] = []
+    for loc in sotredLocs:
+        ok = True
+        for j in range(len(res)-1, -1, -1):
+            if abs(loc[0]-res[j][0]) > minDis:
+                break
+            if dist(loc, res[j]) <= minDis:
+                ok = False
+                break
+        if ok:
+            res.append(loc)
+    return res
 
 
 def roadDecoration(roadCoord, interval, heights):
@@ -53,3 +71,21 @@ def treeDecoration(roadCoord, interval, heights):
                 treeData.append([nx, heights[nx][nz], nz])
 
     return treeData
+
+
+def lightDecoration(roadCoord: list[Location], interval: float, heights):
+    lights: list[Location] = []
+    for x, y, z in roadCoord:
+        done = False
+        for dx in [-1, 0, 1]:
+            for dz in [-1, 0, 1]:
+                if done:
+                    break
+                if abs(dx)+abs(dz) != 1:
+                    continue
+                x1, z1 = x+dx, z+dz
+                if (x1, y, z1) in roadCoord:
+                    continue
+                done = True
+                lights.append((x1, y, z1))
+    return removeNear(lights, interval)

@@ -15,7 +15,7 @@ from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
 import random
 from poissionDiskSampling import poissionSample as pS
-from roadDecoration import roadDecoration, treeDecoration
+from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
@@ -122,6 +122,16 @@ def buildTreeDecoration():
     return
 
 
+def placeStreetLight(x: int, y: int, z: int):
+    INTF.placeBlock(x, y, z, "cobblestone")
+    INTF.placeBlock(x, y+1, z, "cobblestone_wall")
+    INTF.placeBlock(x, y+2, z, "torch")
+
+def buildLightDecoration():
+    locs = lightDecoration(roads, 16, None)
+    for loc in locs:
+        placeStreetLight(*loc)
+
 if __name__ == '__main__':
     try:
         height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
@@ -130,6 +140,8 @@ if __name__ == '__main__':
         buildBasicBuilding()
         buildRoadDecoration()
         buildTreeDecoration()
+        buildLightDecoration()
+
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
