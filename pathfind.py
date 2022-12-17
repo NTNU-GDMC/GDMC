@@ -6,6 +6,7 @@ from gdpc import geometry as GEO
 import math
 import astar
 import pprint
+import random
 
 Location = tuple[int, int, int]
 Area = tuple[int, int, int, int, int, int]
@@ -22,7 +23,7 @@ dirs: dict[str, tuple[int, int]] = {
 }
 
 
-def pathFind(start: Location,
+def pathFind(target: Location,
              exists: list[Location] = [],
              ignores: list[Location] = [],
              buildArea: Area = INTF.globalBuildArea) -> Union[Iterable, None]:
@@ -30,16 +31,16 @@ def pathFind(start: Location,
     WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
-    # print(f'start: {start}')
+    # first init
+    if exists == []:
+        return iter([target])
+
+    start = random.choice(exists)
+    print(f'start: {start}, target: {target}')
     # print('exists:')
     # pprint.pprint(exists)
     # print('ignores:')
     # pprint.pprint(ignores)
-
-    # first init
-    if exists == []:
-        INTF.placeBlock(*start, "gravel")
-        return iter([start])
 
     def neighbors(n: Location):
         # print(f'neighbors: {n}')
@@ -48,44 +49,58 @@ def pathFind(start: Location,
             x1, z1 = x + dx, z + dz
 
             # check if x1 and z1 out of bound
-            if x1 not in range(STARTX, ENDX+1) or \
-                    z1 not in range(STARTZ, ENDZ+1):
+            if x1 < STARTX or x1 > ENDX or z1 < STARTZ or z1 > ENDZ:
                 continue
 
-            y1 = heights[(x1, z1)]-1
+            dys = [0]
 
-            # check if x1, y1, z1 out of bound
-            if (INTF.checkOutOfBounds(x1, y1, z1)):
-                continue
+            if math.dist((x1, z1), (start[0], start[2])) < 1 or \
+                math.dist((x1, z1), (target[0], target[2])) < 1:
+                dys += [-1, 1]
+            for dy in dys:
+                y1 = int(heights[(x1, z1)])-1 + dy
+            
 
-            # height diff not greater than 1
-            if abs(y1-y) > 1:
-                continue
+                # check if x1, y1, z1 out of bound
+                if (INTF.checkOutOfBounds(x1, y1, z1)):
+                    continue
 
-            n1: Location = (x1, y1, z1)
-            # skip ingores
-            if n1 in ignores:
-                continue
-            # print(f'available: {(x1, y1, z1)}')
-            yield n1
+                # height diff not greater than 1
+                if abs(y1-y) > 1:
+                    continue
+
+                n1: Location = (x1, y1, z1)
+                # skip ingores
+                if n1 in ignores:
+                    continue
+                yield n1
 
     def distance(n1: Location, n2: Location):
+        if n1 in exists and n2 in exists:
+            return 0.0
         x1, y1, z1 = n1
         x2, y2, z2 = n2
-        if (abs(x2-x1) + abs(z2-z1) == 1):
-            return math.dist(n1, n2)
+        dx, dy, dz = abs(x2-x1), abs(y2-y1), abs(z2-z1)
+        wx, wy, wz = 1, 2, 1
+        if dx + dz == 1:
+            dis = math.sqrt((dx*wx)**2 + (dy*wy)**2 + (dz*wz)**2)
+            if y1 != int(heights[(x1, z1)])-1 or y2 != int(heights[(x2, z2)])-1:
+                dis += 1
+            return dis
 
-    def cost(n: Location, goals: list[Location]):
+    def cost(n: Location, goal: Location):
         x1, y1, z1 = n
-        dis = min([math.dist((x1, z1), (x2, z2))
-                   for (x2, y2, z2) in goals])
+        x2, y2, z2 = goal
+        dx, dy, dz = abs(x2-x1), abs(y2-y1), abs(z2-z1)
+        wx, wy, wz = 1, 2, 1
+        dis = math.sqrt((dx*wx)**2 + (dy*wy)**2 + (dz*wz)**2)
         # print(f'dis({n}) = {dis}')
         return dis
 
-    def isReached(n: Location, goals: list[Location]):
-        return n in goals
+    def isReached(n: Location, goal: Location):
+        return n == goal
 
-    return astar.find_path(start, exists, neighbors_fnct=neighbors,
+    return astar.find_path(start, target, neighbors_fnct=neighbors,
                            heuristic_cost_estimate_fnct=cost, distance_between_fnct=distance,
                            is_goal_reached_fnct=isReached)
 
@@ -93,7 +108,7 @@ def pathFind(start: Location,
 def buildRoad(start: Location,
               roads: list[Location] = [],
               buildings: list[Location] = [],
-              ):
+              blocks: any = "grass_path"):
     res = pathFind(start, roads, buildings)
     if res == None:
         print('astar failed')
@@ -106,4 +121,6 @@ def buildRoad(start: Location,
     for x, y, z in path:
         loc: Location = (x, y, z)
         roads.append(loc)
-        INTF.placeBlock(*loc, "gravel")
+        if INTF.getBlock(x, y+1, z) != "minecraft:air":
+            INTF.placeBlock(x, y+1, z, "air")
+        INTF.placeBlock(*loc, blocks)

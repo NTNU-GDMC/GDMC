@@ -53,7 +53,8 @@ def buildBasicBuilding():
     buildArea = getSmoothChunk(heights)
     coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30, buildArea)
 
-    print("coBuildingList:", coBuildingList)
+    print("coBuildingList:")
+    pprint.pprint(coBuildingList)
 
     x, z = coBuildingList[0]
     INTF.runCommand(f"tp @a {x} 100 {z}")
@@ -63,8 +64,8 @@ def buildBasicBuilding():
         x, z = floor(x), floor(z)
 
         y = int(heights[(x, z)])
-        x = x + STARTX
-        z = z + STARTZ
+        x = int(x + STARTX)
+        z = int(z + STARTZ)
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
@@ -74,7 +75,6 @@ def buildBasicBuilding():
 
         sizeX, sizeY, sizeZ = tmp = map(
             lambda e: int(e.value), nbt_struct["size"])
-        print("tmp:", tmp)
         print("size x, y, z:", sizeX, sizeY, sizeZ)
 
         buildingInfo = BEI.BuildingInfo(getBuildingInfoDir(buildingType))
@@ -84,17 +84,19 @@ def buildBasicBuilding():
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
-        entryPos: Location = (x + dx, y + dy, z + dz)
+        entryPos: Location = (x+dx, y+dy, z+dz)
         print("entry pos(T):", entryPos)
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
-                    buildingBlk: Location = (x + dx, y + dy, z + dz)
-                    if buildingBlk == entry.pos:
+                    x1, y1, z1 = x+dx, y+dy, z+dz
+                    buildingBlk: Location = (x1, y1, z1)
+                    if buildingBlk == entryPos:
                         continue
                     buildings.append(buildingBlk)
 
-        pathfind.buildRoad(entryPos, roads, buildings)
+        pathfind.buildRoad(start=entryPos, roads=roads, buildings=buildings)
+        print(f"{'-'*50}build one finish")
 
 
 def buildRoadDecoration():

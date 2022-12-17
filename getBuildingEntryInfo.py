@@ -3,10 +3,10 @@ import os
 
 class Entry:
     facing :str
-    pos: tuple
+    pos: tuple[int, int, int]
     def __init__(self):
         self.facing = ""
-        self.pos = tuple()
+        self.pos = (0, 0, 0)
 
 class BuildingInfo:
     entriesNameList = []
