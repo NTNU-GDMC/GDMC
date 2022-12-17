@@ -39,6 +39,9 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         #INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
         INTF.runCommand("/setblock {} {} {} {}".format(x +
                         baseX, y + baseY, z + baseZ, blkName))
+    
+
+def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> Tuple[int, int, int]:
     size = nbt_struct["size"]
     return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
