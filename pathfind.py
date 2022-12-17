@@ -35,6 +35,8 @@ def pathFind(target: Location,
     if exists == []:
         return iter([target])
 
+    existsDict = dict.fromkeys(exists)
+
     start = random.choice(exists)
     print(f'start: {start}, target: {target}')
     # print('exists:')
@@ -54,15 +56,15 @@ def pathFind(target: Location,
 
             dys = [0]
 
-            if math.dist((x1, z1), (start[0], start[2])) < 1 or \
-                math.dist((x1, z1), (target[0], target[2])) < 1:
+            if math.dist((x1, z1), (start[0], start[2])) < 3 or \
+                math.dist((x1, z1), (target[0], target[2])) < 3:
                 dys += [-1, 1]
             for dy in dys:
                 y1 = int(heights[(x1, z1)])-1 + dy
             
 
                 # check if x1, y1, z1 out of bound
-                if (INTF.checkOutOfBounds(x1, y1, z1)):
+                if y1 < STARTY or y1 > ENDY:
                     continue
 
                 # height diff not greater than 1
@@ -76,7 +78,7 @@ def pathFind(target: Location,
                 yield n1
 
     def distance(n1: Location, n2: Location):
-        if n1 in exists and n2 in exists:
+        if n1 in existsDict and n2 in existsDict:
             return 0.0
         x1, y1, z1 = n1
         x2, y2, z2 = n2
