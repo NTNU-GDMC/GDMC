@@ -61,7 +61,6 @@ def pathFind(target: Location,
                 dys += [-1, 1]
             for dy in dys:
                 y1 = int(heights[(x1, z1)])-1 + dy
-            
 
                 # check if x1, y1, z1 out of bound
                 if y1 < STARTY or y1 > ENDY:
