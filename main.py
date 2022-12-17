@@ -32,8 +32,7 @@ roads: list[Location] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
 # BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-BUILDING_TYPE = ["chalet", "chalet_2"]
-# BUILDING_TYPE = ["nbt_example"]
+BUILDING_TYPE = ["nbt_example"]
 
 analyzeReferCoord = ()
 
@@ -116,7 +115,6 @@ if __name__ == '__main__':
         # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
         # print(f"/tp @a {STARTX} {height} {STARTZ}")
         buildBasicBuilding()
-        # test(-151,4,217)
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
