@@ -70,7 +70,11 @@ def buildBasicBuilding():
         buildingType = random.choice(BUILDING_TYPE)
 
         nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
+        size = nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
+        for ix in range(x, x + size[0]):
+            for iz in range(z, z + size[2]):
+                for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
+                    INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
 
         sizeX, sizeY, sizeZ = tmp = map(
             lambda e: int(e.value), nbt_struct["size"])
