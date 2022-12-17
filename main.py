@@ -15,6 +15,7 @@ from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
 import random
 from poissionDiskSampling import poissionSample as pS
+from AnalyzeAreaMaterial import analyzeAreaMaterial
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
@@ -31,8 +32,10 @@ roads: list[Location] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
 # BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-BUILDING_TYPE = ["nbt_example"]
+BUILDING_TYPE = ["chalet", "chalet_2"]
+# BUILDING_TYPE = ["nbt_example"]
 
+analyzeReferCoord = ()
 
 def getBuildingDir(name: str):
     return os.path.join(STRUCTURE_DIR, name)
@@ -56,6 +59,16 @@ def buildBasicBuilding():
     print("coBuildingList:", coBuildingList)
 
     x, z = coBuildingList[0]
+
+    # analyze Biome
+    # return "origin", "desert", "badland", or "snow"
+    x, z = int(x), int(z)
+    y = int(heights[(x, z)])
+    analyzeReferCoord = (x, y, z)
+    biome = str(analyzeAreaMaterial(*analyzeReferCoord))
+
+    print("Biome of this certain region is : ", biome)
+
     INTF.runCommand(f"tp @a {x} 100 {z}")
 
     for pos in coBuildingList:
@@ -70,7 +83,7 @@ def buildBasicBuilding():
         buildingType = random.choice(BUILDING_TYPE)
 
         nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
+        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
 
         sizeX, sizeY, sizeZ = tmp = map(
             lambda e: int(e.value), nbt_struct["size"])
@@ -103,7 +116,8 @@ if __name__ == '__main__':
         # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
         # print(f"/tp @a {STARTX} {height} {STARTZ}")
         buildBasicBuilding()
-
+        # test(-151,4,217)
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
+    
