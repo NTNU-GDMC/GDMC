@@ -1,0 +1,13 @@
+{
+    "Entries": [
+        {
+            "facing": "north",
+            "roadStartPosition": [
+                1,
+                -1,
+                -1
+            ],
+            "type": "mainEntry"
+        }
+    ]
+}

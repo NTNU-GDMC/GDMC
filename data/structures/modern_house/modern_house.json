@@ -1,0 +1,24 @@
+{
+    "Entries":[
+        {
+            "facing": "south",
+            "roadStartPosition": [15, -1, 25],
+            "type": "mainEntry"
+        },
+        {
+            "facing": "west",
+            "roadStartPosition": [-1, -1, 8],
+            "type": "backYardEntry"
+        },
+        {
+            "facing": "north",
+            "roadStartPosition": [25, -1, -1],
+            "type": "backEntry"
+        },
+        {
+            "facing": "east",
+            "roadStartPosition": [34, -1, 10],
+            "type": "sideEntry"
+        }
+    ]
+}
