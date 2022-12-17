@@ -93,7 +93,7 @@ def pathFind(start: Location,
 def buildRoad(start: Location,
               roads: list[Location] = [],
               buildings: list[Location] = [],
-              ):
+              blocks: any = "dirt_path"):
     res = pathFind(start, roads, buildings)
     if res == None:
         print('astar failed')
@@ -106,4 +106,4 @@ def buildRoad(start: Location,
     for x, y, z in path:
         loc: Location = (x, y, z)
         roads.append(loc)
-        INTF.placeBlock(*loc, "gravel")
+        INTF.placeBlock(*loc, blocks)
