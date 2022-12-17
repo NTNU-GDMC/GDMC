@@ -45,6 +45,11 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
                         baseX, y + baseY, z + baseZ, blkName, option), 200)
 
 
+def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> tuple[int, int, int]:
+    size = nbt_struct["size"]
+    return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
+
+
 if __name__ == '__main__':
     with open(sys.argv[1], 'rb') as f:
         nbt_struct = nbt.NBTFile(fileobj=f)

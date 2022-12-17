@@ -31,8 +31,8 @@ buildings: list[Location] = []
 roads: list[Location] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
-# BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-BUILDING_TYPE = ["nbt_example"]
+BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
+# BUILDING_TYPE = ["nbt_example"]
 
 
 def getBuildingDir(name: str):
@@ -71,6 +71,12 @@ def buildBasicBuilding():
         buildingType = random.choice(BUILDING_TYPE)
 
         nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
+        size = nbt_builder.getStructureSizeNBT(nbt_struct)
+        for ix in range(x, x + size[0]):
+            for iz in range(z, z + size[2]):
+                for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
+                    INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
+
         nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
 
         sizeX, sizeY, sizeZ = tmp = map(
@@ -127,10 +133,12 @@ def placeStreetLight(x: int, y: int, z: int):
     INTF.placeBlock(x, y+1, z, "cobblestone_wall")
     INTF.placeBlock(x, y+2, z, "torch")
 
+
 def buildLightDecoration():
     locs = lightDecoration(roads, 16, None)
     for loc in locs:
         placeStreetLight(*loc)
+
 
 if __name__ == '__main__':
     try:
