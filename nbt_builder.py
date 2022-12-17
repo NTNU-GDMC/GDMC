@@ -1,8 +1,8 @@
 import sys
 from nbt import nbt as nbt
-from gdpc import interface as INTF
-from changeBlockByBiome import ischangeBlock
-from changeBlockByBiome import changeBlock
+# from gdpc import interface as INTF
+import interface
+INTF = interface.Interface()
 
 def nbtToString(nbt_struct: nbt.TAG):
     match nbt_struct:
@@ -25,7 +25,7 @@ def nbtToString(nbt_struct: nbt.TAG):
             return '{}'.format(str(nbt_struct))
 
 
-def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, biome: str):
+def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, keep=False):
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:
         x, y, z = map(lambda e: int(e.value), blk["pos"])
@@ -36,12 +36,17 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
                                                for k, v in palatte[state]["Properties"].iteritems()]))
         if "nbt" in blk:
             blkName += nbtToString(blk["nbt"])
-        #INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
-        if ischangeBlock(biome) == True:
-            blkName = changeBlock(biome, blkName)
-        # print(blkName)
-        INTF.runCommand("/setblock {} {} {} {}".format(x +
-                        baseX, y + baseY, z + baseZ, blkName))
+        # INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
+        option = "replace"
+        if keep:
+            option = "keep"
+        INTF.runCommand("/setblock {} {} {} {} {}".format(x +
+                        baseX, y + baseY, z + baseZ, blkName, option), 200)
+
+
+def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> tuple[int, int, int]:
+    size = nbt_struct["size"]
+    return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
 
 if __name__ == '__main__':
