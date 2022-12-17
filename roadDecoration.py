@@ -70,7 +70,7 @@ def treeDecoration(roadCoord, interval, heights):
             if len([road for road in roadCoord if (road[0] == nx and road[2] == nz)]) == 0:
                 treeData.append([nx, heights[nx][nz], nz])
 
-    return treeData
+    return removeNear(treeData, interval)
 
 
 def lightDecoration(roadCoord: list[Location], interval: float, heights):
