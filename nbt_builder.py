@@ -1,6 +1,8 @@
 import sys
 from nbt import nbt as nbt
-from gdpc import interface as INTF
+# from gdpc import interface as INTF
+import interface
+INTF = interface.Interface()
 
 
 def nbtToString(nbt_struct: nbt.TAG):
@@ -40,7 +42,7 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         if keep:
             option = "keep"
         INTF.runCommand("/setblock {} {} {} {} {}".format(x +
-                        baseX, y + baseY, z + baseZ, blkName, option))
+                        baseX, y + baseY, z + baseZ, blkName, option), 200)
 
 
 if __name__ == '__main__':
