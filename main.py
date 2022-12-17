@@ -97,13 +97,26 @@ def buildBasicBuilding():
         pathfind.buildRoad(entryPos, roads, buildings)
 
 
+def buildRoadDecoration():
+    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    data = roadDecoration(roads, 8, heights)
+    for flower in data:
+        [x, y, z, name] = flower
+        INTF.placeBlock(x, y, z, name)
+    for road in roads:
+        [x, y, z] = road
+        INTF.placeBlock(x, y+1, z, "air")
+        INTF.placeBlock(x, y+1, z, "air")
+    return
+
+
 if __name__ == '__main__':
     try:
         height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
         # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
         # print(f"/tp @a {STARTX} {height} {STARTZ}")
         buildBasicBuilding()
-
+        buildRoadDecoration()
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
