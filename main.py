@@ -53,7 +53,8 @@ def buildBasicBuilding():
     buildArea = getSmoothChunk(heights)
     coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30, buildArea)
 
-    print("coBuildingList:", coBuildingList)
+    print("coBuildingList:")
+    pprint.pprint(coBuildingList)
 
     x, z = coBuildingList[0]
     INTF.runCommand(f"tp @a {x} 100 {z}")
@@ -74,7 +75,6 @@ def buildBasicBuilding():
 
         sizeX, sizeY, sizeZ = tmp = map(
             lambda e: int(e.value), nbt_struct["size"])
-        print("tmp:", tmp)
         print("size x, y, z:", sizeX, sizeY, sizeZ)
 
         buildingInfo = BEI.BuildingInfo(getBuildingInfoDir(buildingType))
@@ -89,12 +89,14 @@ def buildBasicBuilding():
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
-                    buildingBlk: Location = (x+dx, y+dy, z+dz)
+                    x1, y1, z1 = x+dx, y+dy, z+dz
+                    buildingBlk: Location = (x1, y1, z1)
                     if buildingBlk == entryPos:
                         continue
                     buildings.append(buildingBlk)
 
-        pathfind.buildRoad(entryPos, roads, buildings)
+        pathfind.buildRoad(start=entryPos, roads=roads, buildings=buildings)
+        print(f"{'-'*50}build one finish")
 
 
 if __name__ == '__main__':
