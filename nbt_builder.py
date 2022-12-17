@@ -36,7 +36,7 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         if "nbt" in blk:
             blkName += nbtToString(blk["nbt"])
         # INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
-        option = ""
+        option = "replace"
         if keep:
             option = "keep"
         INTF.runCommand("/setblock {} {} {} {} {}".format(x +

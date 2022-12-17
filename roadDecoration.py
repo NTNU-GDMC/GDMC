@@ -17,12 +17,12 @@ flowers = [
 ]
 
 flowerStampSize = [[8, 3], [12, 5], [16, 2]]
-treeStampSize = [8, 3]
+treeStampSize = [14, 3]
 
-# return value is [x,z,flowerName]
+# return value is [x,y,z,flowerName]
 
 
-def roadDecoration(roadCoord, interval, heights) -> []:
+def roadDecoration(roadCoord, interval, heights):
     flowerData = []
     size = len(roadCoord)
     for idx in range(0, size, interval):
@@ -38,7 +38,7 @@ def roadDecoration(roadCoord, interval, heights) -> []:
     return flowerData
 
 
-def treeDecoration(roadCoord, interval, heights) -> []:
+def treeDecoration(roadCoord, interval, heights):
     treeData = []
     size = len(roadCoord)
     for idx in range(0, size, interval):
@@ -47,9 +47,9 @@ def treeDecoration(roadCoord, interval, heights) -> []:
         for _ in range(count):
             nx = randint(x - size, x+size)
             nz = randint(z - size, z+size)
-            if len([x for x in roadCoord if (x[0] == nx and x[2] == nz)]) > 0:
-                continue
-
-            treeData.append([nx, heights[nx][nz], nz])
+            print("does collide", [
+                  x for x in roadCoord if (x[0] == nx and x[2] == nz)])
+            if len([road for road in roadCoord if (road[0] == nx and road[2] == nz)]) == 0:
+                treeData.append([nx, heights[nx][nz], nz])
 
     return treeData

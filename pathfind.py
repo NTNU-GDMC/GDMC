@@ -55,11 +55,10 @@ def pathFind(target: Location,
             dys = [0]
 
             if math.dist((x1, z1), (start[0], start[2])) < 1 or \
-                math.dist((x1, z1), (target[0], target[2])) < 1:
+                    math.dist((x1, z1), (target[0], target[2])) < 1:
                 dys += [-1, 1]
             for dy in dys:
                 y1 = int(heights[(x1, z1)])-1 + dy
-            
 
                 # check if x1, y1, z1 out of bound
                 if (INTF.checkOutOfBounds(x1, y1, z1)):
