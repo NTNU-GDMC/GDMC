@@ -7,6 +7,9 @@ import math
 import astar
 import pprint
 import random
+from interface import Interface
+
+intf = Interface()
 
 Location = tuple[int, int, int]
 Area = tuple[int, int, int, int, int, int]
@@ -26,7 +29,7 @@ dirs: dict[str, tuple[int, int]] = {
 def pathFind(target: Location,
              exists: list[Location] = [],
              ignores: list[Location] = [],
-             buildArea: Area = INTF.globalBuildArea) -> Union[Iterable, None]:
+             buildArea: Area = INTF.requestBuildArea()) -> Union[Iterable, None]:
     STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea
     WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
@@ -48,6 +51,9 @@ def pathFind(target: Location,
     # print('ignores:')
     # pprint.pprint(ignores)
 
+    def height(x: int, z: int) -> int:
+        return int(heights[(x, z)])-1
+
     def neighbors(n: Location):
         # print(f'neighbors: {n}')
         x, y, z = n
@@ -61,10 +67,11 @@ def pathFind(target: Location,
             dys = [0]
 
             if math.dist((x1, z1), (start[0], start[2])) < 3 or \
-                math.dist((x1, z1), (target[0], target[2])) < 3:
+                    math.dist((x1, z1), (target[0], target[2])) < 3:
                 dys += [-1, 1]
+
             for dy in dys:
-                y1 = int(heights[(x1, z1)])-1 + dy
+                y1 = height(x1, z1) + dy
 
                 # check if x1, y1, z1 out of bound
                 if y1 < STARTY or y1 > ENDY:
@@ -85,21 +92,20 @@ def pathFind(target: Location,
             return 0.0
         x1, y1, z1 = n1
         x2, y2, z2 = n2
+        wx, wy, wz = 1, 1.2, 1
         dx, dy, dz = abs(x2-x1), abs(y2-y1), abs(z2-z1)
-        wx, wy, wz = 1, 2, 1
         if dx + dz == 1:
             dis = math.sqrt((dx*wx)**2 + (dy*wy)**2 + (dz*wz)**2)
-            if y1 != int(heights[(x1, z1)])-1 or y2 != int(heights[(x2, z2)])-1:
-                dis += 1
+            if y1 != height(x1, z1) or y2 != height(x2, z2):
+                dis += 0.5
             return dis
 
     def cost(n: Location, goal: Location):
-        x1, y1, z1 = n
-        x2, y2, z2 = goal
-        dx, dy, dz = abs(x2-x1), abs(y2-y1), abs(z2-z1)
-        wx, wy, wz = 1, 2, 1
-        dis = math.sqrt((dx*wx)**2 + (dy*wy)**2 + (dz*wz)**2)
-        # print(f'dis({n}) = {dis}')
+        dis = math.dist(n, goal)
+        if dis / math.dist(start, goal) < 0.25:
+            dis *= 0.8
+        else:
+            dis *= 3
         return dis
 
     def isReached(n: Location, goal: Location):
