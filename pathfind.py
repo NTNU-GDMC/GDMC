@@ -36,6 +36,7 @@ def pathFind(target: Location,
         return iter([target])
 
     existsDict = dict.fromkeys(exists)
+    ignoresDict = dict.fromkeys(ignores)
 
     start = random.choice(exists)
     print(f'start: {start}, target: {target}')
@@ -72,7 +73,7 @@ def pathFind(target: Location,
 
                 n1: Location = (x1, y1, z1)
                 # skip ingores
-                if n1 in ignores:
+                if n1 in ignoresDict:
                     continue
                 yield n1
 
