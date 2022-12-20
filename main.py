@@ -15,6 +15,8 @@ from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
 import random
 from poissionDiskSampling import poissionSample as pS
+from roadDecoration import roadDecoration, treeDecoration, lightDecoration
+from AnalyzeAreaMaterial import analyzeAreaMaterial
 
 # Here we read start and end coordinates of our build area
 # STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
@@ -30,9 +32,10 @@ buildings: list[Location] = []
 roads: list[Location] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
-# BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-BUILDING_TYPE = ["chalet", "chalet_2"]
+BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
+# BUILDING_TYPE = ["nbt_example"]
 
+analyzeReferCoord = ()
 
 def getBuildingDir(name: str):
     return os.path.join(STRUCTURE_DIR, name)
@@ -51,11 +54,21 @@ def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     buildArea = getSmoothChunk(heights)
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 5, 30, buildArea)
+    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 10, 23, buildArea)
 
     print("coBuildingList:", coBuildingList)
 
     x, z = coBuildingList[0]
+
+    # analyze Biome
+    # return "origin", "desert", "badland", or "snow"
+    x, z = int(x), int(z)
+    y = int(heights[(x, z)])
+    analyzeReferCoord = (x, y, z)
+    biome = str(analyzeAreaMaterial(*analyzeReferCoord))
+
+    print("Biome of this certain region is : ", biome)
+
     INTF.runCommand(f"tp @a {x} 100 {z}")
 
     for pos in coBuildingList:
@@ -70,14 +83,13 @@ def buildBasicBuilding():
         buildingType = random.choice(BUILDING_TYPE)
 
         nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
-
         size = nbt_builder.getStructureSizeNBT(nbt_struct)
         for ix in range(x, x + size[0]):
             for iz in range(z, z + size[2]):
                 for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
                     INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
 
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
+        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
 
         sizeX, sizeY, sizeZ = tmp = map(
             lambda e: int(e.value), nbt_struct["size"])
@@ -104,13 +116,53 @@ def buildBasicBuilding():
         pathfind.buildRoad(entryPos, roads, buildings)
 
 
+def buildRoadDecoration():
+    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    data = roadDecoration(roads, 8, heights)
+    for flower in data:
+        [x, y, z, name] = flower
+        INTF.placeBlock(x, y, z, name)
+    return
+
+
+def buildTreeDecoration():
+    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    data = treeDecoration(roads, 12, heights)
+    nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
+
+    for tree in data:
+        [x, y, z] = tree
+        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, True)
+    for road in roads:
+        [x, y, z] = road
+        INTF.placeBlock(x, y+1, z, "air")
+        INTF.placeBlock(x, y+1, z, "air")
+    return
+
+
+def placeStreetLight(x: int, y: int, z: int):
+    INTF.placeBlock(x, y, z, "cobblestone")
+    INTF.placeBlock(x, y+1, z, "cobblestone_wall")
+    INTF.placeBlock(x, y+2, z, "torch")
+
+
+def buildLightDecoration():
+    locs = lightDecoration(roads, 16, None)
+    for loc in locs:
+        placeStreetLight(*loc)
+
+
 if __name__ == '__main__':
     try:
         height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
         # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
         # print(f"/tp @a {STARTX} {height} {STARTZ}")
         buildBasicBuilding()
+        buildRoadDecoration()
+        buildTreeDecoration()
+        buildLightDecoration()
 
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
+    
