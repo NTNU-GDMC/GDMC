@@ -17,11 +17,14 @@ import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
+from interface import Interface
 
-# Here we read start and end coordinates of our build area
-# STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
-STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 200, 255, 200)
+intf = Interface()
+
+STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 255, 255, 255)
+
+intf.runCommand(
+    f"/setbuildarea {STARTX} {STARTY} {STARTZ} {ENDX} {ENDY} {ENDZ}", 0)
 print("Build Area: ", *INTF.requestBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
@@ -37,6 +40,7 @@ BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
 
 analyzeReferCoord = ()
 
+
 def getBuildingDir(name: str):
     return os.path.join(STRUCTURE_DIR, name)
 
@@ -51,6 +55,7 @@ def getBuildingInfoDir(name: str):
 
 
 def buildBasicBuilding():
+    global buildings
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     buildArea = getSmoothChunk(heights)
@@ -82,24 +87,17 @@ def buildBasicBuilding():
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
-
         nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
-        size = nbt_builder.getStructureSizeNBT(nbt_struct)
-        for ix in range(x, x + size[0]):
-            for iz in range(z, z + size[2]):
-                for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
-                    INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
 
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
-
-        sizeX, sizeY, sizeZ = tmp = map(
-            lambda e: int(e.value), nbt_struct["size"])
+        sizeX, sizeY, sizeZ = map(lambda e: int(e.value), nbt_struct["size"])
         print("size x, y, z:", sizeX, sizeY, sizeZ)
 
         buildingInfo = BEI.BuildingInfo(getBuildingInfoDir(buildingType))
 
         entryNames = buildingInfo.getBuildingNameList()
         entry = buildingInfo.getEntryInfo(entryNames[0])
+
+        tmpBuildings = buildings.copy()
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
@@ -112,10 +110,21 @@ def buildBasicBuilding():
                     buildingBlk: Location = (x1, y1, z1)
                     if buildingBlk == entryPos:
                         continue
-                    buildings.append(buildingBlk)
+                    tmpBuildings.append(buildingBlk)
 
-        pathfind.buildRoad(entryPos, roads, buildings)
-        print(f"{'-'*25}build one finish{'-'*25}")
+        ok = pathfind.buildRoad(entryPos, roads, tmpBuildings)
+
+        if ok:
+            size = nbt_builder.getStructureSizeNBT(nbt_struct)
+            for ix in range(x, x + size[0]):
+                for iz in range(z, z + size[2]):
+                    for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
+                        INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
+            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
+            buildings = tmpBuildings
+            print(f"{'-'*25}build one finish{'-'*25}")
+        else:
+            print(f"{'-'*25}build one failed{'-'*25}")
 
 
 def buildRoadDecoration():
@@ -167,4 +176,3 @@ if __name__ == '__main__':
         print("Done!")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
-    

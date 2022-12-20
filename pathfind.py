@@ -134,7 +134,7 @@ def buildRoad(start: Location,
         print(f'build road from: {start}')
         print('build road to:')
         pprint.pprint(roads)
-        return
+        return False
 
     path = list(res)
     for x, y, z in path:
@@ -143,3 +143,5 @@ def buildRoad(start: Location,
         if INTF.getBlock(x, y+1, z) != "minecraft:air":
             INTF.placeBlock(x, y+1, z, "air")
         INTF.placeBlock(*loc, blocks)
+
+    return True
