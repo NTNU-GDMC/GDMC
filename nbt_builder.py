@@ -1,6 +1,7 @@
 import sys
 from nbt import nbt as nbt
 from gdpc import interface as INTF
+from typing import Tuple
 
 
 def nbtToString(nbt_struct: nbt.TAG):
@@ -38,6 +39,11 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         #INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
         INTF.runCommand("/setblock {} {} {} {}".format(x +
                         baseX, y + baseY, z + baseZ, blkName))
+
+
+def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> Tuple[int, int, int]:
+    size = nbt_struct["size"]
+    return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
 
 if __name__ == '__main__':
