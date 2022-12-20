@@ -38,8 +38,11 @@ def pathFind(target: Location,
     existsDict = dict.fromkeys(exists)
     ignoresDict = dict.fromkeys(ignores)
 
-    start = random.choice(exists)
-    print(f'start: {start}, target: {target}')
+    start = exists[0]
+
+    def randomStart():
+        return random.choice(exists)
+
     # print('exists:')
     # pprint.pprint(exists)
     # print('ignores:')
@@ -102,9 +105,17 @@ def pathFind(target: Location,
     def isReached(n: Location, goal: Location):
         return n == goal
 
-    return astar.find_path(start, target, neighbors_fnct=neighbors,
-                           heuristic_cost_estimate_fnct=cost, distance_between_fnct=distance,
-                           is_goal_reached_fnct=isReached)
+    def run(retries: int = 1) -> Union[Iterable, None]:
+        start = randomStart()
+        print(f'start: {start}, target: {target}')
+        res = astar.find_path(start, target, neighbors_fnct=neighbors,
+                              heuristic_cost_estimate_fnct=cost, distance_between_fnct=distance,
+                              is_goal_reached_fnct=isReached)
+        if res == None and retries > 0:
+            return run(retries-1)
+        return res
+
+    return run()
 
 
 def buildRoad(start: Location,
