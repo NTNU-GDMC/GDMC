@@ -8,8 +8,9 @@ from pathfind import Location
 import pathfind
 from gdpc import geometry as GEO
 from gdpc import interface as INTF
-from gdpc import toolbox as TB
-from gdpc import worldLoader as WL
+from gdpc import minecraft_tools as TB
+from gdpc import world_slice as WL
+from gdpc import Editor, Block
 from math import floor
 from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
@@ -18,18 +19,21 @@ from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
 from interface import Interface
+import glm 
+import math
 
 intf = Interface()
+editor = Editor(buffering=True)
 
 STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 255, 255, 255)
 
 intf.runCommand(
     f"/setbuildarea {STARTX} {STARTY} {STARTZ} {ENDX} {ENDY} {ENDZ}", 0)
-print("Build Area: ", *INTF.requestBuildArea())
+print("Build Area: ", INTF.getBuildArea())
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
 #   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
+WORLDSLICE = WL.WorldSlice(WL.Rect(glm.ivec2(STARTX, STARTZ), glm.ivec2(abs(ENDX - STARTX), abs(ENDZ - STARTZ))))
 
 buildings: list[Location] = []
 roads: list[Location] = []
@@ -119,7 +123,7 @@ def buildBasicBuilding():
             for ix in range(x, x + size[0]):
                 for iz in range(z, z + size[2]):
                     for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
-                        INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
+                        editor.placeBlock(glm.ivec3(ix, iy, iz), Block("minecraft:dirt"))
             nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
@@ -132,7 +136,7 @@ def buildRoadDecoration():
     data = roadDecoration(roads, 8, heights)
     for flower in data:
         [x, y, z, name] = flower
-        INTF.placeBlock(x, y, z, name)
+        editor.placeBlock(glm.ivec3(x, y, z), Block(name))
     return
 
 
@@ -146,15 +150,15 @@ def buildTreeDecoration():
         nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, True)
     for road in roads:
         [x, y, z] = road
-        INTF.placeBlock(x, y+1, z, "air")
-        INTF.placeBlock(x, y+1, z, "air")
+        editor.placeBlock(glm.ivec3(x, y+1, z), Block("air"))
+        editor.placeBlock(glm.ivec3(x, y+1, z), Block("air"))
     return
 
 
 def placeStreetLight(x: int, y: int, z: int):
-    INTF.placeBlock(x, y, z, "cobblestone")
-    INTF.placeBlock(x, y+1, z, "cobblestone_wall")
-    INTF.placeBlock(x, y+2, z, "torch")
+    editor.placeBlock(glm.ivec3(x, y, z), Block("cobblestone"))
+    editor.placeBlock(glm.ivec3(x, y+1, z), Block("cobblestone_wall"))
+    editor.placeBlock(glm.ivec3(x, y+2, z), Block("torch"))
 
 
 def buildLightDecoration():

@@ -2,7 +2,9 @@
 # (x,y,z) reference point is the lower left corner. 
 # Namely, if (x,y,z) is (0,0,0), the range of surface will be (x+rangeX, y+rangeY, z+rangeZ), the range of underground will be (x+rangeX, y-rangeY, z+rangeZ),
 import time
-from gdpc import direct_interface as DI
+from gdpc import interface as DI
+from gdpc import Editor
+import glm
 
 def getBiome(surface , under):
     tmpList = {}
@@ -44,6 +46,7 @@ def getBiome(surface , under):
         return str("snow")
 
 def analyzeAreaMaterial(x, y, z):
+    editor = Editor(buffering=True)
     surfaceRange = {'x':16, 'y':12, 'z':16}
     undergroundRange = {'x':16, 'y':4, 'z':16}
     surfaceContent = []
@@ -51,13 +54,13 @@ def analyzeAreaMaterial(x, y, z):
     for rangeX in range(surfaceRange['x']):
         for rangeY in range(surfaceRange['y']):
             for rangeZ in range(surfaceRange['z']):
-                surfaceContent.append(DI.getBlock(x+rangeX,y+rangeY,z+rangeZ))
+                surfaceContent.append(str(editor.getBlock(glm.ivec3(x+rangeX,y+rangeY,z+rangeZ))))
     for rangeX in range(undergroundRange['x']):
         for rangeY in range(undergroundRange['y']):
             for rangeZ in range(undergroundRange['z']):
-                undergroundContent.append(DI.getBlock(x+rangeX,y-rangeY,z+rangeZ))
+                undergroundContent.append(str(editor.getBlock(glm.ivec3(x+rangeX,y-rangeY,z+rangeZ))))
     # print('surfaceContent: ', surfaceContent)
-    # print('undergroundContent: ', undergroundContent)
+    # print('undergroundContent: ', undergroundContent)\
     surfaceMaterialAnalyzeList = {}
     undergroundMaterialAnalyzeList = {}
     for idx in surfaceContent:

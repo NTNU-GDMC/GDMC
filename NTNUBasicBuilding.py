@@ -2,8 +2,8 @@ from random import randint
 
 from gdpc import geometry as GEO
 from gdpc import interface as INTF
-from gdpc import toolbox as TB
-from gdpc import worldLoader as WL
+from gdpc import minecraft_tools as TB
+from gdpc import world_slice as WL
 
 dir = {
     "north": (0, 1),

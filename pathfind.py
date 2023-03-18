@@ -1,13 +1,16 @@
 from typing import Iterable, Union
-from gdpc import worldLoader as WL
-from gdpc import toolbox as TB
+from gdpc import world_slice as WL
+from gdpc import minecraft_tools as TB
 from gdpc import interface as INTF
 from gdpc import geometry as GEO
+from gdpc import vector_tools as VT
+from gdpc import Editor, Block
 import math
 import astar
 import pprint
 import random
 from interface import Interface
+import glm
 
 intf = Interface()
 
@@ -29,9 +32,10 @@ dirs: dict[str, tuple[int, int]] = {
 def pathFind(target: Location,
              exists: list[Location] = [],
              ignores: list[Location] = [],
-             buildArea: Area = INTF.requestBuildArea()) -> Union[Iterable, None]:
-    STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea
-    WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
+             buildArea: VT.Box = INTF.getBuildArea()) -> Union[Iterable, None]:
+    STARTX, STARTY, STARTZ = buildArea.begin
+    ENDX, ENDY, ENDZ = buildArea.last
+    WORLDSLICE = WL.WorldSlice(buildArea.toRect())
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     # first init
@@ -127,7 +131,8 @@ def pathFind(target: Location,
 def buildRoad(start: Location,
               roads: list[Location] = [],
               buildings: list[Location] = [],
-              blocks: any = "grass_path"):
+              blocks: any = "dirt_path"):
+    editor = Editor(buffering=True)
     res = pathFind(start, roads, buildings)
     if res == None:
         print('astar failed')
@@ -140,8 +145,8 @@ def buildRoad(start: Location,
     for x, y, z in path:
         loc: Location = (x, y, z)
         roads.append(loc)
-        if INTF.getBlock(x, y+1, z) != "minecraft:air":
-            INTF.placeBlock(x, y+1, z, "air")
-        INTF.placeBlock(*loc, blocks)
+        if str(editor.getBlock(glm.ivec3(x, y+1, z))) != "minecraft:air":
+            editor.placeBlock(glm.ivec3(x, y+1, z), Block("minecraft:air"))
+        editor.placeBlock(glm.ivec3(x, y, z), Block(blocks))
 
     return True
