@@ -108,6 +108,7 @@ def getSmoothChunk(heights: list[list[int]]):
     # return the list of smooth chunks,corner location (offset to 0,0)
     return res
 
+
 def getAvailableBuildArea(heights: list[list[int]]):
     """
         analysis:
@@ -158,25 +159,28 @@ def getAvailableBuildArea(heights: list[list[int]]):
 
     vis = [[False for i in range(m)] for i in range(n)]
 
-    res = []
     q.put([resX, resY])
     
     res = [[0 for i in range(len(heights[0]))] for i in range(len(heights))]
     while not q.empty():
         cur = q.get()
-        print(cur)
         cx = cur[0]
         cy = cur[1]
+        if vis[cx][cy]:
+            continue
         vis[cx][cy] = True
-        for i in range(cx*16, cx*16 + 16):
-            for j in range(cy*16, cy*16 + 16):
-                res[i][j] = 1
-        for i in range(4):
+        if(q.qsize() > 10000):
+            for a in vis:
+                print(a)
+            return []
+        for curX in range(cx*16, cx*16 + 16):
+            for curY in range(cy*16, cy*16 + 16):
+                res[curX][curY] = 1
+        for i in range(0,4):
             nx = cx + dx[i]
             ny = cy + dy[i]
             if nx < 0 or ny < 0 or nx == n or ny == m:
                 continue
-
             if abs(chunks[cx][cy] - chunks[nx][ny]) <= 2:
                 q.put([nx, ny])
 
@@ -184,3 +188,4 @@ def getAvailableBuildArea(heights: list[list[int]]):
     print(res)
     # return a 2D array, 1 means that the position can be built.
     return res
+
