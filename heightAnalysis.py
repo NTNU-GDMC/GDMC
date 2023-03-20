@@ -184,8 +184,8 @@ def getAvailableBuildArea(heights: list[list[int]]):
             if abs(chunks[cx][cy] - chunks[nx][ny]) <= 2:
                 q.put([nx, ny])
 
-    print("analysis done")
-    print(res)
+    # print("analysis done")
+    # print(res)
     # return a 2D array, 1 means that the position can be built.
     return res
 

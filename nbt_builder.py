@@ -27,7 +27,7 @@ def nbtToString(nbt_struct: nbt.TAG):
         case nbt.TAG_Long():
             return '{}'.format(str(nbt_struct))
 
-
+# fix: isChangeBlock and changeBlock function - SubaRya
 def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, biome:str, keep=False):
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:

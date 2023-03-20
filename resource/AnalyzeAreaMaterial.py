@@ -3,6 +3,7 @@
 # Namely, if (x,y,z) is (0,0,0), the range of surface will be (x+rangeX, y+rangeY, z+rangeZ), the range of underground will be (x+rangeX, y-rangeY, z+rangeZ),
 import time
 from gdpc import direct_interface as DI
+from gdpc import worldLoader
 
 def getBiome(surface , under):
     tmpList = {}
@@ -76,3 +77,61 @@ def analyzeAreaMaterial(x, y, z):
     # print(surfaceSortedMaterialAnalyzeList)
     print(undergroundSortedMaterialAnalyzeList)
     return getBiome(surfaceSortedMaterialAnalyzeList, undergroundSortedMaterialAnalyzeList)
+
+def analyzeOneBlockVerticalMaterial(WORLDSLICE: worldLoader.WorldSlice,x,z):
+    content = []
+    noLeavesHeights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    leavesHeights = WORLDSLICE.heightmaps["MOTION_BLOCKING"]
+    surfaceHeight = int(noLeavesHeights[(x, z)])
+    leavesHeight = int(leavesHeights[(x, z)])
+    # print(surfaceHeight)
+    # print(leavesHeight)
+    # in case there is a tree, it'll detect the tree top surface
+    if(leavesHeight == surfaceHeight): # surface is not tree
+        for y in range(surfaceHeight-10, surfaceHeight+6):
+            content.append(DI.getBlock(x,y,z))
+    else:                              # surface is tree
+        for y in range(surfaceHeight-15, surfaceHeight+1):
+            content.append(DI.getBlock(x,y,z))
+    contentList = {}
+    for idx in content:
+        if idx in contentList:
+            contentList[idx] += 1
+        else:
+            contentList[idx] = 1
+    contentList = dict(sorted(contentList.items(), key=lambda x: x[1], reverse=True))
+    # print("analyzeOneBlockVerticalMaterial x= ", x, "z = ", z)
+    # print(content)
+    # print(contentList)
+    return content, contentList
+
+def analyzeSettlementMaterial(WORLDSLICE: worldLoader.WorldSlice, settlementArea):
+    contentTmp = []
+    contentListTmp = {}
+    content = []
+    contentList = {}
+    x, y = len(settlementArea), len(settlementArea[0])
+    # 01 Map to coord of (x, z)
+    for i in range (1, x):
+        for j in range (1, y):
+            # print("x = ", i, "y = ", j)
+            if(settlementArea[i][j] == 1):
+                contentTmp, contentListTmp = analyzeOneBlockVerticalMaterial(WORLDSLICE, i, j)
+                content.extend(contentTmp)
+                # combine contentList, if there is the same key, add it, sort it then!
+                for key, value in contentListTmp.items():
+                    # print("key: ", key, "value: ", value)
+                    # print(contentList.get(key))
+                    if(contentList.get(key) != None):
+                        contentList[key] += contentListTmp[key]
+                    else:
+                        contentList.update({key:value})
+                contentList = dict(sorted(contentList.items(), key=lambda x: x[1], reverse=True))
+                # print("analyzeSettlementMaterial")
+                # print(contentTmp)
+                # print(contentListTmp)
+                # print("final: ")
+                # print(content)
+                # print(contentList)
+                content = list(set(content))
+    return content, contentList
