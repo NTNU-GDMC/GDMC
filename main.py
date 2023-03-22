@@ -10,6 +10,7 @@ from gdpc import geometry as GEO
 from gdpc import interface as INTF
 from gdpc import minecraft_tools as TB
 from gdpc import world_slice as WL
+from gdpc import vector_tools as VT
 from gdpc import Editor, Block
 from math import floor
 from NTNUBasicBuilding import InitialChalet
@@ -18,22 +19,24 @@ import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
-from interface import Interface
-import glm 
-import math
+import glm
 
-intf = Interface()
 editor = Editor(buffering=True)
 
-STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 255, 255, 255)
+# * Change the build area here
+# ! Notice that set Box((0, 0, 0), (255, 255, 255)) will return Box((0, 0, 0), (256, 256, 256))
+buildArea = editor.setBuildArea(VT.Box((0, 0, 0), (255, 255, 255)))
+print("Build Area:", buildArea)
 
-intf.runCommand(
-    f"/setbuildarea {STARTX} {STARTY} {STARTZ} {ENDX} {ENDY} {ENDZ}", 0)
-print("Build Area: ", INTF.getBuildArea())
+START = buildArea.begin
+END = buildArea.last
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
 #   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(WL.Rect(glm.ivec2(STARTX, STARTZ), glm.ivec2(abs(ENDX - STARTX), abs(ENDZ - STARTZ))))
+WORLDSLICE = WL.WorldSlice(
+    WL.Rect((START.x, START.z), (buildArea.size.x, buildArea.size.z)))
+
+# exit(0)
 
 buildings: list[Location] = []
 roads: list[Location] = []
@@ -63,7 +66,7 @@ def buildBasicBuilding():
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     buildArea = getSmoothChunk(heights)
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 10, 23, buildArea)
+    coBuildingList = pS(START.x, START.z, END.x, END.z, 10, 23, buildArea)
 
     print("coBuildingList:")
     pprint.pprint(coBuildingList)
@@ -86,8 +89,8 @@ def buildBasicBuilding():
         x, z = floor(x), floor(z)
 
         y = int(heights[(x, z)])
-        x = int(x+STARTX)
-        z = int(z+STARTZ)
+        x = int(x+START.x)
+        z = int(z+START.z)
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
@@ -123,7 +126,8 @@ def buildBasicBuilding():
             for ix in range(x, x + size[0]):
                 for iz in range(z, z + size[2]):
                     for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
-                        editor.placeBlock(glm.ivec3(ix, iy, iz), Block("minecraft:dirt"))
+                        editor.placeBlock(
+                            glm.ivec3(ix, iy, iz), Block("minecraft:dirt"))
             nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
@@ -168,10 +172,14 @@ def buildLightDecoration():
 
 
 if __name__ == '__main__':
+    # Change this to True if you want to teleport to the start location
+    tpToStart = False
     try:
-        height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
-        # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
-        # print(f"/tp @a {STARTX} {height} {STARTZ}")
+        if tpToStart:
+            y = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(START.x, START.z)]
+            cmd = f"tp @a {START.x} {y} {START.z}"
+            INTF.runCommand(cmd)
+            print(cmd)
         buildBasicBuilding()
         buildRoadDecoration()
         buildTreeDecoration()
