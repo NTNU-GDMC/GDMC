@@ -1,7 +1,7 @@
 from math import sqrt, floor, pi, sin, cos, dist
 from random import random, randint, choice
-from pathfind import Location
 from operator import itemgetter
+from glm import ivec3
 
 flowers = [
     "dandelion",
@@ -24,9 +24,9 @@ treeStampSize = [14, 3]
 # return value is [x,y,z,flowerName]
 
 
-def removeNear(l: list[Location], minDis: float):
+def removeNear(l: list[ivec3], minDis: float):
     sotredLocs = sorted(l, key=itemgetter(0, 2))
-    res: list[Location] = []
+    res: list[ivec3] = []
     for loc in sotredLocs:
         ok = True
         for j in range(len(res)-1, -1, -1):
@@ -73,8 +73,8 @@ def treeDecoration(roadCoord, interval, heights):
     return removeNear(treeData, interval)
 
 
-def lightDecoration(roadCoord: list[Location], interval: float, heights):
-    lights: list[Location] = []
+def lightDecoration(roadCoord: list[ivec3], interval: float, heights):
+    lights: list[ivec3] = []
     for x, y, z in roadCoord:
         done = False
         for dx in [-1, 0, 1]:

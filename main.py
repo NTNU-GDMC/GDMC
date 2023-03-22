@@ -4,7 +4,6 @@ import pprint
 import nbt_builder
 from nbt import nbt
 import os
-from pathfind import Location
 import pathfind
 from gdpc import geometry as GEO
 from gdpc import interface as INTF
@@ -19,7 +18,7 @@ import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
-import glm
+from glm import ivec3
 
 editor = Editor(buffering=True)
 
@@ -33,13 +32,12 @@ END = buildArea.last
 
 # IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
 #   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(
-    WL.Rect((START.x, START.z), (buildArea.size.x, buildArea.size.z)))
+WORLDSLICE = WL.WorldSlice(buildArea.toRect())
 
 # exit(0)
 
-buildings: list[Location] = []
-roads: list[Location] = []
+buildings: list[ivec3] = []
+roads: list[ivec3] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
 BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
@@ -108,13 +106,13 @@ def buildBasicBuilding():
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
-        entryPos: Location = (x+dx, y+dy, z+dz)
+        entryPos = ivec3(x+dx, y+dy, z+dz)
         print("entry pos(T):", entryPos)
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
                     x1, y1, z1 = x+dx, y+dy, z+dz
-                    buildingBlk: Location = (x1, y1, z1)
+                    buildingBlk = ivec3(x1, y1, z1)
                     if buildingBlk == entryPos:
                         continue
                     tmpBuildings.append(buildingBlk)
@@ -127,7 +125,7 @@ def buildBasicBuilding():
                 for iz in range(z, z + size[2]):
                     for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
                         editor.placeBlock(
-                            glm.ivec3(ix, iy, iz), Block("minecraft:dirt"))
+                            ivec3(ix, iy, iz), Block("minecraft:dirt"))
             nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
@@ -140,7 +138,7 @@ def buildRoadDecoration():
     data = roadDecoration(roads, 8, heights)
     for flower in data:
         [x, y, z, name] = flower
-        editor.placeBlock(glm.ivec3(x, y, z), Block(name))
+        editor.placeBlock(ivec3(x, y, z), Block(name))
     return
 
 
@@ -154,15 +152,15 @@ def buildTreeDecoration():
         nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, True)
     for road in roads:
         [x, y, z] = road
-        editor.placeBlock(glm.ivec3(x, y+1, z), Block("air"))
-        editor.placeBlock(glm.ivec3(x, y+1, z), Block("air"))
+        editor.placeBlock(ivec3(x, y+1, z), Block("air"))
+        editor.placeBlock(ivec3(x, y+1, z), Block("air"))
     return
 
 
 def placeStreetLight(x: int, y: int, z: int):
-    editor.placeBlock(glm.ivec3(x, y, z), Block("cobblestone"))
-    editor.placeBlock(glm.ivec3(x, y+1, z), Block("cobblestone_wall"))
-    editor.placeBlock(glm.ivec3(x, y+2, z), Block("torch"))
+    editor.placeBlock(ivec3(x, y, z), Block("cobblestone"))
+    editor.placeBlock(ivec3(x, y+1, z), Block("cobblestone_wall"))
+    editor.placeBlock(ivec3(x, y+2, z), Block("torch"))
 
 
 def buildLightDecoration():
