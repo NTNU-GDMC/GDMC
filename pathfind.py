@@ -17,10 +17,6 @@ intf = Interface()
 Location = tuple[int, int, int]
 Area = tuple[int, int, int, int, int, int]
 
-# STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea(
-#     0, 1, 0, 500, 10, 500)
-# WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
-
 dirs: dict[str, tuple[int, int]] = {
     "north": (0, 1),
     "east": (1, 0),
@@ -32,7 +28,9 @@ dirs: dict[str, tuple[int, int]] = {
 def pathFind(target: Location,
              exists: list[Location] = [],
              ignores: list[Location] = [],
-             buildArea: VT.Box = INTF.getBuildArea()) -> Union[Iterable, None]:
+             buildArea: VT.Box = None) -> Union[Iterable, None]:
+    if buildArea == None:
+        buildArea = INTF.getBuildArea()
     STARTX, STARTY, STARTZ = buildArea.begin
     ENDX, ENDY, ENDZ = buildArea.last
     WORLDSLICE = WL.WorldSlice(buildArea.toRect())
@@ -145,8 +143,8 @@ def buildRoad(start: Location,
     for x, y, z in path:
         loc: Location = (x, y, z)
         roads.append(loc)
-        if str(editor.getBlock(glm.ivec3(x, y+1, z))) != "minecraft:air":
-            editor.placeBlock(glm.ivec3(x, y+1, z), Block("minecraft:air"))
-        editor.placeBlock(glm.ivec3(x, y, z), Block(blocks))
+        if str(editor.getBlock((x, y+1, z))) != "minecraft:air":
+            editor.placeBlock((x, y+1, z), Block("minecraft:air"))
+        editor.placeBlock((x, y, z), Block(blocks))
 
     return True
