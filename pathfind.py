@@ -5,146 +5,167 @@ from gdpc import interface as INTF
 from gdpc import geometry as GEO
 from gdpc import vector_tools as VT
 from gdpc import Editor, Block
-import math
 import astar
-import pprint
 import random
-from interface import Interface
-import glm
-
-intf = Interface()
-
-Location = tuple[int, int, int]
-Area = tuple[int, int, int, int, int, int]
-
-dirs: dict[str, tuple[int, int]] = {
-    "north": (0, 1),
-    "east": (1, 0),
-    "south": (0, -1),
-    "west": (-1, 0),
-}
+from gdpc.vector_tools import *
 
 
-def pathFind(target: Location,
-             exists: list[Location] = [],
-             ignores: list[Location] = [],
-             buildArea: VT.Box = None) -> Union[Iterable, None]:
-    if buildArea == None:
-        buildArea = INTF.getBuildArea()
-    STARTX, STARTY, STARTZ = buildArea.begin
-    ENDX, ENDY, ENDZ = buildArea.last
-    WORLDSLICE = WL.WorldSlice(buildArea.toRect())
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+def groundY(point: ivec2, heights: np.ndarray) -> int:
+    return heights[*point]-1
 
-    # first init
-    if exists == []:
-        return iter([target])
 
-    existsDict = dict.fromkeys(exists)
-    ignoresDict = dict.fromkeys(ignores)
+def setGroundY2D(point: ivec2, heights: np.ndarray) -> ivec3:
+    return addY(point, groundY(point, heights))
 
-    start = exists[0]
 
-    def randomStart():
-        return random.choice(exists)
+def setGroundY3D(point: ivec3, heights: np.ndarray) -> ivec3:
+    return setGroundY2D(dropY(point), heights)
 
-    # print('exists:')
-    # pprint.pprint(exists)
-    # print('ignores:')
-    # pprint.pprint(ignores)
 
-    def height(x: int, z: int) -> int:
-        return int(heights[(x, z)])-1
+# fix path y around target
+def fixedPath(path: list[ivec3], targetY: int):
+    for i in range(len(path)):
+        if i != 0:
+            if targetY > path[i][1]:
+                targetY -= 1
+            elif targetY < path[i][1]:
+                targetY += 1
 
-    def neighbors(n: Location):
-        # print(f'neighbors: {n}')
-        x, y, z = n
-        for _, (dx, dz) in dirs.items():
-            x1, z1 = x + dx, z + dz
+        # break if already at target y
+        if path[i][1] == targetY:
+            break
 
-            # check if x1 and z1 out of bound
-            if x1 < STARTX or x1 > ENDX or z1 < STARTZ or z1 > ENDZ:
+        newLoc = setY(path[i], targetY)
+        print(f"fixing path: {path[i]} -> {newLoc}")
+        path[i] = newLoc
+
+    return path
+
+
+def pathFind(
+    start: ivec3,
+    target: ivec3,
+    exists: set[ivec3],
+    ignores: set[ivec3],
+    buildArea: VT.Box,
+    heights: np.ndarray,
+) -> Union[Iterable[ivec3], None]:
+
+    # return true if n is too far to start and target
+    def tooFar(n: ivec3) -> bool:
+        return l1Distance(n, start) + l1Distance(n, target) > 2 * l1Distance(start, target)
+
+    # get neighbors of n
+    def neighbors(n: ivec3):
+        for (x1, z1) in neighbors2D(dropY(n), buildArea.toRect()):
+            n1 = setGroundY2D((x1, z1), heights)
+
+            # skip if too far
+            if tooFar(n1):
                 continue
 
-            dys = [0]
+            # skip if delta y is > 1
+            if abs(n[1]-n1[1]) > 1:
+                continue
 
-            if math.dist((x1, z1), (start[0], start[2])) < 3 or \
-                    math.dist((x1, z1), (target[0], target[2])) < 3:
-                dys += [-1, 1]
+            # skip if not in build area
+            if not buildArea.contains(n1):
+                continue
 
-            for dy in dys:
-                y1 = height(x1, z1) + dy
+            # skip if in ignore list
+            if n1 in ignores:
+                continue
 
-                # check if x1, y1, z1 out of bound
-                if y1 < STARTY or y1 > ENDY:
-                    continue
+            yield n1
 
-                # height diff not greater than 1
-                if abs(y1-y) > 1:
-                    continue
-
-                n1: Location = (x1, y1, z1)
-                # skip ingores
-                if n1 in ignoresDict:
-                    continue
-                yield n1
-
-    def distance(n1: Location, n2: Location):
-        if n1 in existsDict and n2 in existsDict:
+    # real distance
+    def adjDistance(n1: ivec3, n2: ivec3) -> float:
+        if n1 in exists and n2 in exists:
             return 0.0
-        x1, y1, z1 = n1
-        x2, y2, z2 = n2
-        wx, wy, wz = 1, 1.2, 1
-        dx, dy, dz = abs(x2-x1), abs(y2-y1), abs(z2-z1)
-        if dx + dz == 1:
-            dis = math.sqrt((dx*wx)**2 + (dy*wy)**2 + (dz*wz)**2)
-            if y1 != height(x1, z1) or y2 != height(x2, z2):
-                dis += 0.5
-            return dis
 
-    def cost(n: Location, goal: Location):
-        dis = math.dist(n, goal)
-        if dis / math.dist(start, goal) < 0.25:
+        delta = n2 - n1
+
+        # weight for distance
+        delta = setY(delta, delta[1] * 2)
+
+        return l1Norm(delta)
+
+    # heuristic cost
+    def cost(n: ivec3, goal: ivec3) -> float:
+        dis = l1Distance(n, goal)
+
+        if dis / l1Distance(start, goal) < 0.25:
             dis *= 0.8
         else:
             dis *= 3
+
+        if n in exists:
+            dis *= 0.5
+
         return dis
 
-    def isReached(n: Location, goal: Location):
+    # check if n is goal
+    def isReached(n: ivec3, goal: ivec3):
         return n == goal
 
-    def run(retries: int = 1) -> Union[Iterable, None]:
+    return astar.find_path(start,
+                           target,
+                           neighbors_fnct=neighbors,
+                           reversePath=True,
+                           heuristic_cost_estimate_fnct=cost,
+                           distance_between_fnct=adjDistance,
+                           is_goal_reached_fnct=isReached)
+
+
+def buildRoad(target: Vec3iLike,
+              roads: list[Vec3iLike],
+              buildings: list[Vec3iLike],
+              block: Block = Block("minecraft:dirt_path")):
+    editor = Editor(buffering=True)
+    buildArea = INTF.getBuildArea()
+    WORLDSLICE = WL.WorldSlice(buildArea.toRect())
+    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+
+    # run astar with retries
+    def run(retries: int = 1) -> Union[Iterable[ivec3], None]:
+        if len(roads) == 0:
+            return iter([target])
+
+        def randomStart():
+            return random.choice(list(roads))
+
         start = randomStart()
-        print(f'start: {start}, target: {target}')
-        res = astar.find_path(start, target, neighbors_fnct=neighbors,
-                              heuristic_cost_estimate_fnct=cost, distance_between_fnct=distance,
-                              is_goal_reached_fnct=isReached)
+
+        print("[astar] searching...")
+        print(f"start: {start}, target: {target}")
+        res = pathFind(
+            start=start,
+            target=setGroundY3D(target, heights),
+            exists=roads,
+            ignores=buildings,
+            buildArea=buildArea,
+            heights=heights)
         if res == None and retries > 0:
             return run(retries-1)
         return res
 
-    return run()
-
-
-def buildRoad(start: Location,
-              roads: list[Location] = [],
-              buildings: list[Location] = [],
-              blocks: any = "dirt_path"):
-    editor = Editor(buffering=True)
-    res = pathFind(start, roads, buildings)
-    if res == None:
-        print('astar failed')
-        print(f'build road from: {start}')
-        print('build road to:')
-        pprint.pprint(roads)
+    res = run()
+    if res is None:
+        print("[astar] searching failed!")
         return False
+    print("[astar] searching sucessful!")
 
-    path = list(res)
-    for x, y, z in path:
-        loc: Location = (x, y, z)
+    path = fixedPath(res, target[1])
+
+    for loc in path:
         roads.append(loc)
-        if str(editor.getBlock((x, y+1, z))) != "minecraft:air":
-            editor.placeBlock((x, y+1, z), Block("minecraft:air"))
-        editor.placeBlock((x, y, z), Block(blocks))
+
+        # remove blocks above
+        ground = groundY(dropY(loc), heights)
+        if loc.y < ground:
+            for i in range(ground, loc.y, -1):
+                editor.placeBlock(setY(loc, i), Block("minecraft:air"))
+
+        editor.placeBlock(loc, block)
 
     return True
