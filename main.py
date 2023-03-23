@@ -12,30 +12,21 @@ from gdpc import world_slice as WL
 from gdpc.vector_tools import *
 from gdpc import Editor, Block
 from math import floor
-from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
 import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
 from glm import ivec3
-
-
-editor = Editor(buffering=True)
+from globalUtils import setBuildArea, editor, buildArea, worldSlice
 
 # * Change the build area here
 # ! Notice that set Box((0, 0, 0), (255, 255, 255)) will return Box((0, 0, 0), (256, 256, 256))
-buildArea = editor.setBuildArea(Box((0, 0, 0), (255, 255, 255)))
+setBuildArea(Box((0, 0, 0), (255, 255, 255)))
 print("Build Area:", buildArea)
 
 START = buildArea.begin
 END = buildArea.last
-
-# IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
-#   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(buildArea.toRect())
-
-# exit(0)
 
 buildings: list[ivec3] = []
 roads: list[ivec3] = []
@@ -43,8 +34,6 @@ roads: list[ivec3] = []
 STRUCTURE_DIR = os.path.abspath("./data/structures")
 BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
 # BUILDING_TYPE = ["nbt_example"]
-
-analyzeReferCoord = ()
 
 
 def getBuildingDir(name: str):
@@ -62,7 +51,7 @@ def getBuildingInfoDir(name: str):
 
 def buildBasicBuilding():
     global buildings
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     buildArea = getSmoothChunk(heights)
     coBuildingList = pS(START.x, START.z, END.x, END.z, 10, 23, buildArea)
@@ -81,7 +70,7 @@ def buildBasicBuilding():
 
     print("Biome of this certain region is : ", biome)
 
-    INTF.runCommand(f"tp @a {x} 100 {z}")
+    editor.runCommand(f"tp @a {x} 100 {z}")
 
     for pos in coBuildingList:
         x, z = pos
@@ -124,7 +113,7 @@ def buildBasicBuilding():
             size = nbt_builder.getStructureSizeNBT(nbt_struct)
             for ix in range(x, x + size[0]):
                 for iz in range(z, z + size[2]):
-                    for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
+                    for iy in range(worldSlice.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
                         editor.placeBlock(
                             ivec3(ix, iy, iz), Block("minecraft:dirt"))
             nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
@@ -135,7 +124,7 @@ def buildBasicBuilding():
 
 
 def buildRoadDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     data = roadDecoration(roads, 8, heights)
     for flower in data:
         [x, y, z, name] = flower
@@ -144,7 +133,7 @@ def buildRoadDecoration():
 
 
 def buildTreeDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     data = treeDecoration(roads, 12, heights)
     nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
 
@@ -175,9 +164,9 @@ if __name__ == '__main__':
     tpToStart = False
     try:
         if tpToStart:
-            y = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(START.x, START.z)]
+            y = worldSlice.heightmaps["MOTION_BLOCKING"][(START.x, START.z)]
             cmd = f"tp @a {START.x} {y} {START.z}"
-            INTF.runCommand(cmd)
+            editor.runCommand(cmd)
             print(cmd)
         buildBasicBuilding()
         buildRoadDecoration()
