@@ -155,7 +155,7 @@ def buildRoad(target: Vec3iLike,
         return False
     print("[astar] searching sucessful!")
 
-    path = fixedPath(res, target[1])
+    path = fixedPath(list(res), target[1])
 
     for loc in path:
         roads.append(loc)
