@@ -9,7 +9,7 @@ from gdpc import geometry as GEO
 from gdpc import interface as INTF
 from gdpc import minecraft_tools as TB
 from gdpc import world_slice as WL
-from gdpc import vector_tools as VT
+from gdpc.vector_tools import *
 from gdpc import Editor, Block
 from math import floor
 from NTNUBasicBuilding import InitialChalet
@@ -20,11 +20,12 @@ from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 from AnalyzeAreaMaterial import analyzeAreaMaterial
 from glm import ivec3
 
+
 editor = Editor(buffering=True)
 
 # * Change the build area here
 # ! Notice that set Box((0, 0, 0), (255, 255, 255)) will return Box((0, 0, 0), (256, 256, 256))
-buildArea = editor.setBuildArea(VT.Box((0, 0, 0), (255, 255, 255)))
+buildArea = editor.setBuildArea(Box((0, 0, 0), (255, 255, 255)))
 print("Build Area:", buildArea)
 
 START = buildArea.begin
