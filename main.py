@@ -1,4 +1,5 @@
 #! /usr/bin/python3
+import time
 import getBuildingEntryInfo as BEI
 import pprint
 import nbt_builder
@@ -13,15 +14,19 @@ from gdpc import worldLoader as WL
 from math import floor
 from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
+from heightAnalysis import getAvailableBuildArea
+from resource.AnalyzeAreaBiomeList import getAllBiomeList
+from resource.AnalyzeAreaMaterial import analyzeOneBlockVerticalMaterial
+from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
-from AnalyzeAreaMaterial import analyzeAreaMaterial
+from resource.AnalyzeAreaMaterial import analyzeAreaMaterial
 from interface import Interface
 
 intf = Interface()
 
-STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 255, 255, 255)
+STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 32, 32, 32)
 
 intf.runCommand(
     f"/setbuildarea {STARTX} {STARTY} {STARTZ} {ENDX} {ENDY} {ENDZ}", 0)
@@ -68,12 +73,12 @@ def buildBasicBuilding():
 
     # analyze Biome
     # return "origin", "desert", "badland", or "snow"
-    x, z = int(x), int(z)
-    y = int(heights[(x, z)])
-    analyzeReferCoord = (x, y, z)
-    biome = str(analyzeAreaMaterial(*analyzeReferCoord))
+    # x, z = int(x), int(z)
+    # y = int(heights[(x, z)])
+    # analyzeReferCoord = (x, y, z)
+    # biome = getAllBiomeList(WORLDSLICE, getAvailableBuildArea(WORLDSLICE))
 
-    print("Biome of this certain region is : ", biome)
+    # print("Biome of this certain region is : ", biome)
 
     INTF.runCommand(f"tp @a {x} 100 {z}")
 
@@ -120,7 +125,8 @@ def buildBasicBuilding():
                 for iz in range(z, z + size[2]):
                     for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
                         INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
-            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
+            # fix: buildFromStructureNBT parameter biome list - SubaRya
+            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, "fix_here")
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
         else:
@@ -162,17 +168,30 @@ def buildLightDecoration():
     for loc in locs:
         placeStreetLight(*loc)
 
+def analyzeSettlement():
+    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    settlement = getAvailableBuildArea(heights)
+    # print(settlement)
+    settlementMaterialContent, settlementMaterialList = analyzeSettlementMaterial(WORLDSLICE, settlement)
+    print("Settlement Content", settlementMaterialContent, "\n")
+    print("Settlement Material List", settlementMaterialList)
+    biomeList = getAllBiomeList(WORLDSLICE, settlement)
+    print("Settlement Biome List = ", biomeList)
 
 if __name__ == '__main__':
     try:
+        start = time.time()
         height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
         # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
         # print(f"/tp @a {STARTX} {height} {STARTZ}")
+        analyzeSettlement()
         buildBasicBuilding()
         buildRoadDecoration()
         buildTreeDecoration()
         buildLightDecoration()
 
         print("Done!")
+        end = time.time()
+        print("The time of execution of above program is :", (end-start) * 10**3, "ms")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
