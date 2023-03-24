@@ -160,7 +160,7 @@ def getAvailableBuildArea(heights: list[list[int]]):
     vis = [[False for i in range(m)] for i in range(n)]
 
     q.put([resX, resY])
-    
+
     res = [[0 for i in range(len(heights[0]))] for i in range(len(heights))]
     while not q.empty():
         cur = q.get()
@@ -169,14 +169,14 @@ def getAvailableBuildArea(heights: list[list[int]]):
         if vis[cx][cy]:
             continue
         vis[cx][cy] = True
-        if(q.qsize() > 10000):
+        if (q.qsize() > 10000):
             for a in vis:
                 print(a)
             return []
         for curX in range(cx*16, cx*16 + 16):
             for curY in range(cy*16, cy*16 + 16):
                 res[curX][curY] = 1
-        for i in range(0,4):
+        for i in range(0, 4):
             nx = cx + dx[i]
             ny = cy + dy[i]
             if nx < 0 or ny < 0 or nx == n or ny == m:
@@ -184,8 +184,7 @@ def getAvailableBuildArea(heights: list[list[int]]):
             if abs(chunks[cx][cy] - chunks[nx][ny]) <= 2:
                 q.put([nx, ny])
 
-    print("analysis done")
-    print(res)
+    # print("analysis done")
+    # print(res)
     # return a 2D array, 1 means that the position can be built.
     return res
-

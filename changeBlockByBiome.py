@@ -1,3 +1,4 @@
+# fix: all list need to be fixed - SubaRya
 import re
 
 originTosnowList = {
@@ -23,8 +24,9 @@ originTosnowList = {
     "potted_oak_sapling": "minecraft:potted_spruce_sapling",
 }
 
+
 def snowRepl(m):
-    x = m.group() 
+    x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
@@ -32,13 +34,14 @@ def snowRepl(m):
     return ":" + parseX
 
 
-
 def ischangeBlock(biome: str):
-    if biome == "snow" or biome=="badland":
+    if biome == "snow" or biome == "badland":
         return True
     return False
 
 # This function will change block definitely via biome
+
+
 def changeBlock(biome: str, blockName: str):
     if biome == "snow":
         blockName = re.sub(r":[\w_]*\b", snowRepl, blockName)

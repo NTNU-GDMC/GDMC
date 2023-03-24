@@ -1,44 +1,45 @@
 #! /usr/bin/python3
+import time
 import getBuildingEntryInfo as BEI
 import pprint
 import nbt_builder
 from nbt import nbt
 import os
-from pathfind import Location
 import pathfind
 from gdpc import geometry as GEO
 from gdpc import interface as INTF
-from gdpc import toolbox as TB
-from gdpc import worldLoader as WL
+from gdpc import minecraft_tools as TB
+from gdpc import world_slice as WL
+from gdpc.vector_tools import *
+from gdpc import Editor, Block
 from math import floor
-from NTNUBasicBuilding import InitialChalet
 from heightAnalysis import getSmoothChunk
+from heightAnalysis import getAvailableBuildArea
+from resource.AnalyzeAreaBiomeList import getAllBiomeList
+from resource.AnalyzeAreaMaterial import analyzeOneBlockVerticalMaterial
+from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
-from AnalyzeAreaMaterial import analyzeAreaMaterial
-from interface import Interface
+from glm import ivec3
+from globalUtils import editor
+from resource.AnalyzeAreaMaterial import analyzeAreaMaterial
 
-intf = Interface()
+# * Change the build area here
+# ! Notice that set Box((0, 0, 0), (255, 255, 255)) will return Box((0, 0, 0), (256, 256, 256))
+buildArea = editor.setBuildArea(Box((0, 0, 0), (255, 255, 255)))
+worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
+print("Build Area:", buildArea)
 
-STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = buildArea = (0, 1, 0, 255, 255, 255)
+START = buildArea.begin
+END = buildArea.last
 
-intf.runCommand(
-    f"/setbuildarea {STARTX} {STARTY} {STARTZ} {ENDX} {ENDY} {ENDZ}", 0)
-print("Build Area: ", *INTF.requestBuildArea())
-
-# IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
-#   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
-
-buildings: list[Location] = []
-roads: list[Location] = []
+buildings: list[ivec3] = []
+roads: list[ivec3] = []
 
 STRUCTURE_DIR = os.path.abspath("./data/structures")
 BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
 # BUILDING_TYPE = ["nbt_example"]
-
-analyzeReferCoord = ()
 
 
 def getBuildingDir(name: str):
@@ -56,10 +57,10 @@ def getBuildingInfoDir(name: str):
 
 def buildBasicBuilding():
     global buildings
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
     buildArea = getSmoothChunk(heights)
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 10, 23, buildArea)
+    coBuildingList = pS(START.x, START.z, END.x, END.z, 10, 23, buildArea)
 
     print("coBuildingList:")
     pprint.pprint(coBuildingList)
@@ -68,22 +69,22 @@ def buildBasicBuilding():
 
     # analyze Biome
     # return "origin", "desert", "badland", or "snow"
-    x, z = int(x), int(z)
-    y = int(heights[(x, z)])
-    analyzeReferCoord = (x, y, z)
-    biome = str(analyzeAreaMaterial(*analyzeReferCoord))
+    # x, z = int(x), int(z)
+    # y = int(heights[(x, z)])
+    # analyzeReferCoord = (x, y, z)
+    # biome = getAllBiomeList(WORLDSLICE, getAvailableBuildArea(WORLDSLICE))
 
-    print("Biome of this certain region is : ", biome)
+    # print("Biome of this certain region is : ", biome)
 
-    INTF.runCommand(f"tp @a {x} 100 {z}")
+    editor.runCommand(f"tp @a {x} 100 {z}")
 
     for pos in coBuildingList:
         x, z = pos
         x, z = floor(x), floor(z)
 
         y = int(heights[(x, z)])
-        x = int(x+STARTX)
-        z = int(z+STARTZ)
+        x = int(x+START.x)
+        z = int(z+START.z)
         print(x, y, z)
 
         buildingType = random.choice(BUILDING_TYPE)
@@ -101,13 +102,13 @@ def buildBasicBuilding():
 
         print("entry pos:", entry.pos)
         dx, dy, dz = entry.pos
-        entryPos: Location = (x+dx, y+dy, z+dz)
+        entryPos = ivec3(x+dx, y+dy, z+dz)
         print("entry pos(T):", entryPos)
         for dx in range(sizeX):
             for dy in range(sizeY):
                 for dz in range(sizeZ):
                     x1, y1, z1 = x+dx, y+dy, z+dz
-                    buildingBlk: Location = (x1, y1, z1)
+                    buildingBlk = ivec3(x1, y1, z1)
                     if buildingBlk == entryPos:
                         continue
                     tmpBuildings.append(buildingBlk)
@@ -118,9 +119,11 @@ def buildBasicBuilding():
             size = nbt_builder.getStructureSizeNBT(nbt_struct)
             for ix in range(x, x + size[0]):
                 for iz in range(z, z + size[2]):
-                    for iy in range(WORLDSLICE.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
-                        INTF.placeBlock(ix, iy, iz, "minecraft:dirt")
-            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
+                    for iy in range(worldSlice.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
+                        editor.placeBlock(
+                            ivec3(ix, iy, iz), Block("minecraft:dirt"))
+            # fix: buildFromStructureNBT parameter biome list - SubaRya
+            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, "fix_here")
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
         else:
@@ -128,16 +131,16 @@ def buildBasicBuilding():
 
 
 def buildRoadDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     data = roadDecoration(roads, 8, heights)
     for flower in data:
         [x, y, z, name] = flower
-        INTF.placeBlock(x, y, z, name)
+        editor.placeBlock(ivec3(x, y, z), Block(name))
     return
 
 
 def buildTreeDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     data = treeDecoration(roads, 12, heights)
     nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
 
@@ -146,15 +149,15 @@ def buildTreeDecoration():
         nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, True)
     for road in roads:
         [x, y, z] = road
-        INTF.placeBlock(x, y+1, z, "air")
-        INTF.placeBlock(x, y+1, z, "air")
+        editor.placeBlock(ivec3(x, y+1, z), Block("air"))
+        editor.placeBlock(ivec3(x, y+1, z), Block("air"))
     return
 
 
 def placeStreetLight(x: int, y: int, z: int):
-    INTF.placeBlock(x, y, z, "cobblestone")
-    INTF.placeBlock(x, y+1, z, "cobblestone_wall")
-    INTF.placeBlock(x, y+2, z, "torch")
+    editor.placeBlock(ivec3(x, y, z), Block("cobblestone"))
+    editor.placeBlock(ivec3(x, y+1, z), Block("cobblestone_wall"))
+    editor.placeBlock(ivec3(x, y+2, z), Block("torch"))
 
 
 def buildLightDecoration():
@@ -163,16 +166,39 @@ def buildLightDecoration():
         placeStreetLight(*loc)
 
 
+def analyzeSettlement():
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    settlement = getAvailableBuildArea(heights)
+    # print(settlement)
+    settlementMaterialContent, settlementMaterialList = analyzeSettlementMaterial(
+        worldSlice, settlement)
+    print("Settlement Content", settlementMaterialContent, "\n")
+    print("Settlement Material List", settlementMaterialList)
+    biomeList = getAllBiomeList(worldSlice, settlement)
+    print("Settlement Biome List = ", biomeList)
+
+
 if __name__ == '__main__':
+    # Change this to True if you want to teleport to the start location
+    tpToStart = False
     try:
-        height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
-        # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
-        # print(f"/tp @a {STARTX} {height} {STARTZ}")
+        if tpToStart:
+            y = worldSlice.heightmaps["MOTION_BLOCKING"][(START.x, START.z)]
+            cmd = f"tp @a {START.x} {y} {START.z}"
+            editor.runCommand(cmd)
+            print(cmd)
+
+        start = time.time()
+
+        analyzeSettlement()
         buildBasicBuilding()
         buildRoadDecoration()
         buildTreeDecoration()
         buildLightDecoration()
 
         print("Done!")
+        end = time.time()
+        print("The time of execution of above program is :",
+              (end-start) * 10**3, "ms")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")
