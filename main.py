@@ -1,4 +1,5 @@
 #! /usr/bin/python3
+import time
 import getBuildingEntryInfo as BEI
 import pprint
 import nbt_builder
@@ -13,16 +14,21 @@ from gdpc.vector_tools import *
 from gdpc import Editor, Block
 from math import floor
 from heightAnalysis import getSmoothChunk
+from heightAnalysis import getAvailableBuildArea
+from resource.AnalyzeAreaBiomeList import getAllBiomeList
+from resource.AnalyzeAreaMaterial import analyzeOneBlockVerticalMaterial
+from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
-from AnalyzeAreaMaterial import analyzeAreaMaterial
 from glm import ivec3
-from globalUtils import setBuildArea, editor, buildArea, worldSlice
+from globalUtils import editor
+from resource.AnalyzeAreaMaterial import analyzeAreaMaterial
 
 # * Change the build area here
 # ! Notice that set Box((0, 0, 0), (255, 255, 255)) will return Box((0, 0, 0), (256, 256, 256))
-setBuildArea(Box((0, 0, 0), (255, 255, 255)))
+buildArea = editor.setBuildArea(Box((0, 0, 0), (255, 255, 255)))
+worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
 print("Build Area:", buildArea)
 
 START = buildArea.begin
@@ -63,12 +69,12 @@ def buildBasicBuilding():
 
     # analyze Biome
     # return "origin", "desert", "badland", or "snow"
-    x, z = int(x), int(z)
-    y = int(heights[(x, z)])
-    analyzeReferCoord = (x, y, z)
-    biome = str(analyzeAreaMaterial(*analyzeReferCoord))
+    # x, z = int(x), int(z)
+    # y = int(heights[(x, z)])
+    # analyzeReferCoord = (x, y, z)
+    # biome = getAllBiomeList(WORLDSLICE, getAvailableBuildArea(WORLDSLICE))
 
-    print("Biome of this certain region is : ", biome)
+    # print("Biome of this certain region is : ", biome)
 
     editor.runCommand(f"tp @a {x} 100 {z}")
 
@@ -116,7 +122,8 @@ def buildBasicBuilding():
                     for iy in range(worldSlice.heightmaps["MOTION_BLOCKING"][(ix, iz)], y):
                         editor.placeBlock(
                             ivec3(ix, iy, iz), Block("minecraft:dirt"))
-            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, biome)
+            # fix: buildFromStructureNBT parameter biome list - SubaRya
+            nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, "fix_here")
             buildings = tmpBuildings
             print(f"{'-'*25}build one finish{'-'*25}")
         else:
@@ -159,6 +166,18 @@ def buildLightDecoration():
         placeStreetLight(*loc)
 
 
+def analyzeSettlement():
+    heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    settlement = getAvailableBuildArea(heights)
+    # print(settlement)
+    settlementMaterialContent, settlementMaterialList = analyzeSettlementMaterial(
+        worldSlice, settlement)
+    print("Settlement Content", settlementMaterialContent, "\n")
+    print("Settlement Material List", settlementMaterialList)
+    biomeList = getAllBiomeList(worldSlice, settlement)
+    print("Settlement Biome List = ", biomeList)
+
+
 if __name__ == '__main__':
     # Change this to True if you want to teleport to the start location
     tpToStart = False
@@ -168,11 +187,18 @@ if __name__ == '__main__':
             cmd = f"tp @a {START.x} {y} {START.z}"
             editor.runCommand(cmd)
             print(cmd)
+
+        start = time.time()
+
+        analyzeSettlement()
         buildBasicBuilding()
         buildRoadDecoration()
         buildTreeDecoration()
         buildLightDecoration()
 
         print("Done!")
+        end = time.time()
+        print("The time of execution of above program is :",
+              (end-start) * 10**3, "ms")
     except KeyboardInterrupt:   # useful for aborting a run-away program
         print("Pressed Ctrl-C to kill program.")

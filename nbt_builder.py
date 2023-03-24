@@ -1,10 +1,10 @@
+from changeBlockByBiome import ischangeBlock, changeBlock
 import sys
 from nbt import nbt as nbt
 from typing import Tuple
 # from gdpc import interface as INTF
 import interface
 INTF = interface.Interface()
-from changeBlockByBiome import ischangeBlock, changeBlock
 
 
 def nbtToString(nbt_struct: nbt.TAG):
@@ -28,7 +28,8 @@ def nbtToString(nbt_struct: nbt.TAG):
             return '{}'.format(str(nbt_struct))
 
 
-def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, biome:str, keep=False):
+# fix: isChangeBlock and changeBlock function - SubaRya
+def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, biome: str, keep=False):
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:
         x, y, z = map(lambda e: int(e.value), blk["pos"])
