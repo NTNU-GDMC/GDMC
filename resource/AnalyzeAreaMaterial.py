@@ -58,12 +58,12 @@ def analyzeAreaMaterial(x, y, z):
         for rangeY in range(surfaceRange['y']):
             for rangeZ in range(surfaceRange['z']):
                 surfaceContent.append(
-                    str(editor.getBlock(glm.ivec3(x+rangeX, y+rangeY, z+rangeZ))))
+                    str(editor.worldSlice.getBlock(glm.ivec3(x+rangeX, y+rangeY, z+rangeZ))))
     for rangeX in range(undergroundRange['x']):
         for rangeY in range(undergroundRange['y']):
             for rangeZ in range(undergroundRange['z']):
                 undergroundContent.append(
-                    str(editor.getBlock(glm.ivec3(x+rangeX, y-rangeY, z+rangeZ))))
+                    str(editor.worldSlice.getBlock(glm.ivec3(x+rangeX, y-rangeY, z+rangeZ))))
     # print('surfaceContent: ', surfaceContent)
     # print('undergroundContent: ', undergroundContent)\
     surfaceMaterialAnalyzeList = {}
@@ -99,10 +99,10 @@ def analyzeOneBlockVerticalMaterial(WORLDSLICE: WorldSlice, x, z):
     # in case there is a tree, it'll detect the tree top surface
     if (leavesHeight == surfaceHeight):  # surface is not tree
         for y in range(surfaceHeight-10, surfaceHeight+6):
-            content.append(editor.getBlock((x, y, z)).id)
+            content.append(editor.worldSlice.getBlock((x, y, z)).id)
     else:                              # surface is tree
         for y in range(surfaceHeight-15, surfaceHeight+1):
-            content.append(editor.getBlock((x, y, z)).id)
+            content.append(editor.worldSlice.getBlock((x, y, z)).id)
     contentList = {}
     for idx in content:
         if idx in contentList:
