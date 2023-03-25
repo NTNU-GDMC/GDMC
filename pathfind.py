@@ -11,7 +11,7 @@ from gdpc.vector_tools import *
 
 
 def groundY(point: ivec2, heights: np.ndarray) -> int:
-    return heights[*point]-1
+    return heights[ivec2(point).to_tuple()]-1
 
 
 def setGroundY2D(point: ivec2, heights: np.ndarray) -> ivec3:
