@@ -1,5 +1,8 @@
 from math import sqrt, floor, pi, sin, cos, dist
-from random import random, randint
+from random import random, randint,choice
+from glm import ivec2
+from gdpc.vector_tools import Integral, Rect, Vec2iLike
+from collections.abc import Callable
 
 
 def poissionSample(sx, sy, ex, ey, num, minRange, acceptPos) -> list:
@@ -79,4 +82,71 @@ def poissionSample(sx, sy, ex, ey, num, minRange, acceptPos) -> list:
 
     return coords
 
-# print(poissionSample(0,0,300,300,10,20))
+def defaultSampleFunction(chunk: Rect) -> bool:
+    return True
+
+def poissonDiskSample(bound: Rect,limit: int, r: float,k:int = 30, sampleFunc: Callable[[Rect],bool]=defaultSampleFunction, initPoints: list[ivec2]=[]) -> list[ivec2]:
+    """ 
+    get the sample positions of the bound, samepleFunc is to check if the chunk can add a point
+    r is the minimum distance between two points
+    return a list of ivec2
+    """
+    [height, width] = bound.size
+    [sx,sy] = bound.begin
+    [ex,ey] = bound.end
+    w = r / sqrt(2)
+    cols = floor(height / w) + 1
+    rows = floor(width / w) + 1
+    activeList: list[ivec2] = []
+    count = 0
+    cells:list[list[int | ivec2]] = [[-1 for _ in range(cols)] for _ in range(rows)]
+    pos = ivec2(sx + height * random(), sy + width *  random())
+
+    if len(initPoints) != 0:
+        pos = choice(initPoints)
+
+    cellPos = [floor(pos[0] / w), floor(pos[1] / w)]
+    cells[cellPos[0]][cellPos[1]] = pos
+    
+    activeList.append(pos)
+
+    while len(activeList) > 0  and count < limit:
+        idx = randint(0,len(activeList)-1)
+        curPos = activeList[idx]
+        found = False
+
+        for _ in range(k):
+            rad = 2 * pi * random()
+            offsetX = cos(rad)
+            offsetY = sin(rad)
+            mag = random() * r + r
+            samplePoint = ivec2(floor(curPos[0] + offsetX * mag), floor(curPos[1] + offsetY * mag))
+            x,y = floor(samplePoint[0] / w), floor(samplePoint[1] / w)
+
+            if x < 0 or y < 0 or x >= cols or y >= rows or cells[x][y] != -1:
+                continue
+
+            if not sampleFunc(Rect(offset=ivec2(x,y),size=ivec2(w,w))):
+                continue
+            flag = True
+            for i in range(x - 1, x + 2):
+                for j in range(y - 1, y + 2):
+                    if i == x and j == y:
+                        if i < 0 or j < 0 or i >= cols or j >= rows:
+                            continue
+                        if cells[i][j] == -1:
+                            continue
+                        curDist = dist(cells[i][j], samplePoint)
+                        if curDist < r:
+                            flag = False
+            if flag: # found a point that works
+                cells[x][y] = samplePoint
+                activeList.append(samplePoint)
+                found = True 
+                count += 1
+                break
+
+        if not found:
+            del activeList[idx]
+
+    return []
