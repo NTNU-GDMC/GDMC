@@ -18,6 +18,7 @@ from heightAnalysis import getAvailableBuildArea
 from resource.AnalyzeAreaBiomeList import getAllBiomeList
 from resource.AnalyzeAreaMaterial import analyzeOneBlockVerticalMaterial
 from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
+from resource.ChangeMaterialToResource import changeMaterialToResource
 import random
 from poissionDiskSampling import poissionSample as pS
 from roadDecoration import roadDecoration, treeDecoration, lightDecoration
@@ -174,6 +175,7 @@ def analyzeSettlement():
         worldSlice, settlement)
     print("Settlement Content", settlementMaterialContent, "\n")
     print("Settlement Material List", settlementMaterialList)
+    changeMaterialToResource(settlementMaterialList)
     biomeList = getAllBiomeList(worldSlice, settlement)
     print("Settlement Biome List = ", biomeList)
 
