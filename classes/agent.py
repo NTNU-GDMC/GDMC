@@ -1,9 +1,9 @@
 import abc
+from typing import Callable
 from gdpc.vector_tools import Rect
 from .core import Core
 from BuildingUtil.building import Building
 from BuildingUtil.getBuildingEntryInfo import BuildingInfo
-
 
 class Agent():
     def __init__(self, core: Core) -> None:
@@ -15,7 +15,7 @@ class Agent():
 
 
 class BuildAgent(Agent):
-    def __init__(self, analyzeFunction: callable[[Core, Rect], int], buildingType: str) -> None:
+    def __init__(self, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
         self.analysis = analyzeFunction
         self.buildingType = buildingType
