@@ -206,12 +206,13 @@
 
 from classes.core import Core
 from classes.agent import BuildAgent
+from BuildingUtil.buildingInfo import CHALET
 import random
 #  TODO: logic per round
 if __name__ == '__main__':
     core = Core()
     agents = [
-        BuildAgent(core, ""),
+        BuildAgent(core, CHALET),
     ]
 
     # loop 10 rounds
