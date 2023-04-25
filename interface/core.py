@@ -34,7 +34,7 @@ class Core():
         self._editor = editor
         self._resources = analyzeSettlementMaterial(worldSlice, buildArea)
         self._heightInfo = HeightInfo((x1, z1, x2, z2), heights) # contains: height, sd, var, mean
-        self._blueprint = np.zeros((x // 2,z // 2)) # unit is 2x2
+        self._blueprint = np.zeros((x // 2,z // 2), dtype=int) # unit is 2x2
         self._blueprintData = dict[int, Building]
 
     @property
@@ -82,6 +82,48 @@ class Core():
         if heightType == "squareSum":
             return self._heightInfo.squareSumArea(area)
         raise Exception("This type does not exist on heightType")
+
+    def getEmptyArea(self, height: int, width: int) -> list[Rect]:
+        def isEmpty(val: any):
+            if val == 0:
+                return 0
+            return 1
+        prefix = np.zeros_like(self.blueprint)
+        h, w = prefix.shape[:2]
+
+        prefix[0][0] = isEmpty(self.blueprint[0][0])
+
+        for i in range(1, h):
+            prefix[i][0] = prefix[i-1][0] + isEmpty(self.blueprint[i][0]) 
+
+        for i in range(1, w):
+            prefix[0][i] = prefix[0][i-1] + isEmpty(self.blueprint[0][i]) 
+
+        # probably can figure out a way to cache this
+        for i in range(1, h):
+            for j in range(1, w):
+                prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1] + isEmpty(self.blueprint[i][j])
+        result: list[Rect] = []
+
+        for i in range(h - height):
+            for j in range(w - width):
+                lh = i + height
+                lw = j + width
+                left = 0
+                top = 0
+                leftTop = 0
+                if i > 0:
+                    top = prefix[i-1][lw]
+                if j > 0:
+                    left = prefix[lh][j - 1]
+                if i > 0 and j > 0:
+                    leftTop = prefix[i-1][j-1]
+
+                used = prefix[lh][lw] - top - left + leftTop
+                if used == 0:
+                    result.append(Rect((i,j), (lh, lw)))
+
+        return result
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
