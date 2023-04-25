@@ -29,7 +29,7 @@ class Core():
         x, _, z = buildArea.size
 
         self._roadMap = np.ndarray((x,z))
-        self._liquidMap = worldSlice.heightmaps["OCEAN_FLOOR"] # TODO: Check what it does
+        self._liquidMap = np.where(worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
         self._resources = changeMaterialToResource(worldSlice, buildArea)
