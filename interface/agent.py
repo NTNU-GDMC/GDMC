@@ -1,28 +1,28 @@
 from gdpc.vector_tools import Rect
 from .core import Core
-from glm import ivec3
+from ..building import Building
 
 
 class Agent():
-    def __init__(self, pos: ivec3) -> None:
-        self.position = pos # the position of the agent
-
-    def analysis(self, bound: ivec3) -> bool:
-        """Analysis i"""
-        return False
+    def __init__(self, analyzeFunction: callable[[Core, Rect], int], building: Building) -> None:
+        """Assume one agent one build one building for now"""
+        self.building = building
+        self.analysis = analyzeFunction
     
-    def build(self, bound: Rect, core: Core, build):
+    def analysisAndBuild(self, core: Core, building: Building):
         """Request to build a building on the blueprint at bound"""
+        possibleLocation = core.getEmptyArea(building.length, building.width)
+        if len(possibleLocation) == 0:
+            return
+        bestLocation = possibleLocation[0]
+        bestLocationValue = 0
+        for location in possibleLocation:
+            value = self.analysis(core, location)
+            if value > bestLocationValue:
+                bestLocationValue = value
+                bestLocation = location
+
+        # do something about the building class (add nessarry data to it)
+        core.addBuilding(building)
         pass
-
-    def moveTo(self, pos: ivec3):
-        """Move the agent to pos"""
-        self.position = pos
-
-
-class Specialist(Agent):
-    def __init__(self, pos: ivec3, buildings: list,analysisFunc) -> None:
-        """Init the position and types of building this agent will build"""
-        super().__init__(pos)
-        self.analysis = analysisFunc
 
