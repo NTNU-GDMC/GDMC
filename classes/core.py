@@ -6,7 +6,7 @@ from building import Building
 
 from heightinfo import HeightInfo
 from resource.AnalyzeAreaBiomeList import getAllBiomeList
-
+from resource.ChangeMaterialToResource import changeMaterialToResource
 from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
@@ -32,7 +32,7 @@ class Core():
         self._liquidMap = worldSlice.heightmaps["OCEAN_FLOOR"] # TODO: Check what it does
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = analyzeSettlementMaterial(worldSlice, buildArea)
+        self._resources = changeMaterialToResource(worldSlice, buildArea)
         self._heightInfo = HeightInfo((x1, z1, x2, z2), heights) # contains: height, sd, var, mean
         self._blueprint = np.zeros((x // 2,z // 2), dtype=int) # unit is 2x2
         self._blueprintData = dict[int, Building]
