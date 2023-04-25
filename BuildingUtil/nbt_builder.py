@@ -57,9 +57,9 @@ def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> tuple[int, int, int]:
     return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
 
-def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> Tuple[int, int, int]:
-    size = nbt_struct["size"]
-    return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
+# def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> Tuple[int, int, int]:
+#     size = nbt_struct["size"]
+#     return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
 
 if __name__ == '__main__':
