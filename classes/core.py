@@ -2,7 +2,7 @@ from gdpc import Editor
 from gdpc.vector_tools import Rect, Box
 from typing import Literal
 import numpy as np
-from building import Building
+from BuildingUtil.building import Building
 
 from heightinfo import HeightInfo
 from resource.AnalyzeAreaBiomeList import getAllBiomeList

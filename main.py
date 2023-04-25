@@ -46,12 +46,12 @@
 # def getBuildingDir(name: str):
 #     return os.path.join(STRUCTURE_DIR, name)
 
-
+# FIXME: remove this function, cuz it was moved to building.py - SubaRya
 # def getBuildingNBTDir(name: str):
 
 #     return os.path.join(getBuildingDir(name), f"{name}.nbt")
 
-
+# FIXME: remove this function, cuz it was moved to building.py - SubaRya
 # def getBuildingInfoDir(name: str):
 #     return os.path.join(getBuildingDir(name), f"{name}.json")
 
