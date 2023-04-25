@@ -5,5 +5,10 @@
             "roadStartPosition": [-46, -1, -21],
             "type": "mainEntry"
         }
-    ]
+    ],
+    "Size":{
+        "length": 47,
+        "height": 12,
+        "width": 46
+    }
 }
