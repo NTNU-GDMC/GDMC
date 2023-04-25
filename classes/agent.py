@@ -3,7 +3,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from .core import Core
 from BuildingUtil.building import Building
-from BuildingUtil.getBuildingEntryInfo import BuildingInfo
+from BuildingUtil.buildingInfo import BuildingInfo
 
 class Agent():
     def __init__(self, core: Core) -> None:
@@ -26,7 +26,7 @@ class BuildAgent(Agent):
 
     def analysisAndBuild(self):
         """Request to build a building on the blueprint at bound"""
-        length, width = self.buidlingInfo.size
+        length, width = self.buidlingInfo.getCurrentBuildingLengthAndWidth()
         possibleLocation = self.core.getEmptyArea(length, width)
         if len(possibleLocation) == 0:
             return
@@ -38,6 +38,6 @@ class BuildAgent(Agent):
                 bestLocationValue = value
                 bestLocation = location
 
-        building = Building(self.buildingType, bestLocation)
+        building = Building(self.buildingType, self.buidlingInfo.getCurrentBuildingType(), bestLocation)
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
