@@ -11,5 +11,16 @@
         "height": 16,
         "width": 16
     },
-    "Material": "oak"
+    "Material": "oak",
+    "Type": 1,
+    "Level": 2,
+    "RequiredResource":{
+        "human": 0,
+        "wood": 750,
+        "stone": 250,
+        "food": 0,
+        "ironOre": 0,
+        "iron": 0,
+        "grass": 0
+    }
 }
