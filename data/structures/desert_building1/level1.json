@@ -11,5 +11,16 @@
         "height": 7,
         "width": 9
     },
-    "Material": "sand"
+    "Material": "sand",
+    "Type": 1,
+    "Level": 1,
+    "RequiredResource":{
+        "human": 0,
+        "wood": 0,
+        "stone": 0,
+        "food": 0,
+        "ironOre": 0,
+        "iron": 0,
+        "grass": 0
+    }
 }

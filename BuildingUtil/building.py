@@ -23,24 +23,27 @@
 import os
 from BuildingUtil.nbt_builder import getStructureSizeNBT
 from nbt import nbt
+from BuildingUtil.buildingInfo import BuildingInfo, Entry
 
-STRUCTURE_DIR = os.path.abspath("./data/structures")
+# absPath(<name>,<type>,<level>)
+# Example: absPath("chalet", 1, 2) -> "...chalet1/level2.json"
+def getJsonAbsPath(name: str, type: int, level: int) -> str:
+    return os.path.abspath(os.path.join(".",os.path.join("data", os.path.join("structures", os.path.join(name+f"{str(type)}", "level"+f"{str(level)}.json")))))
 
-class Building(object):
-    def __init__(self, nbtName:str, level: int, position: tuple[int, int], doorPos: tuple[int, int], length: int, width: int, offset: tuple[int, int] = (0, 0), materialType=None, tags=[]):
+# TODO: 需要一個 self BuildingInfo
+# !!! @LoveSnowEx : offset, tags had been removed
+class Building():
+    def __init__(self, nbtName:str, type: int, level: int, position: tuple[int, int]):
+        self.buildingInfo = BuildingInfo(getJsonAbsPath(nbtName, type, level))
         self.nbtName = nbtName              # building name
         self.level = level                  # building level: 1~3
         self.position = position            # building coord
-        self.doorPos = doorPos              # door coord
-        self.length = length                # max length in this type of building
-        self.width = width                  # max width in this type of building
-        self.materialType = materialType    # building material
-        # @LoveSnowEx FIXME: if the below type is unnecessary, remove it 
-        self.offset = offset
-        # @LoveSnowEx FIXME: if the below type is unnecessary, remove it 
-        self.tags = tags
-        
-
+    def getBuildingLevel(self):
+        return self.nbtName
+    def getBuildingPos(self):
+        return self.position
+    def getBuildingInfo(self):
+        return self.buildingInfo
 # !!! Print NBT building size -> (x, y, z)
 # def printNbtSize(name: str):
 #     nbt_struct = nbt.NBTFile(os.path.join(os.path.join(STRUCTURE_DIR, name), f"{name}.nbt"))
