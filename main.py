@@ -211,7 +211,7 @@ import random
 if __name__ == '__main__':
     core = Core()
     agents = [
-        BuildAgent(core, ""),
+        BuildAgent(core, lambda core, rect: 0, ""),
     ]
 
     # loop 10 rounds
