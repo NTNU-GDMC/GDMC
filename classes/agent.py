@@ -15,8 +15,9 @@ class Agent():
 
 
 class BuildAgent(Agent):
-    def __init__(self, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
+        super().__init__(core)
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         self.buidlingInfo = BuildingInfo(buildingType)
