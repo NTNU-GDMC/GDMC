@@ -35,7 +35,7 @@ class Core():
         self._resources = changeMaterialToResource(worldSlice, buildArea)
         self._heightInfo = HeightInfo((x1, z1, x2, z2), heights) # contains: height, sd, var, mean
         self._blueprint = np.zeros((x // 2,z // 2), dtype=int) # unit is 2x2
-        self._blueprintData = dict[int, Building]
+        self._blueprintData: dict[int, Building] = {}
 
     @property
     def roadMap(self):
