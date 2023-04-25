@@ -205,6 +205,20 @@
 #         print("Pressed Ctrl-C to kill program.")
 
 from classes.core import Core
+from classes.agent import BuildAgent
+import random
 #  TODO: logic per round
 if __name__ == '__main__':
     core = Core()
+    agents = [
+        BuildAgent(core, ""),
+    ]
+
+    # loop 10 rounds
+    round = 10
+
+    for i in range(round):
+        # randomize agent order
+        for agent in random.sample(agents, len(agents)):
+            # run agent
+            agent.run()
