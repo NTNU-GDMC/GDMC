@@ -1,6 +1,6 @@
 from gdpc.vector_tools import Rect
 from .core import Core
-from ..building import Building
+from BuildingUtil.building import Building
 
 
 class Agent():

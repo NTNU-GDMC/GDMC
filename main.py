@@ -40,18 +40,17 @@
 
 # STRUCTURE_DIR = os.path.abspath("./data/structures")
 # BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-# # BUILDING_TYPE = ["nbt_example"]
 
 
 # def getBuildingDir(name: str):
 #     return os.path.join(STRUCTURE_DIR, name)
 
-
+# FIXME: remove this function, cuz it was moved to building.py - SubaRya
 # def getBuildingNBTDir(name: str):
 
 #     return os.path.join(getBuildingDir(name), f"{name}.nbt")
 
-
+# FIXME: remove this function, cuz it was moved to building.py - SubaRya
 # def getBuildingInfoDir(name: str):
 #     return os.path.join(getBuildingDir(name), f"{name}.json")
 
@@ -143,7 +142,7 @@
 # def buildTreeDecoration():
 #     heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 #     data = treeDecoration(roads, 12, heights)
-#     nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
+#     nbt_struct = nbt.NBTFile(getBuildingNBTDir("decorations/tree"))
 
 #     for tree in data:
 #         [x, y, z] = tree

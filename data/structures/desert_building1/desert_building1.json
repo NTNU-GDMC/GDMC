@@ -5,5 +5,11 @@
             "roadStartPosition": [3, -1, -1],
             "type": "mainEntry"
         }
-    ]
+    ],
+    "Size":{
+        "length": 12,
+        "height": 7,
+        "width": 9
+    },
+    "Material": "sand"
 }

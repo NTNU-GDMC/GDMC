@@ -30,7 +30,7 @@ class BuildingInfo:
         return self.entriesInfo[name]
 
 if __name__ == '__main__':
-    target = os.path.abspath("./data/structures/modern_house/modernHouseInfo.json")
+    target = os.path.abspath("./data/_draft/modern_house/modernHouseInfo.json")
     buildingInfo = BuildingInfo(target)
     List = buildingInfo.getBuildingNameList()
     Info = buildingInfo.getEntryInfo("mainEntry")
