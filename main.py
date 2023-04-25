@@ -40,7 +40,6 @@
 
 # STRUCTURE_DIR = os.path.abspath("./data/structures")
 # BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-# # BUILDING_TYPE = ["nbt_example"]
 
 
 # def getBuildingDir(name: str):
@@ -143,7 +142,7 @@
 # def buildTreeDecoration():
 #     heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 #     data = treeDecoration(roads, 12, heights)
-#     nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
+#     nbt_struct = nbt.NBTFile(getBuildingNBTDir("decorations/tree"))
 
 #     for tree in data:
 #         [x, y, z] = tree
