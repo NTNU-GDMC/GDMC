@@ -31,15 +31,15 @@ def getJsonAbsPath(name: str, type: int, level: int) -> str:
     return os.path.abspath(os.path.join(".",os.path.join("data", os.path.join("structures", os.path.join(name+f"{str(type)}", "level"+f"{str(level)}.json")))))
 
 # TODO: 需要一個 self BuildingInfo
-# !!! @LoveSnowEx : offset, tags had been removed
+# !!! @LoveSnowEx : tags had been removed
 class Building():
-    def __init__(self, nbtName:str, type: int, level: int, position: tuple[int, int]):
+    def __init__(self, nbtName:str, type: int, level: int = 1, position: tuple[int, int] = (0, 0)):
         self.buildingInfo = BuildingInfo(getJsonAbsPath(nbtName, type, level))
         self.nbtName = nbtName              # building name
         self.level = level                  # building level: 1~3
         self.position = position            # building coord
     def getBuildingLevel(self):
-        return self.nbtName
+        return self.level
     def getBuildingPos(self):
         return self.position
     def getBuildingInfo(self):
