@@ -3,7 +3,8 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from .core import Core
 from BuildingUtil.building import Building
-from BuildingUtil.buildingInfo import BuildingInfo
+from BuildingUtil.buildingInfo import BuildingInfo, getJsonAbsPath
+
 
 class Agent():
     def __init__(self, core: Core) -> None:
@@ -20,15 +21,17 @@ class BuildAgent(Agent):
         super().__init__(core)
         self.analysis = analyzeFunction
         self.buildingType = buildingType
-        self.buidlingInfo = BuildingInfo(buildingType)
+        # FIXME: this is a temporary solution for the building info
+        self.buildingInfo = BuildingInfo(getJsonAbsPath(buildingType, 1, 1))
 
     def run(self):
         self.analysisAndBuild()
 
     def analysisAndBuild(self):
         """Request to build a building on the blueprint at bound"""
-        length, width = self.buidlingInfo.getCurrentBuildingLengthAndWidth()
-        possibleLocation = self.core.getEmptyArea(length, width)
+        length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
+        possibleLocation = self.core.getEmptyArea(
+            length, width)
         if len(possibleLocation) == 0:
             return
         bestLocation = possibleLocation[0]
@@ -38,7 +41,9 @@ class BuildAgent(Agent):
             if value > bestLocationValue:
                 bestLocationValue = value
                 bestLocation = location
-
-        building = Building(self.buildingType, self.buidlingInfo.getCurrentBuildingType(), bestLocation)
+        building = Building(
+            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1,  bestLocation.begin)
+        print(
+            f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
