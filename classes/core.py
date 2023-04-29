@@ -25,8 +25,6 @@ class Core():
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
         # get top left and bottom right coordnidate
-        x1, _, x2 = buildArea.offset
-        z1, _, z2 = buildArea.offset + buildArea.size
         x, _, z = buildArea.size
 
         self._roadMap = np.ndarray((x, z))
@@ -36,7 +34,7 @@ class Core():
         self._editor = editor
         self._resources = changeMaterialToResource(worldSlice, buildArea)
         # contains: height, sd, var, mean
-        self._heightInfo = HeightInfo((x1, z1, x2, z2), heights)
+        self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
 
@@ -73,17 +71,14 @@ class Core():
         self._blueprint[x:x+xlen, z:z+zlen] = id
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum"], bound: Rect):
-        x1, x2 = bound.offset
-        z1, z2 = bound.offset + bound.size
-        area = (x1, z1, x2, z2)
         if heightType == "var":
-            return self._heightInfo.varArea(area)
+            return self._heightInfo.varArea(bound)
         if heightType == "mean":
-            return self._heightInfo.meanArea(area)
+            return self._heightInfo.meanArea(bound)
         if heightType == "sum":
-            return self._heightInfo.sumArea(area)
+            return self._heightInfo.sumArea(bound)
         if heightType == "squareSum":
-            return self._heightInfo.squareSumArea(area)
+            return self._heightInfo.squareSumArea(bound)
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
