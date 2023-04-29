@@ -72,13 +72,13 @@ class Core():
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum"], bound: Rect):
         if heightType == "var":
-            return self._heightInfo.varArea(bound)
+            return self._heightInfo.var(bound)
         if heightType == "mean":
-            return self._heightInfo.meanArea(bound)
+            return self._heightInfo.mean(bound)
         if heightType == "sum":
-            return self._heightInfo.sumArea(bound)
+            return self._heightInfo.sum(bound)
         if heightType == "squareSum":
-            return self._heightInfo.squareSumArea(bound)
+            return self._heightInfo.squareSum(bound)
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:

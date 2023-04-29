@@ -15,7 +15,7 @@ class HeightInfo():
         self.accHeights = acc2D(self.heights)
         self.accSquareHeights = acc2D(self.squareHeights)
 
-    def sumAreaFromAcc(self, acc: np.ndarray, area: Rect) -> int:
+    def __sumFromAcc__(self, acc: np.ndarray, area: Rect) -> int:
         # get sum of area from accumulated 2D array
         def get(pos: Vec2iLike) -> int:
             x, z = pos
@@ -24,20 +24,20 @@ class HeightInfo():
         x2, z2 = area.last
         return get((x2, z2)) - (get((x1-1, z2))+get((x2, z1-1))) + get((x1-1, z1-1))
 
-    def sumArea(self, area: Rect) -> int:
-        return self.sumAreaFromAcc(self.accHeights, area)
+    def sum(self, area: Rect) -> int:
+        return self.__sumFromAcc__(self.accHeights, area)
 
-    def squareSumArea(self, area: Rect) -> int:
-        return self.sumAreaFromAcc(self.accSquareHeights, area)
+    def squareSum(self, area: Rect) -> int:
+        return self.__sumFromAcc__(self.accSquareHeights, area)
 
-    def meanArea(self, area: Rect) -> float:
-        return self.sumArea(area) / self.area.area
+    def mean(self, area: Rect) -> float:
+        return self.sum(area) / self.area.area
 
-    def varArea(self, area: Rect) -> float:
-        return self.squareSumArea(area) / self.area.area - self.meanArea(area) ** 2
+    def var(self, area: Rect) -> float:
+        return self.squareSum(area) / self.area.area - self.mean(area) ** 2
 
-    def stdArea(self, area: Rect) -> float:
-        return math.sqrt(self.varArea(area))
+    def std(self, area: Rect) -> float:
+        return math.sqrt(self.var(area))
 
 
 if __name__ == "__main__":
@@ -49,8 +49,8 @@ if __name__ == "__main__":
                         [5, 6, 7, 8, 9]])
     area = Rect((1, 1), (3, 3))
     heightInfo = HeightInfo(heights)
-    print(heightInfo.sumArea(area))
-    print(heightInfo.squareSumArea(area))
-    print(heightInfo.meanArea(area))
-    print(heightInfo.varArea(area))
-    print(heightInfo.stdArea(area))
+    print(heightInfo.sum(area))
+    print(heightInfo.squareSum(area))
+    print(heightInfo.mean(area))
+    print(heightInfo.var(area))
+    print(heightInfo.std(area))
