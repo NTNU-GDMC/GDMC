@@ -38,3 +38,19 @@ class HeightInfo():
 
     def stdArea(self, area: Rect) -> float:
         return math.sqrt(self.varArea(area))
+
+
+if __name__ == "__main__":
+    # test
+    heights = np.array([[1, 2, 3, 4, 5],
+                        [2, 3, 4, 5, 6],
+                        [3, 4, 5, 6, 7],
+                        [4, 5, 6, 7, 8],
+                        [5, 6, 7, 8, 9]])
+    area = Rect((1, 1), (3, 3))
+    heightInfo = HeightInfo(heights)
+    print(heightInfo.sumArea(area))
+    print(heightInfo.squareSumArea(area))
+    print(heightInfo.meanArea(area))
+    print(heightInfo.varArea(area))
+    print(heightInfo.stdArea(area))
