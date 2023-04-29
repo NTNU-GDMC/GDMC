@@ -2,9 +2,7 @@ from changeBlockByBiome import ischangeBlock, changeBlock
 import sys
 from nbt import nbt as nbt
 from typing import Tuple
-# from gdpc import interface as INTF
-import interface
-INTF = interface.Interface()
+from gdpc import interface as INTF
 
 
 def nbtToString(nbt_struct: nbt.TAG):
@@ -55,11 +53,6 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
 def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> tuple[int, int, int]:
     size = nbt_struct["size"]
     return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
-
-
-# def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> Tuple[int, int, int]:
-#     size = nbt_struct["size"]
-#     return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
 
 
 if __name__ == '__main__':

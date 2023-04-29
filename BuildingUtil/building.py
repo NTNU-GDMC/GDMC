@@ -21,7 +21,6 @@
         # "red_sand"    -> bad land biome
 
 import os
-from BuildingUtil.nbt_builder import getStructureSizeNBT
 from nbt import nbt
 from BuildingUtil.buildingInfo import BuildingInfo, Entry
 

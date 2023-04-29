@@ -1,6 +1,5 @@
 import json
 import os
-from BuildingUtil.nbt_builder import getStructureSizeNBT
 from resource.ChangeMaterialToResource import resource
 from nbt import nbt
 
