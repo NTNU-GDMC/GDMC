@@ -31,7 +31,7 @@ class resource():
 
 
 # 需要傳參進來以記錄 resource，如果沒有，我再改成 return 這些值回去
-def changeMaterialToResource(worldslice, buildArea):
+def changeMaterialToResource(worldslice, buildArea) -> resource:
     material, materialList = analyzeSettlementMaterial(worldslice, buildArea)
     # print(materialList)
     # print("----------------")
