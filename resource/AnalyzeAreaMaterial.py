@@ -5,8 +5,8 @@ import time
 from gdpc import interface as DI
 from gdpc import Editor, WorldSlice
 import glm
-from globalUtils import editor
 from gdpc.vector_tools import Box
+
 
 def getBiome(surface, under):
     tmpList = {}
@@ -88,10 +88,10 @@ def analyzeAreaMaterial(x, y, z):
     return getBiome(surfaceSortedMaterialAnalyzeList, undergroundSortedMaterialAnalyzeList)
 
 
-def analyzeOneBlockVerticalMaterial(WORLDSLICE: WorldSlice, x, z):
+def analyzeOneBlockVerticalMaterial(worldSlice: WorldSlice, x, z):
     content = []
-    noLeavesHeights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    leavesHeights = WORLDSLICE.heightmaps["MOTION_BLOCKING"]
+    noLeavesHeights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    leavesHeights = worldSlice.heightmaps["MOTION_BLOCKING"]
     surfaceHeight = int(noLeavesHeights[(x, z)])
     leavesHeight = int(leavesHeights[(x, z)])
     # print(surfaceHeight)
@@ -99,10 +99,10 @@ def analyzeOneBlockVerticalMaterial(WORLDSLICE: WorldSlice, x, z):
     # in case there is a tree, it'll detect the tree top surface
     if (leavesHeight == surfaceHeight):  # surface is not tree
         for y in range(surfaceHeight-10, surfaceHeight+6):
-            content.append(editor.worldSlice.getBlock((x, y, z)).id)
+            content.append(worldSlice.getBlock((x, y, z)).id)
     else:                              # surface is tree
         for y in range(surfaceHeight-15, surfaceHeight+1):
-            content.append(editor.worldSlice.getBlock((x, y, z)).id)
+            content.append(worldSlice.getBlock((x, y, z)).id)
     contentList = {}
     for idx in content:
         if idx in contentList:
@@ -117,24 +117,25 @@ def analyzeOneBlockVerticalMaterial(WORLDSLICE: WorldSlice, x, z):
     return content, contentList
 
 
-def analyzeSettlementMaterial(WORLDSLICE: WorldSlice, settlementArea: Box):
+def analyzeSettlementMaterial(worldSlice: WorldSlice, settlementArea: Box):
     contentTmp = []
     contentListTmp = {}
     content = []
     contentList = {}
-   
+
     x, _, z = settlementArea.size
     # x, y = len(settlementArea), len(settlementArea[0])
     # 01 Map to coord of (x, z)
     for i in range(0, x):
         for j in range(0, z):
             # print("x = ", i, "y = ", j)
-            
+
             #  TODO: check if settlement or not _ SubaRya
-            
+
             #  if (settlementArea[i][j] == 1):
             a, _, c = settlementArea.offset
-            contentTmp, contentListTmp = analyzeOneBlockVerticalMaterial(WORLDSLICE, i+a, j+c)
+            contentTmp, contentListTmp = analyzeOneBlockVerticalMaterial(
+                worldSlice, i+a, j+c)
             content.extend(contentTmp)
             # combine contentList, if there is the same key, add it, sort it then!
             for key, value in contentListTmp.items():
@@ -146,11 +147,11 @@ def analyzeSettlementMaterial(WORLDSLICE: WorldSlice, settlementArea: Box):
                     contentList.update({key: value})
             contentList = dict(
                 sorted(contentList.items(), key=lambda x: x[1], reverse=True))
-                # print("analyzeSettlementMaterial")
-                # print(contentTmp)
-                # print(contentListTmp)
-                # print("final: ")
-                # print(content)
-                # print(contentList)
+            # print("analyzeSettlementMaterial")
+            # print(contentTmp)
+            # print(contentListTmp)
+            # print("final: ")
+            # print(content)
+            # print(contentList)
             content = list(set(content))
     return content, contentList

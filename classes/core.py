@@ -11,6 +11,7 @@ from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
+
 class Core():
     def __init__(self, buildArea=DEFAULT_BUILD_AREA) -> None:
         """
@@ -24,18 +25,18 @@ class Core():
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
         # get top left and bottom right coordnidate
-        x1, _, x2 = buildArea.offset
-        z1, _, z2 = buildArea.offset + buildArea.size
         x, _, z = buildArea.size
 
-        self._roadMap = np.ndarray((x,z))
-        self._liquidMap = worldSlice.heightmaps["OCEAN_FLOOR"] # TODO: Check what it does
+        self._roadMap = np.ndarray((x, z))
+        self._liquidMap = np.where(
+            worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
         self._resources = changeMaterialToResource(worldSlice, buildArea)
-        self._heightInfo = HeightInfo((x1, z1, x2, z2), heights) # contains: height, sd, var, mean
-        self._blueprint = np.zeros((x // 2,z // 2), dtype=int) # unit is 2x2
-        self._blueprintData = dict[int, Building]
+        # contains: height, sd, var, mean
+        self._heightInfo = HeightInfo(heights)
+        self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
+        self._blueprintData: dict[int, Building] = {}
 
     @property
     def roadMap(self):
@@ -59,28 +60,25 @@ class Core():
 
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
-    
+
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
-        (xlen, zlen) = building.offset
+        (xlen, zlen) = building.getBuildingInfo().getCurrentBuildingLengthAndWidth()
         id = len(self._blueprintData) + 1
 
         self._blueprintData[id] = building
         self._blueprint[x:x+xlen, z:z+zlen] = id
 
-    def getHeightMap(self, heightType: Literal["var" , "mean" , "sum" , "squareSum"], bound: Rect):
-        x1, x2 = bound.offset
-        z1, z2 = bound.offset + bound.size
-        area = (x1, z1, x2, z2)
+    def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum"], bound: Rect):
         if heightType == "var":
-            return self._heightInfo.varArea(area)
+            return self._heightInfo.var(bound)
         if heightType == "mean":
-            return self._heightInfo.meanArea(area)
+            return self._heightInfo.mean(bound)
         if heightType == "sum":
-            return self._heightInfo.sumArea(area)
+            return self._heightInfo.sum(bound)
         if heightType == "squareSum":
-            return self._heightInfo.squareSumArea(area)
+            return self._heightInfo.squareSum(bound)
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
@@ -94,15 +92,16 @@ class Core():
         prefix[0][0] = isEmpty(self.blueprint[0][0])
 
         for i in range(1, h):
-            prefix[i][0] = prefix[i-1][0] + isEmpty(self.blueprint[i][0]) 
+            prefix[i][0] = prefix[i-1][0] + isEmpty(self.blueprint[i][0])
 
         for i in range(1, w):
-            prefix[0][i] = prefix[0][i-1] + isEmpty(self.blueprint[0][i]) 
+            prefix[0][i] = prefix[0][i-1] + isEmpty(self.blueprint[0][i])
 
         # probably can figure out a way to cache this
         for i in range(1, h):
             for j in range(1, w):
-                prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - prefix[i-1][j-1] + isEmpty(self.blueprint[i][j])
+                prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - \
+                    prefix[i-1][j-1] + isEmpty(self.blueprint[i][j])
         result: list[Rect] = []
 
         for i in range(h - height):
@@ -121,7 +120,7 @@ class Core():
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:
-                    result.append(Rect((i,j), (lh, lw)))
+                    result.append(Rect((i, j), (lh, lw)))
 
         return result
 

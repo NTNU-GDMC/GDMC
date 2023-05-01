@@ -1,6 +1,7 @@
 from gdpc import WorldSlice
 from gdpc.vector_tools import Box
 
+
 def getAllBiomeList(WORLDSLICE: WorldSlice, settlementArea: Box):
     heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     biome = []
@@ -13,6 +14,7 @@ def getAllBiomeList(WORLDSLICE: WorldSlice, settlementArea: Box):
                 # print("(x, y) = (", i, ", ", j, ")")
             #  TODO: check if settlement or not _ SubaRya
             a, _, c = settlementArea.offset
-            biome.append(WORLDSLICE.getBiome((i+a, int(heights[(i+a, j+c)]), j+c)))
+            biome.append(WORLDSLICE.getBiome(
+                (i+a, int(heights[(i+a, j+c)]), j+c)))
     biome = list(set(biome))
     return biome

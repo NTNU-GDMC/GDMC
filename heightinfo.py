@@ -1,55 +1,56 @@
 import numpy as np
 import math
-
-
-def acc2D(a: np.ndarray) -> np.ndarray:
-    return np.cumsum(np.cumsum(a, axis=0, dtype=int), axis=1, dtype=int)
-
-
-class Area(tuple[int, int, int, int]):
-    def __new__(cls, x1: int, z1: int, x2: int, z2: int):
-        return tuple.__new__(cls, (x1, z1, x2, z2))
-
-    def contains(self, x: int, z: int):
-        return x >= self[0] and z >= self[1] and \
-            x <= self[2] and z <= self[3]
-
-    def size(self) -> int:
-        x1, z1, x2, z2 = self
-        return (abs(x2-x1)+1)*(abs(z2-z1)+1)
+from gdpc.vector_tools import Rect, Vec2iLike
 
 
 class HeightInfo():
-    def __init__(self, area: Area, heights: np.ndarray):
-        x1, z1, x2, z2 = area
-        x1, x2 = min(x1, x2), max(x1, x2)
-        z1, z2 = min(z1, z2), max(z1, z2)
-        self.area = Area(x1, z1, x2, z2)
-        self.sizes = (x2-x1+1, z2-z1+1)
-        self.heights = heights[:self.sizes[0], :self.sizes[1]].copy()
+    def __init__(self, heights: np.ndarray):
+        # accumulate 2D array
+        def acc2D(a) -> np.ndarray: return np.cumsum(
+            np.cumsum(a, axis=0, dtype=int), axis=1, dtype=int)
+
+        self.area = Rect((0, 0), heights.shape)
+        self.heights = heights.copy()
         self.squareHeights = np.square(self.heights)
         self.accHeights = acc2D(self.heights)
         self.accSquareHeights = acc2D(self.squareHeights)
-        print(self.squareHeights)
-        print(self.accHeights)
-        print(self.accSquareHeights)
 
-    def sumAreaFromAcc(self, a: np.ndarray, area: Area) -> int:
-        x1, z1, x2, z2 = area
+    def __sumFromAcc__(self, acc: np.ndarray, area: Rect) -> int:
+        # get sum of area from accumulated 2D array
+        def get(pos: Vec2iLike) -> int:
+            x, z = pos
+            return acc[x, z] if self.area.contains(pos) else 0
+        x1, z1 = area.begin
+        x2, z2 = area.last
+        return get((x2, z2)) - (get((x1-1, z2))+get((x2, z1-1))) + get((x1-1, z1-1))
 
-        def get(x, z) -> int:
-            return a[x, z] if self.area.contains(x, z) else 0
-        return get(x2, z2) - (get(x1-1, z2)+get(x2, z1-1)) + get(x1-1, z1-1)
+    def sum(self, area: Rect) -> int:
+        return self.__sumFromAcc__(self.accHeights, area)
 
-    def sumArea(self, area: Area) -> int:
-        return self.sumAreaFromAcc(self.accHeights, area)
+    def squareSum(self, area: Rect) -> int:
+        return self.__sumFromAcc__(self.accSquareHeights, area)
 
-    def squareSumArea(self, area: Area) -> int:
-        return self.sumAreaFromAcc(self.accSquareHeights, area)
+    def mean(self, area: Rect) -> float:
+        return self.sum(area) / self.area.area
 
-    def meanArea(self, area: Area) -> float:
-        return self.sumArea(area) / self.area.size()
+    def var(self, area: Rect) -> float:
+        return self.squareSum(area) / self.area.area - self.mean(area) ** 2
 
-    def varArea(self, area: Area):
-        return math.sqrt(self.squareSumArea(area) / self.area.size() -
-                         self.meanArea(area) ** 2)
+    def std(self, area: Rect) -> float:
+        return math.sqrt(self.var(area))
+
+
+if __name__ == "__main__":
+    # test
+    heights = np.array([[1, 2, 3, 4, 5],
+                        [2, 3, 4, 5, 6],
+                        [3, 4, 5, 6, 7],
+                        [4, 5, 6, 7, 8],
+                        [5, 6, 7, 8, 9]])
+    area = Rect((1, 1), (3, 3))
+    heightInfo = HeightInfo(heights)
+    print(heightInfo.sum(area))
+    print(heightInfo.squareSum(area))
+    print(heightInfo.mean(area))
+    print(heightInfo.var(area))
+    print(heightInfo.std(area))
