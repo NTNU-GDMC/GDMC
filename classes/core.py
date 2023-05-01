@@ -6,7 +6,7 @@ from BuildingUtil.building import Building
 
 from heightinfo import HeightInfo
 from resource.AnalyzeAreaBiomeList import getAllBiomeList
-from resource.ChangeMaterialToResource import analyzeAreaMaterialToResource
+from resource.AnalyzeAreaMaterialToResource import analyzeAreaMaterialToResource
 from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))

@@ -1,6 +1,6 @@
 import json
 import os
-from resource.ChangeMaterialToResource import resource
+from resource.AnalyzeAreaMaterialToResource import resource
 from nbt import nbt
 
 CHALET = "chalet"
