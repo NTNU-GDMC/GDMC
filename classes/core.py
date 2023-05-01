@@ -6,7 +6,7 @@ from BuildingUtil.building import Building
 
 from heightinfo import HeightInfo
 from resource.AnalyzeAreaBiomeList import getAllBiomeList
-from resource.ChangeMaterialToResource import changeMaterialToResource
+from resource.ChangeMaterialToResource import analyzeAreaMaterialToResource
 from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
@@ -32,7 +32,7 @@ class Core():
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = changeMaterialToResource(worldSlice, buildArea)
+        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2

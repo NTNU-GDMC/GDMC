@@ -29,10 +29,10 @@ class resource():
         print(self.iron)
         print(self.grass)
 
-
-# 需要傳參進來以記錄 resource，如果沒有，我再改成 return 這些值回去
-def changeMaterialToResource(worldslice, buildArea):
-    materialDict = analyzeSettlementMaterial(worldslice, buildArea)
+def analyzeAreaMaterialToResource(worldslice, Area, name = "default"):
+    # analyzeAreaMaterialToResource will return a resource object if name = "default"
+    # else, name = "wood", "stone", "food", "ironOre", "iron", "grass" will return corresponding resource
+    materialDict = analyzeSettlementMaterial(worldslice, Area)
     woodNum = 0
     stoneNum = 0
     foodNum = 0
@@ -49,6 +49,20 @@ def changeMaterialToResource(worldslice, buildArea):
         if idx in ironList:
             ironOreNum += materialDict[idx]
     foodNum += woodNum // 40
-    #  TODO: human will be count on settlement size - SubaRya
     r = resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
-    return r
+    
+    if name == "default":
+        #  TODO: human will be count on settlement size - SubaRya
+        return r
+    elif name == "wood":
+        return r.wood
+    elif name == "stone":
+        return r.stone
+    elif name == "food":
+        return r.food
+    elif name == "ironOre":
+        return r.ironOre
+    elif name == "iron":
+        return r.iron
+    elif name == "grass":
+        return r.grass
