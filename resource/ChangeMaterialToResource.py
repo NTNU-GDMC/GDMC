@@ -32,31 +32,23 @@ class resource():
 
 # 需要傳參進來以記錄 resource，如果沒有，我再改成 return 這些值回去
 def changeMaterialToResource(worldslice, buildArea):
-    material, materialList = analyzeSettlementMaterial(worldslice, buildArea)
-    # print(materialList)
-    # print("----------------")
-    # print(material)
+    materialDict = analyzeSettlementMaterial(worldslice, buildArea)
     woodNum = 0
     stoneNum = 0
     foodNum = 0
     ironOreNum = 0
     # ironNum = 0
-    for idx in materialList:
+    for idx in materialDict:
         if idx in logList:
-            woodNum += materialList[idx]*4
-    for idx in materialList:
+            woodNum += materialDict[idx]*4
+    for idx in materialDict:
         if idx in stoneList:
-            stoneNum += materialList[idx]
+            stoneNum += materialDict[idx]
     stoneNum //= 10
-    for idx in materialList:
+    for idx in materialDict:
         if idx in ironList:
-            ironOreNum += materialList[idx]
+            ironOreNum += materialDict[idx]
     foodNum += woodNum // 40
     #  TODO: human will be count on settlement size - SubaRya
     r = resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
-    # r.printResource()
     return r
-    # print("woodNum: ", woodNum)
-    # print("stoneNum: ", stoneNum)
-    # print("foodNum: ", foodNum)
-    # print("ironOreNum: ", ironOreNum)
