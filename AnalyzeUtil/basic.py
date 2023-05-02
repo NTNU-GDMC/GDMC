@@ -1,6 +1,25 @@
 from ..classes.core import Core
 from gdpc.geometry import Rect
 from math import sqrt
+from typing import Callable
+from numpy import ndarray
+
+
+def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
+    x1, y1 = area.offset
+    xlen, ylen = area.size
+    x2 = x1 + xlen
+    y2 = y1 + ylen
+
+    for i in range(x1, x2):
+        if cmp(map[i, y1]) or cmp(map[i, y2 - 1]):
+            return True
+
+    for i in range(y1, y2):
+        if cmp(map[x1, i]) or cmp(map[x2 - 1, i]):
+            return True
+
+    return False
 
 
 MAXIMUM_SD = 5
@@ -17,37 +36,16 @@ def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
 MAXIMUM_ROAD_DISTANCE = 30
 def closeEnoughToRoad(core: Core, area:Rect, maxAverageDistance=MAXIMUM_ROAD_DISTANCE) -> bool:
     """Check if the edge of the area is close enough to a road"""
-    x1, y1 = area.offset
-    xlen, ylen = area.size
-    x2 = x1 + xlen
-    y2 = y1 + ylen
+    def cmp(height: int):
+        return height <= maxAverageDistance
 
-    for i in range(x1, x2):
-        if max(core.roadMap[i, y1], core.roadMap[i, y2 - 1]) <= maxAverageDistance:
-            return True
+    return checkEdge(core.roadMap, area, cmp)
 
-    for i in range(y1, y2):
-        if max(core.roadMap[x1, i], core.roadMap[x2 - 1, i]) <= maxAverageDistance:
-            return True
+def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
+    """Check if there's liquid in the range of area"""
+    def cmp(isLiquid: int):
+        return isLiquid == 1
 
-    return False
-
-MAXIMUM_LIQUID_DISTANCE = 5
-def closeEnoughToLiquid(core: Core, area: Rect, maxLiquidDistance=MAXIMUM_LIQUID_DISTANCE) -> bool:
-    """Check if the closest liquid is in the range of minLiquidDistance"""
-    x1, y1 = area.offset
-    xlen, ylen = area.size
-    x2 = x1 + xlen
-    y2 = y1 + ylen
-
-    for i in range(x1, x2):
-        if max(core.roadMap[i, y1], core.roadMap[i, y2 - 1]) <= maxLiquidDistance:
-            return True
-
-    for i in range(y1, y2):
-        if max(core.roadMap[x1, i], core.roadMap[x2 - 1, i]) <= maxLiquidDistance:
-            return True
-
-    return False
+    return checkEdge(core.liquidMap, area, cmp)
 
 
