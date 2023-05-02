@@ -31,3 +31,23 @@ def closeEnoughToRoad(core: Core, area:Rect, maxAverageDistance=MAXIMUM_ROAD_DIS
             return True
 
     return False
+
+MAXIMUM_LIQUID_DISTANCE = 5
+def closeEnoughToLiquid(core: Core, area: Rect, maxLiquidDistance=MAXIMUM_LIQUID_DISTANCE) -> bool:
+    """Check if the closest liquid is in the range of minLiquidDistance"""
+    x1, y1 = area.offset
+    xlen, ylen = area.size
+    x2 = x1 + xlen
+    y2 = y1 + ylen
+
+    for i in range(x1, x2):
+        if max(core.roadMap[i, y1], core.roadMap[i, y2 - 1]) <= maxLiquidDistance:
+            return True
+
+    for i in range(y1, y2):
+        if max(core.roadMap[x1, i], core.roadMap[x2 - 1, i]) <= maxLiquidDistance:
+            return True
+
+    return False
+
+
