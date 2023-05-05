@@ -1,6 +1,8 @@
-# analyze area of surface and underground material
-# (x,y,z) reference point is the lower left corner.
-# Namely, if (x,y,z) is (0,0,0), the range of surface will be (x+rangeX, y+rangeY, z+rangeZ), the range of underground will be (x+rangeX, y-rangeY, z+rangeZ),
+"""
+analyze area of surface and underground material
+(x,y,z) reference point is the lower left corner.
+Namely, if (x,y,z) is (0,0,0), the range of surface will be (x+rangeX, y+rangeY, z+rangeZ), the range of underground will be (x+rangeX, y-rangeY, z+rangeZ),
+"""
 import time
 from gdpc import interface as DI
 from gdpc import Editor, WorldSlice
@@ -58,14 +60,12 @@ def analyzeAreaMaterial(x, y, z):
         for rangeY in range(surfaceRange['y']):
             for rangeZ in range(surfaceRange['z']):
                 surfaceContent.append(
-                    str(editor.worldSlice.getBlock(glm.ivec3(x+rangeX, y+rangeY, z+rangeZ))))
+                    str(editor.worldSlice.getBlock(glm.ivec3(x + rangeX, y + rangeY, z + rangeZ))))
     for rangeX in range(undergroundRange['x']):
         for rangeY in range(undergroundRange['y']):
             for rangeZ in range(undergroundRange['z']):
                 undergroundContent.append(
-                    str(editor.worldSlice.getBlock(glm.ivec3(x+rangeX, y-rangeY, z+rangeZ))))
-    # print('surfaceContent: ', surfaceContent)
-    # print('undergroundContent: ', undergroundContent)\
+                    str(editor.worldSlice.getBlock(glm.ivec3(x + rangeX, y - rangeY, z + rangeZ))))
     surfaceMaterialAnalyzeList = {}
     undergroundMaterialAnalyzeList = {}
     for idx in surfaceContent:
@@ -83,7 +83,6 @@ def analyzeAreaMaterial(x, y, z):
             undergroundMaterialAnalyzeList[idx] = 1
     undergroundSortedMaterialAnalyzeList = sorted(
         undergroundMaterialAnalyzeList.items(), key=lambda x: x[1], reverse=True)
-    # print(surfaceSortedMaterialAnalyzeList)
     print(undergroundSortedMaterialAnalyzeList)
     return getBiome(surfaceSortedMaterialAnalyzeList, undergroundSortedMaterialAnalyzeList)
 
@@ -94,14 +93,12 @@ def analyzeOneBlockVerticalMaterial(worldSlice: WorldSlice, x, z):
     leavesHeights = worldSlice.heightmaps["MOTION_BLOCKING"]
     surfaceHeight = int(noLeavesHeights[(x, z)])
     leavesHeight = int(leavesHeights[(x, z)])
-    # print(surfaceHeight)
-    # print(leavesHeight)
     # in case there is a tree, it'll detect the tree top surface
     if (leavesHeight == surfaceHeight):  # surface is not tree
-        for y in range(surfaceHeight-10, surfaceHeight+6):
+        for y in range(surfaceHeight - 10, surfaceHeight + 6):
             content.append(worldSlice.getBlock((x, y, z)).id)
     else:                              # surface is tree
-        for y in range(surfaceHeight-15, surfaceHeight+1):
+        for y in range(surfaceHeight - 15, surfaceHeight + 1):
             content.append(worldSlice.getBlock((x, y, z)).id)
     contentList = {}
     for idx in content:
@@ -111,9 +108,6 @@ def analyzeOneBlockVerticalMaterial(worldSlice: WorldSlice, x, z):
             contentList[idx] = 1
     contentList = dict(
         sorted(contentList.items(), key=lambda x: x[1], reverse=True))
-    # print("analyzeOneBlockVerticalMaterial x= ", x, "z = ", z)
-    # print(content)
-    # print(contentList)
     return content, contentList
 
 
@@ -124,34 +118,21 @@ def analyzeSettlementMaterial(worldSlice: WorldSlice, settlementArea: Box):
     contentList = {}
 
     x, _, z = settlementArea.size
-    # x, y = len(settlementArea), len(settlementArea[0])
     # 01 Map to coord of (x, z)
     for i in range(0, x):
         for j in range(0, z):
-            # print("x = ", i, "y = ", j)
-
             #  TODO: check if settlement or not _ SubaRya
-
-            #  if (settlementArea[i][j] == 1):
             a, _, c = settlementArea.offset
             contentTmp, contentListTmp = analyzeOneBlockVerticalMaterial(
-                worldSlice, i+a, j+c)
+                worldSlice, i + a, j + c)
             content.extend(contentTmp)
             # combine contentList, if there is the same key, add it, sort it then!
             for key, value in contentListTmp.items():
-                # print("key: ", key, "value: ", value)
-                # print(contentList.get(key))
                 if (contentList.get(key) != None):
                     contentList[key] += contentListTmp[key]
                 else:
                     contentList.update({key: value})
             contentList = dict(
                 sorted(contentList.items(), key=lambda x: x[1], reverse=True))
-            # print("analyzeSettlementMaterial")
-            # print(contentTmp)
-            # print(contentListTmp)
-            # print("final: ")
-            # print(content)
-            # print(contentList)
             content = list(set(content))
     return content, contentList

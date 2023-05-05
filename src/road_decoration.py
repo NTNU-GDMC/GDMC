@@ -21,16 +21,14 @@ flowers = [
 flowerStampSize = [[8, 3], [12, 5], [16, 2]]
 treeStampSize = [14, 3]
 
-# return value is [x,y,z,flowerName]
-
 
 def removeNear(l: list[ivec3], minDis: float):
     sotredLocs = sorted(l, key=itemgetter(0, 2))
     res: list[ivec3] = []
     for loc in sotredLocs:
         ok = True
-        for j in range(len(res)-1, -1, -1):
-            if abs(loc[0]-res[j][0]) > minDis:
+        for j in range(len(res) - 1, -1, -1):
+            if abs(loc[0] - res[j][0]) > minDis:
                 break
             if dist(loc, res[j]) <= minDis:
                 ok = False
@@ -48,8 +46,8 @@ def roadDecoration(roadCoord, interval, heights):
         [size, count] = choice(flowerStampSize)
         flower = choice(flowers)
         for _ in range(count):
-            nx = randint(x - size, x+size)
-            nz = randint(z - size, z+size)
+            nx = randint(x - size, x + size)
+            nz = randint(z - size, z + size)
             flowerData.append(
                 [nx, heights[nx][nz], nz, flower])
 
@@ -63,8 +61,8 @@ def treeDecoration(roadCoord, interval, heights):
         [x, y, z] = roadCoord[idx]
         [size, count] = treeStampSize
         for _ in range(count):
-            nx = randint(x - size, x+size)
-            nz = randint(z - size, z+size)
+            nx = randint(x - size, x + size)
+            nz = randint(z - size, z + size)
             print("does collide", [
                   x for x in roadCoord if (x[0] == nx and x[2] == nz)])
             if len([road for road in roadCoord if (road[0] == nx and road[2] == nz)]) == 0:
@@ -81,9 +79,9 @@ def lightDecoration(roadCoord: list[ivec3], interval: float, heights):
             for dz in [-1, 0, 1]:
                 if done:
                     break
-                if abs(dx)+abs(dz) != 1:
+                if abs(dx) + abs(dz) != 1:
                     continue
-                x1, z1 = x+dx, z+dz
+                x1, z1 = x + dx, z + dz
                 if (x1, y, z1) in roadCoord:
                     continue
                 done = True
