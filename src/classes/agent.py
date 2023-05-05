@@ -1,9 +1,10 @@
 from typing import Callable
 from gdpc.vector_tools import Rect
 from .core import Core
-from BuildingUtil.building import Building
-from BuildingUtil.buildingInfo import BuildingInfo, getJsonAbsPath
 from .baseagent import RunableAgent
+from ..building_util.building import Building
+from ..building_util.building_info import BuildingInfo, getJsonAbsPath
+
 
 class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
@@ -32,7 +33,7 @@ class BuildAgent(RunableAgent):
                 bestLocationValue = value
                 bestLocation = location
         building = Building(
-            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1,  bestLocation.begin)
+            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
         print(
             f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
         # do something about the building class (add nessarry data to it)

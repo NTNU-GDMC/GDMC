@@ -34,15 +34,14 @@ def snowRepl(m):
     return ":" + parseX
 
 
-def ischangeBlock(biome: str):
+def isChangeBlock(biome: str):
     if biome == "snow" or biome == "badland":
         return True
     return False
 
-# This function will change block definitely via biome
-
 
 def changeBlock(biome: str, blockName: str):
+    # This function will change block definitely via biome
     if biome == "snow":
         blockName = re.sub(r":[\w_]*\b", snowRepl, blockName)
     return blockName

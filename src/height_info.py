@@ -22,7 +22,7 @@ class HeightInfo():
             return acc[x, z] if self.area.contains(pos) else 0
         x1, z1 = area.begin
         x2, z2 = area.last
-        return get((x2, z2)) - (get((x1-1, z2))+get((x2, z1-1))) + get((x1-1, z1-1))
+        return get((x2, z2)) - (get((x1 - 1, z2)) + get((x2, z1 - 1))) + get((x1 - 1, z1 - 1))
 
     def sum(self, area: Rect) -> int:
         return self.__sumFromAcc__(self.accHeights, area)

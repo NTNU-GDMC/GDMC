@@ -1,4 +1,4 @@
-from changeBlockByBiome import ischangeBlock, changeBlock
+from ..resource.biome_substitute import isChangeBlock, changeBlock
 import sys
 from nbt import nbt as nbt
 from typing import Tuple
@@ -26,8 +26,8 @@ def nbtToString(nbt_struct: nbt.TAG):
             return '{}'.format(str(nbt_struct))
 
 
-# fix: isChangeBlock and changeBlock function - SubaRya
 def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ: int, biome: str, keep=False):
+    # fix: isChangeBlock and changeBlock function - SubaRya
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:
         x, y, z = map(lambda e: int(e.value), blk["pos"])
@@ -42,7 +42,7 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         option = "replace"
         if keep:
             option = "keep"
-        #INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
+        # INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
         if ischangeBlock(biome) == True:
             blkName = changeBlock(biome, blkName)
         # print(blkName)
