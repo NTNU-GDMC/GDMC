@@ -2,12 +2,11 @@ from gdpc import Editor
 from gdpc.vector_tools import Rect, Box
 from typing import Literal
 import numpy as np
-from BuildingUtil.building import Building
+from ..building_util.building import Building
 
-from heightinfo import HeightInfo
-from resource.AnalyzeAreaBiomeList import getAllBiomeList
-from resource.ChangeMaterialToResource import changeMaterialToResource
-from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
+from ..height_info import HeightInfo
+from ..resource.analyze_biome import getAllBiomeList
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
@@ -32,7 +31,7 @@ class Core():
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = changeMaterialToResource(worldSlice, buildArea)
+        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
@@ -68,7 +67,7 @@ class Core():
         id = len(self._blueprintData) + 1
 
         self._blueprintData[id] = building
-        self._blueprint[x:x+xlen, z:z+zlen] = id
+        self._blueprint[x:x + xlen, z:z + zlen] = id
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum"], bound: Rect):
         if heightType == "var":
@@ -92,16 +91,16 @@ class Core():
         prefix[0][0] = isEmpty(self.blueprint[0][0])
 
         for i in range(1, h):
-            prefix[i][0] = prefix[i-1][0] + isEmpty(self.blueprint[i][0])
+            prefix[i][0] = prefix[i - 1][0] + isEmpty(self.blueprint[i][0])
 
         for i in range(1, w):
-            prefix[0][i] = prefix[0][i-1] + isEmpty(self.blueprint[0][i])
+            prefix[0][i] = prefix[0][i - 1] + isEmpty(self.blueprint[0][i])
 
         # probably can figure out a way to cache this
         for i in range(1, h):
             for j in range(1, w):
-                prefix[i][j] = prefix[i-1][j] + prefix[i][j-1] - \
-                    prefix[i-1][j-1] + isEmpty(self.blueprint[i][j])
+                prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
+                    prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
         result: list[Rect] = []
 
         for i in range(h - height):
@@ -112,11 +111,11 @@ class Core():
                 top = 0
                 leftTop = 0
                 if i > 0:
-                    top = prefix[i-1][lw]
+                    top = prefix[i - 1][lw]
                 if j > 0:
                     left = prefix[lh][j - 1]
                 if i > 0 and j > 0:
-                    leftTop = prefix[i-1][j-1]
+                    leftTop = prefix[i - 1][j - 1]
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:

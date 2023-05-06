@@ -11,7 +11,7 @@ from gdpc.vector_tools import *
 
 
 def groundY(point: ivec2, heights: np.ndarray) -> int:
-    return heights[ivec2(point).to_tuple()]-1
+    return heights[ivec2(point).to_tuple()] - 1
 
 
 def setGroundY2D(point: ivec2, heights: np.ndarray) -> ivec3:
@@ -65,7 +65,7 @@ def pathFind(
                 continue
 
             # skip if delta y is > 1
-            if abs(n[1]-n1[1]) > 1:
+            if abs(n[1] - n1[1]) > 1:
                 continue
 
             # skip if not in build area
@@ -146,7 +146,7 @@ def buildRoad(target: Vec3iLike,
             buildArea=buildArea,
             heights=heights)
         if res == None and retries > 0:
-            return run(retries-1)
+            return run(retries - 1)
         return res
 
     res = run()

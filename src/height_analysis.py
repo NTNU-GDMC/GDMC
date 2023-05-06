@@ -9,8 +9,8 @@ def parseHeight(heights: list[list[int]]):
     for x in range(mx):
         for y in range(my):
             h = 0
-            for i in range(x*16, x*16 + 16):
-                for j in range(y*16, y*16 + 16):
+            for i in range(x * 16, x * 16 + 16):
+                for j in range(y * 16, y * 16 + 16):
                     h = h + heights[i][j]
             h = h // 256
             res[x][y] = h
@@ -173,8 +173,8 @@ def getAvailableBuildArea(heights: list[list[int]]):
             for a in vis:
                 print(a)
             return []
-        for curX in range(cx*16, cx*16 + 16):
-            for curY in range(cy*16, cy*16 + 16):
+        for curX in range(cx * 16, cx * 16 + 16):
+            for curY in range(cy * 16, cy * 16 + 16):
                 res[curX][curY] = 1
         for i in range(0, 4):
             nx = cx + dx[i]
@@ -184,7 +184,5 @@ def getAvailableBuildArea(heights: list[list[int]]):
             if abs(chunks[cx][cy] - chunks[nx][ny]) <= 2:
                 q.put([nx, ny])
 
-    # print("analysis done")
-    # print(res)
     # return a 2D array, 1 means that the position can be built.
     return res

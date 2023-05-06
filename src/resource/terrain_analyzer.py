@@ -1,6 +1,6 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
-from resource.AnalyzeAreaMaterial import analyzeSettlementMaterial
+from ..resource.analyze_material import analyzeSettlementMaterial
 
 stoneList = ["minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
              "minecraft:dripstone_block", "minecraft:stone", "minecraft:stone_bricks", "minecraft:granite", "minecraft:deepslate", "minecraft:deepslate_bricks", "minecraft:cobbled_deepslate", "minecraft:tuff"]
@@ -10,7 +10,7 @@ ironList = ["minecraft:iron_ore", "minecraft:raw_iron_block",
             "minecraft:deepslate_iron_ore"]
 
 
-class resource():
+class Resource():
     def __init__(self, human, wood, stone, food, ironOre, iron, grass):
         self.human = human
         self.wood = wood
@@ -30,33 +30,41 @@ class resource():
         print(self.grass)
 
 
-# 需要傳參進來以記錄 resource，如果沒有，我再改成 return 這些值回去
-def changeMaterialToResource(worldslice, buildArea) -> resource:
-    material, materialList = analyzeSettlementMaterial(worldslice, buildArea)
-    # print(materialList)
-    # print("----------------")
-    # print(material)
+def analyzeAreaMaterialToResource(worldslice, Area, name="default"):
+    """
+    analyzeAreaMaterialToResource will return a resource object if name = "default"
+    else, name = "wood", "stone", "food", "ironOre", "iron", "grass" will return corresponding resource
+    """
+    materialDict = analyzeSettlementMaterial(worldslice, Area)
     woodNum = 0
     stoneNum = 0
     foodNum = 0
     ironOreNum = 0
     # ironNum = 0
-    for idx in materialList:
+    for idx in materialDict:
         if idx in logList:
-            woodNum += materialList[idx]*4
-    for idx in materialList:
+            woodNum += materialDict[idx] * 4
+    for idx in materialDict:
         if idx in stoneList:
-            stoneNum += materialList[idx]
+            stoneNum += materialDict[idx]
     stoneNum //= 10
-    for idx in materialList:
+    for idx in materialDict:
         if idx in ironList:
-            ironOreNum += materialList[idx]
+            ironOreNum += materialDict[idx]
     foodNum += woodNum // 40
-    #  TODO: human will be count on settlement size - SubaRya
-    r = resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
-    # r.printResource()
-    return r
-    # print("woodNum: ", woodNum)
-    # print("stoneNum: ", stoneNum)
-    # print("foodNum: ", foodNum)
-    # print("ironOreNum: ", ironOreNum)
+    r = Resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
+    if name == "default":
+        #  TODO: human will be count on settlement size - SubaRya
+        return r
+    elif name == "wood":
+        return r.wood
+    elif name == "stone":
+        return r.stone
+    elif name == "food":
+        return r.food
+    elif name == "ironOre":
+        return r.ironOre
+    elif name == "iron":
+        return r.iron
+    elif name == "grass":
+        return r.grass
