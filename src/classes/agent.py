@@ -1,21 +1,12 @@
-import abc
 from typing import Callable
 from gdpc.vector_tools import Rect
 from .core import Core
-from BuildingUtil.building import Building
-from BuildingUtil.buildingInfo import BuildingInfo, getJsonAbsPath
+from .baseagent import RunableAgent
+from ..building_util.building import Building
+from ..building_util.building_info import BuildingInfo, getJsonAbsPath
 
 
-class Agent():
-    def __init__(self, core: Core) -> None:
-        self.core = core
-
-    @abc.abstractmethod
-    def run(self) -> None:
-        pass
-
-
-class BuildAgent(Agent):
+class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core)
@@ -42,7 +33,7 @@ class BuildAgent(Agent):
                 bestLocationValue = value
                 bestLocation = location
         building = Building(
-            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1,  bestLocation.begin)
+            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
         print(
             f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
         # do something about the building class (add nessarry data to it)
