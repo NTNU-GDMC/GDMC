@@ -127,7 +127,7 @@ class Core():
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:
-                    result.append(Rect((i, j), (lh, lw)))
+                    result.append(Rect((i * UNIT, j * UNIT), (lh * UNIT, lw * UNIT)))
 
         return result
 
