@@ -6,7 +6,7 @@ from src.visual.blueprint import plotBlueprint
 
 
 import random
-#  TODO: logic per round
+# TODO: logic per round
 if __name__ == '__main__':
     core = Core()
     agents = [
