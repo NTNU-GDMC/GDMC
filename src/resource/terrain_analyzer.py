@@ -1,5 +1,7 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
+from gdpc import WorldSlice
+from gdpc.vector_tools import Box
 from ..resource.analyze_material import analyzeSettlementMaterial
 
 stoneList = ["minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
@@ -26,12 +28,12 @@ class Resource():
     def __repr__(self):
         return self.__str__()
 
-def analyzeAreaMaterialToResource(worldslice, Area, name="default"):
+
+def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Box) -> Resource:
     """
-    analyzeAreaMaterialToResource will return a resource object if name = "default"
-    else, name = "wood", "stone", "food", "ironOre", "iron", "grass" will return corresponding resource
+    analyze area material to resource
     """
-    materialDict = analyzeSettlementMaterial(worldslice, Area)
+    materialDict = analyzeSettlementMaterial(worldSlice, area)
     woodNum = 0
     stoneNum = 0
     foodNum = 0
@@ -49,18 +51,4 @@ def analyzeAreaMaterialToResource(worldslice, Area, name="default"):
             ironOreNum += materialDict[idx]
     foodNum += woodNum // 40
     r = Resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
-    if name == "default":
-        #  TODO: human will be count on settlement size - SubaRya
-        return r
-    elif name == "wood":
-        return r.wood
-    elif name == "stone":
-        return r.stone
-    elif name == "food":
-        return r.food
-    elif name == "ironOre":
-        return r.ironOre
-    elif name == "iron":
-        return r.iron
-    elif name == "grass":
-        return r.grass
+    return r
