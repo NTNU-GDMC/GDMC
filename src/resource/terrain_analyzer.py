@@ -20,15 +20,11 @@ class Resource():
         self.iron = iron
         self.grass = grass
 
-    def printResource(self):
-        print(self.human)
-        print(self.wood)
-        print(self.stone)
-        print(self.food)
-        print(self.ironOre)
-        print(self.iron)
-        print(self.grass)
+    def __str__(self):
+        return f"human: {self.human}, wood: {self.wood}, stone: {self.stone}, food: {self.food}, ironOre: {self.ironOre}, iron: {self.iron}, grass: {self.grass}"
 
+    def __repr__(self):
+        return self.__str__()
 
 def analyzeAreaMaterialToResource(worldslice, Area, name="default"):
     """
