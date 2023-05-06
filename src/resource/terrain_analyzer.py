@@ -11,7 +11,7 @@ ironList = ["minecraft:iron_ore", "minecraft:raw_iron_block",
 
 
 class Resource():
-    def __init__(self, human, wood, stone, food, ironOre, iron, grass):
+    def __init__(self, human: int, wood: int, stone: int, food: int, ironOre: int, iron: int, grass: int):
         self.human = human
         self.wood = wood
         self.stone = stone
