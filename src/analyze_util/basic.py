@@ -23,23 +23,32 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
 
 
 MAXIMUM_SD = 5
+
+
 def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> bool:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
     return sqrt(core.getHeightMap("var", area)) <= maxSD
 
-MINIMUM_WOOD = 50 # TODO: Ask Subarya how many is enough
+
+MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
+
+
 def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    return core.resources.wood >= minWood 
+    return core.resources.wood >= minWood
+
 
 MAXIMUM_ROAD_DISTANCE = 30
-def closeEnoughToRoad(core: Core, area:Rect, maxAverageDistance=MAXIMUM_ROAD_DISTANCE) -> bool:
+
+
+def closeEnoughToRoad(core: Core, area: Rect, maxAverageDistance=MAXIMUM_ROAD_DISTANCE) -> bool:
     """Check if the edge of the area is close enough to a road"""
     def cmp(height: int):
         return height <= maxAverageDistance
 
     return checkEdge(core.roadMap, area, cmp)
+
 
 def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
     """Check if there's liquid in the range of area"""
@@ -47,5 +56,3 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
         return isLiquid == 1
 
     return checkEdge(core.liquidMap, area, cmp)
-
-
