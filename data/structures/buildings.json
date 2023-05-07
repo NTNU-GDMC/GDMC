@@ -1,0 +1,49 @@
+{
+    "chalet": {
+        "variants": [
+            {
+                "name": "chalet1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "chalet1/level1.json",
+                        "nbt": "chalet1/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "chalet1/level2.json",
+                        "nbt": "chalet1/level2.nbt"
+                    }
+                ]
+            }
+        ]
+    },
+    "desert_building": {
+        "variants": [
+            {
+                "name": "desert_building1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "desert_building1/level1.json",
+                        "nbt": "desert_building/level1.nbt"
+                    }
+                ]
+            }
+        ]
+    },
+    "huge_sawmill": {
+        "variants": [
+            {
+                "name": "huge_sawmill1",
+                "level_info": [
+                    {
+                        "level": 3,
+                        "info": "huge_sawmill/level3.json",
+                        "nbt": "huge_sawmill/level3.nbt"
+                    }
+                ]
+            }
+        ]
+    }
+}
