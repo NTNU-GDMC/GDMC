@@ -43,7 +43,7 @@ def buildFromStructureNBT(nbt_struct: nbt.NBTFile, baseX: int, baseY: int, baseZ
         if keep:
             option = "keep"
         # INTF.placeBlock(x + baseX, y + baseY, z + baseZ, blkName)
-        if ischangeBlock(biome) == True:
+        if isChangeBlock(biome):
             blkName = changeBlock(biome, blkName)
         # print(blkName)
         INTF.runCommand("/setblock {} {} {} {} {}".format(x +

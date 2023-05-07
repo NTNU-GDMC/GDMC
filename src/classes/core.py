@@ -2,7 +2,7 @@ from gdpc import Editor
 from gdpc.vector_tools import Rect, Box
 from typing import Literal
 import numpy as np
-from ..building_util.building import Building
+from ..building.building import Building
 
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
@@ -63,7 +63,7 @@ class Core():
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
-        (xlen, zlen) = building.getBuildingInfo().getCurrentBuildingLengthAndWidth()
+        (xlen, _, zlen) = building.dimension
         id = len(self._blueprintData) + 1
 
         self._blueprintData[id] = building
@@ -126,3 +126,7 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
         pass
+
+    @property
+    def blueprint_data(self):
+        return self._blueprintData

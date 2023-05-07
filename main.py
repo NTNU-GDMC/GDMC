@@ -1,7 +1,7 @@
 # ! /usr/bin/python3
 from src.classes.core import Core
 from src.classes.agent import BuildAgent
-from src.building_util.building_info import CHALET, DESERT_BUILDING
+from src.building.building_info import CHALET, DESERT_BUILDING
 from src.visual.blueprint import plotBlueprint
 
 
@@ -19,11 +19,8 @@ if __name__ == '__main__':
 
     for agent in agents:
         print(agent.buildingType)
-        print(agent.buildingInfo.getCurrentBuildingLengthAndWidth())
-        print(agent.buildingInfo.getCurrentBuildingType())
-        print(agent.buildingInfo.getCurrentBuildingMaterial())
-        print(agent.buildingInfo.getCurrentRequiredResource().stone)
-        print(agent.buildingInfo.getCurrentRequiredResource().wood)
+        print(agent.buildingInfo.dimension)
+        print(agent.buildingInfo.type)
 
     # iterate 10 rounds
     round = 10

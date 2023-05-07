@@ -39,8 +39,8 @@
                 "level_info": [
                     {
                         "level": 3,
-                        "info": "huge_sawmill/level3.json",
-                        "nbt": "huge_sawmill/level3.nbt"
+                        "info": "huge_sawmill1/level3.json",
+                        "nbt": "huge_sawmill1/level3.nbt"
                     }
                 ]
             }
