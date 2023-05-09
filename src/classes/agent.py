@@ -10,6 +10,7 @@ class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core)
+        # the larger value analyzeFunction returns, the better
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info

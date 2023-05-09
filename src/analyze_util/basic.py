@@ -26,9 +26,9 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
 MAXIMUM_SD = 5
 
 
-def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> bool:
+def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> int:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
-    return sqrt(core.getHeightMap("var", area)) <= maxSD
+    return maxSD - sqrt(core.getHeightMap("var", area)) 
 
 
 MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
