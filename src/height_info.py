@@ -31,10 +31,10 @@ class HeightInfo():
         return self.__sumFromAcc__(self.accSquareHeights, area)
 
     def mean(self, area: Rect) -> float:
-        return self.sum(area) / self.area.area
+        return self.sum(area) / area.area
 
     def var(self, area: Rect) -> float:
-        return self.squareSum(area) / self.area.area - self.mean(area) ** 2
+        return self.squareSum(area) / area.area - self.mean(area) ** 2
 
     def std(self, area: Rect) -> float:
         return math.sqrt(self.var(area))
