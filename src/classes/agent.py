@@ -28,7 +28,11 @@ class BuildAgent(RunableAgent):
             return
         bestLocation = possibleLocation[0]
         bestLocationValue = 0
+        buildArea = self.core._editor.getBuildArea()
         for location in possibleLocation:
+            # FIXME: this is a temporary solution for checking if the location is in the build area
+            if not buildArea.toRect().contains(location.begin) or not buildArea.toRect().contains(location.last):
+                continue
             value = self.analysis(self.core, location)
             if value > bestLocationValue:
                 bestLocationValue = value
