@@ -26,6 +26,7 @@ class Core():
         # get top left and bottom right coordnidate
         x, _, z = buildArea.size
 
+        self._worldSlice = worldSlice
         self._roadMap = np.ndarray((x, z))
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
@@ -36,6 +37,10 @@ class Core():
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
+
+    @property
+    def worldSlice(self):
+        return self._worldSlice
 
     @property
     def roadMap(self):

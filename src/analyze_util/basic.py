@@ -3,6 +3,7 @@ from gdpc.geometry import Rect
 from math import sqrt
 from typing import Callable
 from numpy import ndarray
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
 
 
 def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
@@ -36,7 +37,7 @@ MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
 def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    return core.resources.wood >= minWood
+    return analyzeAreaMaterialToResource(core.worldSlice, area).wood >= minWood
 
 
 MAXIMUM_ROAD_DISTANCE = 30
