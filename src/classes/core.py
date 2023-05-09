@@ -28,16 +28,21 @@ class Core():
         # get top left and bottom right coordnidate
         x, _, z = buildArea.size
 
+        self._worldSlice = worldSlice
         self._roadMap = np.ndarray((x, z))
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
+        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
+
+    @property
+    def worldSlice(self):
+        return self._worldSlice
 
     @property
     def roadMap(self):
