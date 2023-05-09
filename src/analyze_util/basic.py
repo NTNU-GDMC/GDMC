@@ -26,7 +26,7 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
 MAXIMUM_SD = 5
 
 
-def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> int:
+def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> float:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
     return maxSD - sqrt(core.getHeightMap("var", area))
 

@@ -7,7 +7,7 @@ from ..building_util.building_info import BuildingInfo, getJsonAbsPath
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], int], buildingType: str) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core)
         # the larger value analyzeFunction returns, the better
