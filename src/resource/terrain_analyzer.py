@@ -1,7 +1,7 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
 from gdpc import WorldSlice
-from gdpc.vector_tools import Box
+from gdpc.vector_tools import Rect
 from ..resource.analyze_material import analyzeSettlementMaterial
 
 stoneList = ["minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
@@ -29,7 +29,7 @@ class Resource():
         return self.__str__()
 
 
-def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Box) -> Resource:
+def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resource:
     """
     analyze area material to resource
     """

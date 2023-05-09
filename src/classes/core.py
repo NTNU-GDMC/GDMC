@@ -32,7 +32,7 @@ class Core():
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
+        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
