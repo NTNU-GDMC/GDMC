@@ -1,6 +1,6 @@
 from ..classes.core import Core
 from gdpc.geometry import Rect
-from math import sqrt
+from math import sqrt, floor
 from typing import Callable, Any
 from numpy import ndarray
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
@@ -23,12 +23,15 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
     return False
 
 
-MAXIMUM_SD = 5
+MAXIMUM_SD = 1
 
 
 def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> float:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
-    return maxSD - sqrt(core.getHeightMap("var", area))
+    var = core.getHeightMap("var", area)
+    if var == 0:
+        return float('inf')
+    return floor(8 / sqrt(var))
 
 
 MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough

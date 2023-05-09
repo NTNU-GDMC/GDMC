@@ -1,10 +1,10 @@
 from typing import Callable
-from gdpc.vector_tools import Rect
+from gdpc.vector_tools import Rect, ivec2
 from .core import Core
 from .baseagent import RunableAgent
 from ..building_util.building import Building
 from ..building_util.building_info import BuildingInfo, getJsonAbsPath
-
+from random import sample
 
 class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str) -> None:
@@ -22,18 +22,23 @@ class BuildAgent(RunableAgent):
     def analysisAndBuild(self):
         """Request to build a building on the blueprint at bound"""
         length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
+        # FIXME: possibleLocation.size is wrong value
         possibleLocation = self.core.getEmptyArea(
             length, width)
         if len(possibleLocation) == 0:
             return
         bestLocation = possibleLocation[0]
         bestLocationValue = 0
-        buildArea = self.core._editor.getBuildArea()
-        for location in possibleLocation:
+        buildArea = self.core._editor.getBuildArea().toRect()
+        for location in sample(possibleLocation, len(possibleLocation)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
-            if not buildArea.toRect().contains(location.begin) or not buildArea.toRect().contains(location.last):
+            area = Rect(location.begin, ivec2(length, width))
+            def inBuildArea():
+                return buildArea.contains(area.begin) and buildArea.contains(area.last)
+
+            if not inBuildArea():
                 continue
-            value = self.analysis(self.core, location)
+            value = self.analysis(self.core, area)
             if value > bestLocationValue:
                 bestLocationValue = value
                 bestLocation = location

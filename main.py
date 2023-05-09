@@ -1,10 +1,12 @@
 # ! /usr/bin/python3
+from nbt import nbt
 from src.classes.core import Core
 from src.classes.agent import BuildAgent
 from src.building_util.building_info import CHALET, DESERT_BUILDING
 from src.visual.blueprint import plotBlueprint
 from src.analyze_util.basic import isFlat
-
+from src.building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+from gdpc.vector_tools import addY, Rect
 
 import random
 # TODO: logic per round
@@ -34,4 +36,19 @@ if __name__ == '__main__':
             # run agent
             agent.run()
 
+    for id, building in core._blueprintData.items():
+        pos = building.getBuildingPos()
+        name = building.nbtName
+        type = building.buildingInfo.getCurrentBuildingType()
+        level = building.getBuildingLevel()
+        print(name, type, level)
+        absPath = getNBTAbsPath(name, type, level) 
+        nbt_struct = nbt.NBTFile(absPath)
+        area = Rect(pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+        y = core.getHeightMap("mean", area)
+        print("build at:", area)
+        print("y:", y)
+        buildFromStructureNBT(nbt_struct, *addY(pos, y))
     plotBlueprint(core)
+    
+        
