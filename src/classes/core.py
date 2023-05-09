@@ -10,6 +10,8 @@ from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
+UNIT = 2
+
 
 class Core():
     def __init__(self, buildArea=DEFAULT_BUILD_AREA) -> None:
@@ -34,7 +36,7 @@ class Core():
         self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
-        self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
+        self._blueprint = np.zeros((x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
 
     @property
@@ -65,6 +67,10 @@ class Core():
         (x, z) = building.position
         (xlen, zlen) = building.getBuildingInfo().getCurrentBuildingLengthAndWidth()
         id = len(self._blueprintData) + 1
+        x = (x + UNIT) // UNIT
+        z = (z + UNIT) // UNIT
+        xlen = (xlen + UNIT) // UNIT
+        zlen = (zlen + UNIT) // UNIT
 
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
@@ -81,6 +87,8 @@ class Core():
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
+        height = (height + UNIT) // UNIT
+        width = (width+ UNIT) // UNIT
         def isEmpty(val: any):
             if val == 0:
                 return 0
@@ -119,7 +127,7 @@ class Core():
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:
-                    result.append(Rect((i, j), (lh, lw)))
+                    result.append(Rect((i * UNIT, j * UNIT), (lh * UNIT, lw * UNIT)))
 
         return result
 
