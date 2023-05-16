@@ -1,12 +1,14 @@
 from gdpc import Editor
-from gdpc.vector_tools import Rect, Box
+from gdpc.vector_tools import addY, Rect, Box
 from typing import Literal
 import numpy as np
+from nbt import nbt
 from ..building_util.building import Building
-
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
+from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
@@ -34,10 +36,12 @@ class Core():
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._editor = editor
-        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea.toRect())
+        self._resources = analyzeAreaMaterialToResource(
+            worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
-        self._blueprint = np.zeros((x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
+        self._blueprint = np.zeros(
+            (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
 
     @property
@@ -95,7 +99,8 @@ class Core():
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
         height = (height + UNIT) // UNIT
-        width = (width+ UNIT) // UNIT
+        width = (width + UNIT) // UNIT
+
         def isEmpty(val: any):
             if val == 0:
                 return 0
@@ -134,10 +139,24 @@ class Core():
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:
-                    result.append(Rect((i * UNIT, j * UNIT), (lh * UNIT, lw * UNIT)))
+                    result.append(
+                        Rect((i * UNIT, j * UNIT), (lh * UNIT, lw * UNIT)))
 
         return result
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
-        pass
+        for id, building in self._blueprintData.items():
+            pos = building.getBuildingPos()
+            name = building.nbtName
+            type = building.buildingInfo.getCurrentBuildingType()
+            level = building.getBuildingLevel()
+            print(name, type, level)
+            absPath = getNBTAbsPath(name, type, level)
+            nbt_struct = nbt.NBTFile(absPath)
+            area = Rect(
+                pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+            y = self.getHeightMap("mean", area)
+            print("build at:", area)
+            print("y:", y)
+            buildFromStructureNBT(nbt_struct, *addY(pos, y))
