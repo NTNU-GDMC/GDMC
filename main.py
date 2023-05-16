@@ -49,11 +49,11 @@ if __name__ == '__main__':
                 pass
 
         # iterate cooldown agents
-        for index,agent in enumerate(coolDownAgent):
-            if agent[1] == 0:
-                agents.append(agent[0])
+        for index,(agent,remainCD) in enumerate(coolDownAgent):
+            if remainCD == 0:
+                agents.append(agent)
             else:
-                coolDownAgent[index] = (agent[0], agent[1] - 1)
+                coolDownAgent[index] = (agent, remainCD - 1)
 
         coolDownAgent = filter(coolDownAgent, lambda agent: agent[1] != 0)
 
