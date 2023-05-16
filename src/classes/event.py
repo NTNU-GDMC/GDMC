@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from BuildingUtil.building import Building
+from building_util.building import Building
 from typing import Generic, TypeVar
 from abc import ABC, abstractmethod
 
