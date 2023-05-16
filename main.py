@@ -36,19 +36,4 @@ if __name__ == '__main__':
             # run agent
             agent.run()
 
-    for id, building in core._blueprintData.items():
-        pos = building.getBuildingPos()
-        name = building.nbtName
-        type = building.buildingInfo.getCurrentBuildingType()
-        level = building.getBuildingLevel()
-        print(name, type, level)
-        absPath = getNBTAbsPath(name, type, level) 
-        nbt_struct = nbt.NBTFile(absPath)
-        area = Rect(pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
-        y = core.getHeightMap("mean", area)
-        print("build at:", area)
-        print("y:", y)
-        buildFromStructureNBT(nbt_struct, *addY(pos, y))
     plotBlueprint(core)
-    
-        

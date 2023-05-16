@@ -1,12 +1,14 @@
 from gdpc import Editor
-from gdpc.vector_tools import Rect, Box
+from gdpc.vector_tools import addY, Rect, Box
 from typing import Literal
 import numpy as np
+from nbt import nbt
 from ..building_util.building import Building
-
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
+from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
@@ -138,4 +140,16 @@ class Core():
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
-        pass
+        for id, building in self._blueprintData.items():
+            pos = building.getBuildingPos()
+            name = building.nbtName
+            type = building.buildingInfo.getCurrentBuildingType()
+            level = building.getBuildingLevel()
+            print(name, type, level)
+            absPath = getNBTAbsPath(name, type, level) 
+            nbt_struct = nbt.NBTFile(absPath)
+            area = Rect(pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+            y = self.getHeightMap("mean", area)
+            print("build at:", area)
+            print("y:", y)
+            buildFromStructureNBT(nbt_struct, *addY(pos, y))
