@@ -26,6 +26,15 @@ class Resource():
     def __lt__(self, other):
         return self.grass < other.grass or self.wood < other.wood or self.stone < other.stone or self.food < other.food or self.ironOre < other.ironOre or self.iron < other.iron
 
+    def __sub__(self, other):
+        return Resource(
+                self.human - other.human, 
+                self.wood - other.wood, 
+                self.stone - other.stone, 
+                self.food - other.food,
+                self.ironOre - other.ironOre,
+                self.iron - other.iron,
+                self.grass - self.grass) 
 
     def __str__(self):
         return f"human: {self.human}, wood: {self.wood}, stone: {self.stone}, food: {self.food}, ironOre: {self.ironOre}, iron: {self.iron}, grass: {self.grass}"
