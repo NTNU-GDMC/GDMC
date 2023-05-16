@@ -6,6 +6,7 @@ from ..building_util.building import Building
 from ..building_util.building_info import BuildingInfo, getJsonAbsPath
 from random import sample
 
+
 class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str) -> None:
         """Assume one agent one build one building for now"""
@@ -23,28 +24,26 @@ class BuildAgent(RunableAgent):
         """Request to build a building on the blueprint at bound"""
         length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
         # FIXME: possibleLocation.size is wrong value
-        possibleLocation = self.core.getEmptyArea(
-            length, width)
-        if len(possibleLocation) == 0:
+        possibleLocations = self.core.getEmptyArea(length, width)
+        if len(possibleLocations) == 0:
             return
-        bestLocation = possibleLocation[0]
+        bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
-        for location in sample(possibleLocation, len(possibleLocation)):
+        for location in sample(possibleLocations, len(possibleLocations)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
-            area = Rect(location.begin, ivec2(length, width))
+
             def inBuildArea():
-                return buildArea.contains(area.begin) and buildArea.contains(area.last)
+                return buildArea.contains(location.begin) and buildArea.contains(location.last)
 
             if not inBuildArea():
                 continue
-            value = self.analysis(self.core, area)
+
+            value = self.analysis(self.core, location)
             if value > bestLocationValue:
                 bestLocationValue = value
                 bestLocation = location
         building = Building(
             self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
-        print(
-            f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)

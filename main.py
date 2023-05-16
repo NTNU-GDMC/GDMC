@@ -15,7 +15,7 @@ if __name__ == '__main__':
     agents = [
         # TODO: analyzeFunction: 決定一塊空地的價值(偏好程度)
         # building type 決定 Agent 要 build 什麼類型的建築
-        BuildAgent(core, isFlat , CHALET),
+        BuildAgent(core, isFlat, CHALET),
         BuildAgent(core, isFlat, DESERT_BUILDING),
     ]
 
@@ -42,13 +42,12 @@ if __name__ == '__main__':
         type = building.buildingInfo.getCurrentBuildingType()
         level = building.getBuildingLevel()
         print(name, type, level)
-        absPath = getNBTAbsPath(name, type, level) 
+        absPath = getNBTAbsPath(name, type, level)
         nbt_struct = nbt.NBTFile(absPath)
-        area = Rect(pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+        area = Rect(
+            pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
         y = core.getHeightMap("mean", area)
         print("build at:", area)
         print("y:", y)
         buildFromStructureNBT(nbt_struct, *addY(pos, y))
     plotBlueprint(core)
-    
-        
