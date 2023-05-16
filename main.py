@@ -35,11 +35,14 @@ if __name__ == '__main__':
         # TODO: increase game resources
 
         # agent run
-        for agent in random.sample(agents, 1):
+        for agent in agents:
             # run agent
             if agent.run():
                 coolDownAgent.append((agent, COOLDOWN))
                 agents.remove(agent)
+            else:
+                # gather resource if the agent cannot do their job
+                pass
 
         # iterate cooldown agents
         for index,agent in enumerate(coolDownAgent):
