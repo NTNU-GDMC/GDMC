@@ -16,13 +16,13 @@ UNIT = 2
 
 
 class Core():
-    def __init__(self, buildArea=DEFAULT_BUILD_AREA) -> None:
+    def __init__(self, buildArea: Box=DEFAULT_BUILD_AREA) -> None:
         """
         the core will connect with the game
         """
         # initalize editor
         editor = Editor(buffering=True, caching=True)
-        editor.setBuildArea(buildArea)
+        buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
@@ -30,12 +30,13 @@ class Core():
         # get top left and bottom right coordnidate
         x, _, z = buildArea.size
 
+        self.buildArea = buildArea
+        self._editor = editor
         self._worldSlice = worldSlice
         self._roadMap = np.ndarray((x, z))
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
-        self._editor = editor
         self._resources = analyzeAreaMaterialToResource(
             worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
