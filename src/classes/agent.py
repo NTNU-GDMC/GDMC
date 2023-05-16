@@ -24,10 +24,10 @@ class BuildAgent(RunableAgent):
         """Request to build a building on the blueprint at bound"""
         length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
 
-        possibleLocation = self.core.getEmptyArea(length, width)
-        if len(possibleLocation) == 0:
+        possibleLocations = self.core.getEmptyArea(length, width)
+        if len(possibleLocations) == 0:
             return False
-        bestLocation = possibleLocation[0]
+        bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
         for location in sample(possibleLocations, len(possibleLocations)):
