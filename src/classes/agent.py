@@ -27,6 +27,9 @@ class BuildAgent(RunableAgent):
         possibleLocations = self.core.getEmptyArea(length, width)
         if len(possibleLocations) == 0:
             return False
+        if self.core.resources < self.buildingInfo.requiredResource:
+            return False
+
         bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
@@ -48,4 +51,6 @@ class BuildAgent(RunableAgent):
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
 
+        self.core.resources = self.core - self.buildingInfo.requiredResource
+        
         return True
