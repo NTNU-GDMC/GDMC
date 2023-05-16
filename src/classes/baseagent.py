@@ -9,5 +9,5 @@ class Agent(ABC):
 
 class RunableAgent(Agent):
     @abstractmethod
-    def run(self):
+    def run(self) -> bool:
         pass
