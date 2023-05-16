@@ -6,7 +6,7 @@ from nbt import nbt
 from ..building_util.building import Building
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
 
 
@@ -39,6 +39,8 @@ class Core():
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._resources = analyzeAreaMaterialToResource(
             worldSlice, buildArea.toRect())
+        self._resourceMap = getMaterialToResourceMap(
+            worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros(
@@ -64,6 +66,10 @@ class Core():
     @property
     def resources(self):
         return self._resources
+    
+    @property
+    def resourcesMap(self):
+        return self._resourceMap
 
     @property
     def blueprint(self):

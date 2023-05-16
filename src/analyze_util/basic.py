@@ -41,7 +41,11 @@ MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
 def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    return analyzeAreaMaterialToResource(core.worldSlice, area).wood >= minWood
+    woodSum = 0
+    for pos in area.inner:
+        woodSum += core.resourcesMap.wood[pos.x][pos.y]
+
+    return woodSum >= minWood
 
 
 MAXIMUM_ROAD_DISTANCE = 30
