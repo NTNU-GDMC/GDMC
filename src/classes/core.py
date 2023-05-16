@@ -2,8 +2,8 @@ from gdpc import Editor
 from gdpc.vector_tools import Rect, Box
 from typing import Literal
 import numpy as np
+from .event import Subject, BuildEvent, UpgradeEvent
 from ..building_util.building import Building
-
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
@@ -39,6 +39,8 @@ class Core():
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros((x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
+        self.buildSubject = Subject[BuildEvent]()
+        self.upgradeSubject = Subject[UpgradeEvent]()
 
     @property
     def worldSlice(self):
