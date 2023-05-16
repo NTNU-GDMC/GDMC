@@ -89,6 +89,8 @@ class Core():
             return self._heightInfo.sum(bound)
         if heightType == "squareSum":
             return self._heightInfo.squareSum(bound)
+        if heightType == "std":
+            return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
