@@ -1,21 +1,26 @@
 # ! /usr/bin/python3
 from src.classes.core import Core
 from src.classes.agent import BuildAgent
-from src.building_util.building_info import CHALET, DESERT_BUILDING
+from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
 from src.visual.blueprint import plotBlueprint
-from src.analyze_util.basic import isFlat
+from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
 
 
 import random
 # TODO: logic per round
+analyzeFunctions = [isFlat, hasEnoughWood, closeEnoughToRoad]
+buildingTypes = [CHALET, DESERT_BUILDING, HUGE_SAWMILL]
+
 if __name__ == '__main__':
+    COOLDOWN = 5
+    ROUND = 50
     core = Core()
-    agents = [
-        # TODO: analyzeFunction: 決定一塊空地的價值(偏好程度)
-        # building type 決定 Agent 要 build 什麼類型的建築
-        BuildAgent(core, isFlat , CHALET),
-        BuildAgent(core, isFlat, DESERT_BUILDING),
-    ]
+
+    agents: list[BuildAgent]= []
+    for _ in range(7):
+        agents.append(BuildAgent(core, random.choice(analyzeFunctions), random.choice(buildingTypes)))
+    # Agents that built , as a pair (agent, int)
+    coolDownAgent: list[tuple[BuildAgent, int]] = []
 
     for agent in agents:
         print(agent.buildingType)
@@ -26,12 +31,27 @@ if __name__ == '__main__':
         print(agent.buildingInfo.getCurrentRequiredResource().wood)
 
     # iterate 10 rounds
-    round = 10
+    for i in range(ROUND):
+        # TODO: increase game resources
 
-    for i in range(round):
-        # randomize agent order
-        for agent in random.sample(agents, len(agents)):
+        # agent run
+        for agent in random.sample(agents, 1):
             # run agent
-            agent.run()
+            if agent.run():
+                coolDownAgent.append((agent, COOLDOWN))
+                agents.remove(agent)
+
+        # iterate cooldown agents
+        for index,agent in enumerate(coolDownAgent):
+            if agent[1] == 0:
+                agents.append(agent[0])
+            else:
+                coolDownAgent[index] = (agent[0], agent[1] - 1)
+
+        coolDownAgent = filter(coolDownAgent, lambda agent: agent[1] != 0)
+
+        # TODO: update state if needed
+
+
 
     plotBlueprint(core)
