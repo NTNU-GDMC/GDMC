@@ -30,7 +30,7 @@ class BuildAgent(RunableAgent):
         bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
-        for location in sample(possibleLocations, len(possibleLocations)):
+        for location in sample(possibleLocation, len(possibleLocation)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
 
             def inBuildArea():
