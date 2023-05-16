@@ -1,10 +1,13 @@
 # ! /usr/bin/python3
+from nbt import nbt
 from src.classes.core import Core
 from src.classes.agent import BuildAgent
 from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
 from src.visual.blueprint import plotBlueprint
-from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
 
+from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
+from src.building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+from gdpc.vector_tools import addY, Rect
 
 import random
 # TODO: logic per round
@@ -21,6 +24,7 @@ if __name__ == '__main__':
         agents.append(BuildAgent(core, random.choice(analyzeFunctions), random.choice(buildingTypes)))
     # Agents that built , as a pair (agent, int)
     coolDownAgent: list[tuple[BuildAgent, int]] = []
+
 
     for agent in agents:
         print(agent.buildingType)
