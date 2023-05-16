@@ -2,7 +2,8 @@
 # fix: add human transform - SubaRya
 from gdpc import WorldSlice
 from gdpc.vector_tools import Rect
-from ..resource.analyze_material import analyzeSettlementMaterial
+from ..resource.analyze_material import analyzeSettlementMaterial, analyzeOneBlockVerticalMaterial
+from collections import Counter
 
 stoneList = ["minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
              "minecraft:dripstone_block", "minecraft:stone", "minecraft:stone_bricks", "minecraft:granite", "minecraft:deepslate", "minecraft:deepslate_bricks", "minecraft:cobbled_deepslate", "minecraft:tuff"]
@@ -28,12 +29,25 @@ class Resource():
     def __repr__(self):
         return self.__str__()
 
+class ResourceMap():
+    def __init__(self, area: Rect):
+        self.human = [[0] * area.size.x] * area.size.y
+        self.wood = [[0] * area.size.x] * area.size.y
+        self.stone = [[0] * area.size.x] * area.size.y
+        self.food = [[0] * area.size.x] * area.size.y
+        self.ironOre = [[0] * area.size.x] * area.size.y
+        self.iron = [[0] * area.size.x] * area.size.y
+        self.grass = [[0] * area.size.x] * area.size.y
 
-def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resource:
-    """
-    analyze area material to resource
-    """
-    materialDict = analyzeSettlementMaterial(worldSlice, area)
+    def __str__(self):
+        return f"human: {self.human}, wood: {self.wood}, stone: {self.stone}, food: {self.food}, ironOre: {self.ironOre}, iron: {self.iron}, grass: {self.grass}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+
+def analyzeResource(materialDict: Counter):
     woodNum = 0
     stoneNum = 0
     foodNum = 0
@@ -52,3 +66,26 @@ def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resourc
     foodNum += woodNum // 40
     r = Resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
     return r
+
+def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resource:
+    """
+    analyze area material to resource
+    """
+    materialDict = analyzeSettlementMaterial(worldSlice, area)
+    r = analyzeResource(materialDict)
+    return r
+
+def getMaterialToResourceMap(worldSlice: WorldSlice, area: Rect) -> ResourceMap:
+    rMap = ResourceMap(area)
+    for pos in area.inner:
+        materialDict = analyzeOneBlockVerticalMaterial(worldSlice, pos)
+        r = analyzeResource(Counter(materialDict))
+        rMap.human[pos.x][pos.y] = r.human
+        rMap.wood[pos.x][pos.y] = r.wood
+        rMap.stone[pos.x][pos.y] = r.stone
+        rMap.food[pos.x][pos.y] = r.food
+        rMap.ironOre[pos.x][pos.y] = r.ironOre
+        rMap.iron[pos.x][pos.y] = r.iron
+        rMap.grass[pos.x][pos.y] = r.grass
+    print(rMap)
+    return rMap
