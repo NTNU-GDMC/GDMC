@@ -12,7 +12,7 @@ from gdpc.vector_tools import addY, Rect
 import random
 # TODO: logic per round
 analyzeFunctions = [isFlat, hasEnoughWood, closeEnoughToRoad]
-buildingTypes = [CHALET, DESERT_BUILDING, HUGE_SAWMILL]
+buildingTypes = [CHALET, DESERT_BUILDING]
 
 if __name__ == '__main__':
     COOLDOWN = 5
