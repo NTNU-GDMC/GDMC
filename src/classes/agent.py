@@ -16,16 +16,16 @@ class BuildAgent(RunableAgent):
         # FIXME: this is a temporary solution for the building info
         self.buildingInfo = BuildingInfo(getJsonAbsPath(buildingType, 1, 1))
 
-    def run(self):
-        self.analysisAndBuild()
+    def run(self) -> bool:
+        return self.analysisAndBuild()
 
-    def analysisAndBuild(self):
+    def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
         length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
         possibleLocation = self.core.getEmptyArea(
             length, width)
         if len(possibleLocation) == 0:
-            return
+            return False
         bestLocation = possibleLocation[0]
         bestLocationValue = 0
         for location in possibleLocation:
@@ -39,3 +39,5 @@ class BuildAgent(RunableAgent):
             f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
+
+        return True
