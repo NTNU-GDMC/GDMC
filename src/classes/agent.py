@@ -1,22 +1,22 @@
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2
 from .core import Core
-from .baseagent import RunableAgent
+from .baseagent import RunableAgent, withCooldown
 from ..building_util.building import Building
 from ..building_util.building_info import BuildingInfo, getJsonAbsPath
 from random import sample
 
-
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int) -> None:
         """Assume one agent one build one building for now"""
-        super().__init__(core)
+        super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info
         self.buildingInfo = BuildingInfo(getJsonAbsPath(buildingType, 1, 1))
 
+    @withCooldown
     def run(self) -> bool:
         return self.analysisAndBuild()
 

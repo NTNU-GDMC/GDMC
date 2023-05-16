@@ -19,12 +19,10 @@ if __name__ == '__main__':
     ROUND = 50
     core = Core()
 
-    agents: list[BuildAgent]= []
+    agents: list[BuildAgent] = []
     for _ in range(7):
-        agents.append(BuildAgent(core, random.choice(analyzeFunctions), random.choice(buildingTypes)))
-    # Agents that built , as a pair (agent, int)
-    coolDownAgent: list[tuple[BuildAgent, int]] = []
-
+        agents.append(BuildAgent(core, random.choice(
+            analyzeFunctions), random.choice(buildingTypes), COOLDOWN))
 
     for agent in agents:
         print(agent.buildingType)
@@ -34,31 +32,16 @@ if __name__ == '__main__':
         print(agent.buildingInfo.getCurrentRequiredResource().stone)
         print(agent.buildingInfo.getCurrentRequiredResource().wood)
 
-    # iterate 10 rounds
+    # iterate rounds
     for i in range(ROUND):
         # TODO: increase game resources
-
-        # agent run
-        for agent in agents:
+        for agent in random.sample(agents, len(agents)):
             # run agent
-            if agent.run():
-                coolDownAgent.append((agent, COOLDOWN))
-                agents.remove(agent)
-            else:
+            success = agent.run()
+
+            if not success:
                 # gather resource if the agent cannot do their job
                 pass
-
-        # iterate cooldown agents
-        for index,(agent,remainCD) in enumerate(coolDownAgent):
-            if remainCD == 0:
-                agents.append(agent)
-            else:
-                coolDownAgent[index] = (agent, remainCD - 1)
-
-        coolDownAgent = filter(coolDownAgent, lambda agent: agent[1] != 0)
-
         # TODO: update state if needed
-
-
 
     plotBlueprint(core)
