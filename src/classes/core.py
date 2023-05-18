@@ -8,11 +8,11 @@ from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+from ..config.config import config
 
+DEFAULT_BUILD_AREA = config.buildArea
 
-DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
-
-UNIT = 2
+UNIT = config.unit
 
 
 class Core():
