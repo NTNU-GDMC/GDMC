@@ -22,5 +22,14 @@
         "ironOre": 0,
         "iron": 0,
         "grass": 0
+    },
+    "ProduceResource":{
+        "human": 0,
+        "wood": 2000,
+        "stone": 500,
+        "food": 0,
+        "ironOre": 0,
+        "iron": 0,
+        "grass": 0
     }
 }
