@@ -88,8 +88,16 @@ class Core():
         xlen = (xlen + UNIT) // UNIT
         zlen = (zlen + UNIT) // UNIT
 
+        # We still trust our agent on maintaining resources
+        self._resources = self._resources - building.getBuildingInfo().requiredResource
+
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
+
+    def updateResource(self):
+        for _, building in self._blueprintData.items():
+            self._resources = self._resources + building.getBuildingInfo().produceResource
+        pass
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum"], bound: Rect):
         if heightType == "var":

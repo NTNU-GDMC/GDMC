@@ -50,7 +50,4 @@ class BuildAgent(RunableAgent):
             self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
-
-        self.core.resources = self.core.resources - self.buildingInfo.requiredResource
-        
         return True
