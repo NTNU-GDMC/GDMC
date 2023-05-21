@@ -26,7 +26,7 @@
                     {
                         "level": 1,
                         "info": "desert_building1/level1.json",
-                        "nbt": "desert_building/level1.nbt"
+                        "nbt": "desert_building1/level1.nbt"
                     }
                 ]
             }
