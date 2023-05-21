@@ -23,13 +23,13 @@ def getNBTAbsPath(name: str, type: int, level: int) -> str:
     return os.path.abspath(os.path.join(".", os.path.join("data", os.path.join("structures", os.path.join(name + f"{str(type)}", "level" + f"{str(level)}.nbt")))))
 
 
-def nbtToString(struct: nbt.TAG):
+def NBT2Str(struct: nbt.TAG):
     match struct:
         case nbt.TAG_Compound():
             return '{{{}}}'.format(
-                ','.join(['{}:{}'.format(str(k), nbtToString(v)) for k, v in struct.iteritems()]))
+                ','.join(['{}:{}'.format(str(k), NBT2Str(v)) for k, v in struct.iteritems()]))
         case nbt.TAG_List():
-            return '[{}]'.format(','.join([nbtToString(x) for x in struct]))
+            return '[{}]'.format(','.join([NBT2Str(x) for x in struct]))
         case nbt.TAG_String():
             return '"{}"'.format(str(struct))
         case nbt.TAG_Byte():
