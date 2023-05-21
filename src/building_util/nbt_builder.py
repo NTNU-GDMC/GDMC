@@ -60,9 +60,9 @@ def buildFromStructureNBT(editor: Editor, nbt_struct: nbt.NBTFile, pos: ivec3, b
     editor.flushBuffer()
 
 
-def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> tuple[int, int, int]:
+def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> ivec3:
     size = nbt_struct["size"]
-    return (int(str(size[0])), int(str(size[1])), int(str(size[2])))
+    return ivec3(*map(lambda x: int(x.value), size))
 
 
 def getBuildingNBTDir(name: str, type: int, level: int):
