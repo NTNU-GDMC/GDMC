@@ -13,7 +13,7 @@
 from ..resource.biome_substitute import isChangeBlock, changeBlock
 import os
 from nbt import nbt as nbt
-from gdpc import Editor, Block
+from gdpc import Editor, Block, Box
 from gdpc.vector_tools import ivec3
 from src.building_util.building_info import CHALET, DESERT_BUILDING
 
@@ -52,20 +52,29 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
         block = Block.fromBlockStateTag(stateTag)
         yield pos + offset, block
 
-def buildFromStructureNBT(editor: Editor, nbt_struct: nbt.NBTFile, pos: ivec3, biome: str = "", keep=False):
-    palatte = nbt_struct["palette"]
-    for blk in nbt_struct["blocks"]:
-        dx, dy, dz = map(lambda p: int(p.value), blk["pos"])
-        relPos = ivec3(dx, dy, dz)
-        stateTag = palatte[blk["state"].value]
-        block = Block.fromBlockStateTag(stateTag)
-        # FIXME: keep option does not work
-        # option = "keep" if keep else "replace"
+
+def buildFromStructureNBT(editor: Editor, nbt_struct: nbt.NBTFile, offset: ivec3, biome: str = "", keep=False):
+    if editor.worldSlice is None:
+        raise Exception("Error while building structure: worldSlice is None")
+
+    option = "keep" if keep else "replace"
+
+    if not keep:
+        size = getStructureSizeNBT(nbt_struct)
+        bound = Box(offset, size)
+        begin = bound.begin
+        last = bound.last
+        clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
+        editor.runCommand(clearCmd, syncWithBuffer=True)
+
+    for pos, block in NBT2Blocks(nbt_struct, offset):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         # if isChangeBlock(biome) == True:
         #     blkName = changeBlock(biome, blkName)
-        editor.placeBlockGlobal(pos+relPos, block)
-    editor.flushBuffer()
+
+        cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
+
+        editor.runCommand(cmd, syncWithBuffer=True)
 
 
 def getStructureSizeNBT(nbt_struct: nbt.NBTFile) -> ivec3:
