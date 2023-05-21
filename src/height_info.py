@@ -19,7 +19,10 @@ class HeightInfo():
         # get sum of area from accumulated 2D array
         def get(pos: Vec2iLike) -> int:
             x, z = pos
-            return acc[x, z] if self.area.contains(pos) else 0
+            maxX, maxZ = self.area.last
+            x, z = min(x, maxX), min(z, maxZ)
+            val = acc[x, z] if self.area.contains((x, z)) else 0
+            return val
         x1, z1 = area.begin
         x2, z2 = area.last
         return get((x2, z2)) - (get((x1 - 1, z2)) + get((x2, z1 - 1))) + get((x1 - 1, z1 - 1))
@@ -31,10 +34,10 @@ class HeightInfo():
         return self.__sumFromAcc__(self.accSquareHeights, area)
 
     def mean(self, area: Rect) -> float:
-        return self.sum(area) / self.area.area
+        return self.sum(area) / area.area
 
     def var(self, area: Rect) -> float:
-        return self.squareSum(area) / self.area.area - self.mean(area) ** 2
+        return self.squareSum(area) / area.area - self.mean(area) ** 2
 
     def std(self, area: Rect) -> float:
         return math.sqrt(self.var(area))

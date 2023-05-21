@@ -1,11 +1,12 @@
 from ..classes.core import Core
 from gdpc.geometry import Rect
-from math import sqrt
-from typing import Callable
+from math import sqrt, floor
+from typing import Callable, Any
 from numpy import ndarray
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
 
 
-def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
+def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
     x1, y1 = area.offset
     xlen, ylen = area.size
     x2 = x1 + xlen
@@ -22,12 +23,16 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[any], bool]) -> bool:
     return False
 
 
-MAXIMUM_SD = 5
+THRESHOLD_SD = 8
 
 
-def isFlat(core: Core, area: Rect, maxSD=MAXIMUM_SD) -> bool:
+def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
-    return sqrt(core.getHeightMap("var", area)) <= maxSD
+    std = core.getHeightMap("std", area)
+    std = floor(std)
+    if std == 0:
+        return float('inf')
+    return thresholdSD / std
 
 
 MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
@@ -36,7 +41,11 @@ MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
 def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    return core.resources.wood >= minWood
+    woodSum = 0
+    for pos in area.inner:
+        woodSum += core.resourcesMap.wood[pos.x][pos.y]
+
+    return woodSum >= minWood
 
 
 MAXIMUM_ROAD_DISTANCE = 30

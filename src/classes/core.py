@@ -1,24 +1,27 @@
 from gdpc import Editor
-from gdpc.vector_tools import Rect, Box
+from gdpc.vector_tools import addY, Rect, Box
 from typing import Literal
 import numpy as np
+from nbt import nbt
 from ..building.building import Building
-
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
+from ..building.nbt_builder import getNBTAbsPath, buildFromStructureNBT
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
+UNIT = 2
+
 
 class Core():
-    def __init__(self, buildArea=DEFAULT_BUILD_AREA) -> None:
+    def __init__(self, buildArea: Box = DEFAULT_BUILD_AREA) -> None:
         """
         the core will connect with the game
         """
         # initalize editor
         editor = Editor(buffering=True, caching=True)
-        editor.setBuildArea(buildArea)
+        buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
@@ -26,16 +29,26 @@ class Core():
         # get top left and bottom right coordnidate
         x, _, z = buildArea.size
 
+        self.buildArea = buildArea
+        self._editor = editor
+        self._worldSlice = worldSlice
         self._roadMap = np.ndarray((x, z))
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
-        self._editor = editor
-        self._resources = analyzeAreaMaterialToResource(worldSlice, buildArea)
+        self._resources = analyzeAreaMaterialToResource(
+            worldSlice, buildArea.toRect())
+        self._resourceMap = getMaterialToResourceMap(
+            worldSlice, buildArea.toRect())
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
-        self._blueprint = np.zeros((x // 2, z // 2), dtype=int)  # unit is 2x2
+        self._blueprint = np.zeros(
+            (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
+
+    @property
+    def worldSlice(self):
+        return self._worldSlice
 
     @property
     def roadMap(self):
@@ -54,6 +67,10 @@ class Core():
         return self._resources
 
     @property
+    def resourcesMap(self):
+        return self._resourceMap
+
+    @property
     def blueprint(self):
         return self._blueprint
 
@@ -65,6 +82,10 @@ class Core():
         (x, z) = building.position
         (xlen, _, zlen) = building.dimension
         id = len(self._blueprintData) + 1
+        x = (x + UNIT) // UNIT
+        z = (z + UNIT) // UNIT
+        xlen = (xlen + UNIT) // UNIT
+        zlen = (zlen + UNIT) // UNIT
 
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
@@ -78,13 +99,19 @@ class Core():
             return self._heightInfo.sum(bound)
         if heightType == "squareSum":
             return self._heightInfo.squareSum(bound)
+        if heightType == "std":
+            return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
+        height = (height + UNIT) // UNIT
+        width = (width + UNIT) // UNIT
+
         def isEmpty(val: any):
             if val == 0:
                 return 0
             return 1
+
         prefix = np.zeros_like(self.blueprint)
         h, w = prefix.shape[:2]
 
@@ -100,7 +127,7 @@ class Core():
         for i in range(1, h):
             for j in range(1, w):
                 prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
-                    prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
+                               prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
         result: list[Rect] = []
 
         for i in range(h - height):
@@ -119,13 +146,26 @@ class Core():
 
                 used = prefix[lh][lw] - top - left + leftTop
                 if used == 0:
-                    result.append(Rect((i, j), (lh, lw)))
+                    result.append(Rect((i * UNIT, j * UNIT), (height * UNIT, height * UNIT)))
 
         return result
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
-        pass
+        for id, building in self._blueprintData.items():
+            pos = building.getBuildingPos()
+            name = building.nbtName
+            type = building.buildingInfo.getCurrentBuildingType()
+            level = building.getBuildingLevel()
+            print(name, type, level)
+            absPath = getNBTAbsPath(name, type, level)
+            nbt_struct = nbt.NBTFile(absPath)
+            area = Rect(
+                pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+            y = self.getHeightMap("mean", area)
+            print("build at:", area)
+            print("y:", y)
+            buildFromStructureNBT(nbt_struct, *addY(pos, y))
 
     @property
     def blueprint_data(self):
