@@ -2,13 +2,14 @@ import json
 import os
 
 from glm import ivec3
+from pathlib import Path
 
 from ..resource.terrain_analyzer import Resource
 
 CHALET = "chalet"
 DESERT_BUILDING = "desert_building"
 HUGE_SAWMILL = "huge_sawmill"
-PATH = "./data/structures"
+STRUCTURES_PATH = Path("data/structures")
 
 
 def getJsonAbsPath(name: str, type: int, level: int) -> str:
@@ -100,8 +101,8 @@ class BuildingInfo:
         # load each level info out of json structure
         self.level_building_info = []
         for var in variant["level_info"]:
-            self.level_building_info.append(self.LevelBuildingInfo(os.path.join(PATH, var["info"]),
-                                                                   os.path.join(PATH, var["nbt"])))
+            self.level_building_info.append(self.LevelBuildingInfo(os.path.join(STRUCTURES_PATH, var["info"]),
+                                                                   os.path.join(STRUCTURES_PATH, var["nbt"])))
 
         # sort level building info by level
         self.level_building_info.sort(key=lambda a: a.level)

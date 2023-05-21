@@ -1,7 +1,7 @@
 import json
 import os
 
-from src.building.building_info import BuildingInfo, PATH
+from src.building.building_info import BuildingInfo, STRUCTURES_PATH
 
 
 class MasterBuildingInfo:
@@ -14,7 +14,7 @@ class MasterBuildingInfo:
 
     def __init__(self):
         self.buildings = {}
-        with open(os.path.join(PATH, "buildings.json"), "r") as f:
+        with open(os.path.join(STRUCTURES_PATH, "buildings.json"), "r") as f:
             parsed_data = json.load(f)
             for k, building_parent_obj in parsed_data.items():
                 self.buildings[k] = []
