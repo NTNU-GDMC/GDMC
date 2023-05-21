@@ -94,34 +94,34 @@ class BuildingInfo:
     """ Metadata class for storing building info """
 
     # Properties
-    max_length: int
-    max_height: int
-    max_width: int
-    level_building_info: list[LevelBuildingInfo]
+    max_size: ivec3
+    level_building_infos: list[LevelBuildingInfo]
     type: str
 
     def __init__(self, variant):
         self.type = variant["name"]
         # load each level info out of json structure
-        self.level_building_info = []
-        for var in variant["level_info"]:
-            self.level_building_info.append(LevelBuildingInfo(os.path.join(STRUCTURES_PATH, var["info"]),
-                                                                   os.path.join(STRUCTURES_PATH, var["nbt"])))
+        self.level_building_infos = []
+        for level_info in variant["level_info"]:
+            self.level_building_infos.append(LevelBuildingInfo(os.path.join(STRUCTURES_PATH, level_info["info"]),
+                                                                   os.path.join(STRUCTURES_PATH, level_info["nbt"])))
 
         # sort level building info by level
-        self.level_building_info.sort(key=lambda a: a.level)
+        self.level_building_infos.sort(key=lambda a: a.level)
 
         # get max dimensions
-        self.max_length = -1
-        self.max_width = -1
-        self.max_height = -1
-        for lbi in self.level_building_info:
-            self.max_length = max(self.max_length, lbi.size[0])
-            self.max_width = max(self.max_width, lbi.size[2])
-            self.max_height = max(self.max_height, lbi.size[1])
+        max_length = -1
+        max_width = -1
+        max_height = -1
+        for level_building_info in self.level_building_infos:
+            max_length = max(max_length, level_building_info.size[0])
+            max_height = max(max_height, level_building_info.size[1])
+            max_width = max(max_width, level_building_info.size[2])
+
+        self.max_size = ivec3(max_length, max_height, max_width)
 
     # TODO: 提供一支 get 的 api 給 building class 升級時使用
 
     @property
     def dimension(self):
-        return ivec3([self.max_width, self.max_height, self.max_length])
+        return ivec3(self.max_size)
