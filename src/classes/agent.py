@@ -2,8 +2,8 @@ from typing import Callable
 from gdpc.vector_tools import Rect, ivec2
 from .core import Core
 from .baseagent import RunableAgent, withCooldown
-from ..building_util.building import Building
-from ..building_util.building_info import BuildingInfo, getJsonAbsPath
+from ..building.building import Building
+from ..building.master_building_info import GLOBAL_BUILDING_INFO
 from random import sample
 
 class BuildAgent(RunableAgent):
@@ -14,7 +14,7 @@ class BuildAgent(RunableAgent):
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info
-        self.buildingInfo = BuildingInfo(getJsonAbsPath(buildingType, 1, 1))
+        self.buildingInfo = GLOBAL_BUILDING_INFO.get_buildings_by_key(buildingType)[0]
 
     @withCooldown
     def run(self) -> bool:
@@ -22,11 +22,11 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
-        length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
-
-        possibleLocations = self.core.getEmptyArea(length, width)
+        length, _, width = self.buildingInfo.max_size
+        possibleLocations = self.core.getEmptyArea(
+            length, width)
         if len(possibleLocations) == 0:
-            return False
+            return
         bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
@@ -43,9 +43,10 @@ class BuildAgent(RunableAgent):
             if value > bestLocationValue:
                 bestLocationValue = value
                 bestLocation = location
-        building = Building(
-            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
-        # do something about the building class (add nessarry data to it)
+        building = Building(self.buildingInfo, bestLocation.begin)
+        print(
+            f"building position: {building.position}, building level: {building.level}")
+        # do something about the building class (add necessary data to it)
         self.core.addBuilding(building)
 
         return True

@@ -6,7 +6,7 @@ from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMIL
 from src.visual.blueprint import plotBlueprint
 
 from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
-from src.building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+from src.building.nbt_builder import getNBTAbsPath, buildFromStructureNBT
 from gdpc.vector_tools import addY, Rect
 
 import random
@@ -26,11 +26,8 @@ if __name__ == '__main__':
 
     for agent in agents:
         print(agent.buildingType)
-        print(agent.buildingInfo.getCurrentBuildingLengthAndWidth())
-        print(agent.buildingInfo.getCurrentBuildingType())
-        print(agent.buildingInfo.getCurrentBuildingMaterial())
-        print(agent.buildingInfo.getCurrentRequiredResource().stone)
-        print(agent.buildingInfo.getCurrentRequiredResource().wood)
+        print(agent.buildingInfo.max_size)
+        print(agent.buildingInfo.type)
 
     # iterate rounds
     for i in range(ROUND):
@@ -43,5 +40,7 @@ if __name__ == '__main__':
                 # gather resource if the agent cannot do their job
                 pass
         # TODO: update state if needed
+
+    core.startBuildingInMinecraft()
 
     plotBlueprint(core)
