@@ -12,11 +12,9 @@ HUGE_SAWMILL = "huge_sawmill"
 STRUCTURES_PATH = Path("data/structures")
 
 
-def getJsonAbsPath(name: str, type: int, level: int) -> str:
+def getJsonAbsPath(name: str, type: int, level: int) -> Path:
     # Example: absPath("chalet", 1, 2) -> "...chalet1/level2.json"
-    return os.path.abspath(os.path.join(".", os.path.join("data", os.path.join("structures",
-                                                                               os.path.join(name + f"{str(type)}",
-                                                                                            "level" + f"{str(level)}.json")))))
+    return STRUCTURES_PATH/f"{name}{type}/level{level}.json"
 
 
 def getNbtLengthAndWidth(name: str, type: int, level: int) -> tuple[int, int]:
