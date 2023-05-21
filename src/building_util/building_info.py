@@ -55,6 +55,7 @@ class BuildingInfo:
     materialType: str
     buildingType: int
     requiredResource: Resource
+    produceResource: Resource
 
     def __init__(self, filename: str = ""):
         with open(filename, "r") as f:
@@ -73,15 +74,24 @@ class BuildingInfo:
             self.materialType = fileData["Material"]
             self.buildingType = fileData["Type"]
             # Required material
-            human = fileData["RequiredResource"]["human"]
-            wood = fileData["RequiredResource"]["wood"]
-            stone = fileData["RequiredResource"]["stone"]
-            food = fileData["RequiredResource"]["food"]
-            ironOre = fileData["RequiredResource"]["ironOre"]
-            iron = fileData["RequiredResource"]["iron"]
-            grass = fileData["RequiredResource"]["grass"]
+            r_human = fileData["RequiredResource"]["human"]
+            r_wood = fileData["RequiredResource"]["wood"]
+            r_stone = fileData["RequiredResource"]["stone"]
+            r_food = fileData["RequiredResource"]["food"]
+            r_ironOre = fileData["RequiredResource"]["ironOre"]
+            r_iron = fileData["RequiredResource"]["iron"]
+            r_grass = fileData["RequiredResource"]["grass"]
             self.requiredResource = Resource(
-                human, wood, stone, food, ironOre, iron, grass)
+                r_human, r_wood, r_stone, r_food, r_ironOre, r_iron, r_grass)
+            p_human = fileData["ProduceResource"]["human"]
+            p_wood = fileData["ProduceResource"]["wood"]
+            p_stone = fileData["ProduceResource"]["stone"]
+            p_food = fileData["ProduceResource"]["food"]
+            p_ironOre = fileData["ProduceResource"]["ironOre"]
+            p_iron = fileData["ProduceResource"]["iron"]
+            p_grass = fileData["ProduceResource"]["grass"]
+            self.produceResource = Resource(
+                p_human, p_wood, p_stone, p_food, p_ironOre, p_iron, p_grass)
 
     def getBuildingNameList(self) -> list:
         return self.entriesNameList
@@ -100,6 +110,9 @@ class BuildingInfo:
 
     def getCurrentRequiredResource(self) -> Resource:
         return self.requiredResource
+    
+    def getCurrentProduceResource(self) -> Resource:
+        return self.produceResource
 
 
 if __name__ == '__main__':
