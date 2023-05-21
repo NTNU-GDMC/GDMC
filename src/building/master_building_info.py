@@ -1,9 +1,8 @@
 import json
-import os
-
+from dataclasses import dataclass
 from src.building.building_info import BuildingInfo, STRUCTURES_PATH
 
-
+@dataclass
 class MasterBuildingInfo:
     """
     Building root data class
@@ -14,14 +13,14 @@ class MasterBuildingInfo:
 
     def __init__(self):
         self.buildings = {}
-        with open(os.path.join(STRUCTURES_PATH, "buildings.json"), "r") as f:
-            parsed_data = json.load(f)
+        with (STRUCTURES_PATH/"buildings.json").open("r") as f:
+            parsed_data: dict = json.load(f)
             for k, building_parent_obj in parsed_data.items():
                 self.buildings[k] = []
                 for val in building_parent_obj["variants"]:
                     self.buildings[k].append(BuildingInfo(val))
 
-    def get_buildings_by_key(self, key: str) -> list[BuildingInfo]:
+    def __getitem__(self, key: str) -> list[BuildingInfo]:
         """ Get building info by its key """
         return self.buildings[key]
 

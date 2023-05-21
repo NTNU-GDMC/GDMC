@@ -14,7 +14,7 @@ class BuildAgent(RunableAgent):
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info
-        self.buildingInfo = GLOBAL_BUILDING_INFO.get_buildings_by_key(buildingType)[0]
+        self.buildingInfo = GLOBAL_BUILDING_INFO[buildingType][0]
 
     def __str__(self) -> str:
         return f"BuildAgent({self.buildingInfo})"

@@ -10,17 +10,10 @@
     - biome default is "".
 """
 
-from ..resource.biome_substitute import isChangeBlock, changeBlock
-import os
 from nbt import nbt as nbt
 from gdpc import Editor, Block, Box
 from gdpc.vector_tools import ivec3
-from src.building.building_info import CHALET, DESERT_BUILDING
-
-
-def getNBTAbsPath(name: str, type: int, level: int) -> str:
-    # Example: getNBTAbsPath("chalet", 1, 2) -> "...chalet1/level2.nbt"
-    return os.path.abspath(os.path.join(".", os.path.join("data", os.path.join("structures", os.path.join(name + f"{str(type)}", "level" + f"{str(level)}.nbt")))))
+from ..resource.biome_substitute import isChangeBlock, changeBlock
 
 
 def NBT2Str(struct: nbt.TAG):
@@ -80,7 +73,3 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str 
 def getStructureSizeNBT(struct: nbt.NBTFile) -> ivec3:
     size = struct["size"]
     return ivec3(*map(lambda x: int(x.value), size))
-
-
-def getBuildingNBTDir(name: str, type: int, level: int):
-    return getNBTAbsPath(name, type, level)

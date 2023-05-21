@@ -1,20 +1,16 @@
 {
-    "Entries":[
+    "Entries": [
         {
             "facing": "north",
             "roadStartPosition": [5, -1, -1],
             "type": "mainEntry"
         }
     ],
-    "Size":{
-        "length": 17,
-        "height": 16,
-        "width": 16
-    },
+    "Size": [17, 16, 16],
     "Material": "oak",
     "Type": 1,
     "Level": 2,
-    "RequiredResource":{
+    "RequiredResource": {
         "human": 0,
         "wood": 750,
         "stone": 250,
@@ -23,7 +19,7 @@
         "iron": 0,
         "grass": 0
     },
-    "ProduceResource":{
+    "ProduceResource": {
         "human": 2,
         "wood": 0,
         "stone": 0,

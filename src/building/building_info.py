@@ -1,59 +1,36 @@
 import json
-import os
-
+from nbt import nbt
 from glm import ivec3
 from pathlib import Path
-
+from dataclasses import dataclass
+from ..config.config import config
 from ..resource.terrain_analyzer import Resource
 
 CHALET = "chalet"
 DESERT_BUILDING = "desert_building"
 HUGE_SAWMILL = "huge_sawmill"
-STRUCTURES_PATH = Path("data/structures")
 
 
-def getJsonAbsPath(name: str, type: int, level: int) -> Path:
-    # Example: absPath("chalet", 1, 2) -> "...chalet1/level2.json"
-    return STRUCTURES_PATH/f"{name}{type}/level{level}.json"
+STRUCTURES_PATH = config.structuresPath
 
 
-def getNbtLengthAndWidth(name: str, type: int, level: int) -> tuple[int, int]:
-    filename = getJsonAbsPath(name, type, level)
-    with open(filename, "r") as f:
-        fileData = json.load(f)
-        x = fileData["Size"]["length"]
-        z = fileData["Size"]["width"]
-    return x, z
-
-
-def getNbtRequiredResource(name: str, type: int, level: int) -> Resource:
-    filename = getJsonAbsPath(name, type, level)
-    with open(filename, "r") as f:
-        file_data = json.load(f)
-        human = file_data["RequiredResource"]["human"]
-        wood = file_data["RequiredResource"]["wood"]
-        stone = file_data["RequiredResource"]["stone"]
-        food = file_data["RequiredResource"]["food"]
-        iron_ore = file_data["RequiredResource"]["ironOre"]
-        iron = file_data["RequiredResource"]["iron"]
-        grass = file_data["RequiredResource"]["grass"]
-    return Resource(human, wood, stone, food, iron_ore, iron, grass)
-
-
+@dataclass
 class Entry:
     facing: str
-    pos: tuple[int, int, int]
+    pos: ivec3
     type: str
 
-    def __init__(self, facing, pos, type_):
-        self.facing = facing
-        self.pos = pos
-        self.type = type_
+    @staticmethod
+    def fromDict(d: dict) -> "Entry":
+        return Entry(d["facing"], ivec3(*d["roadStartPosition"]), d["type"])
 
 
-class LevelBuildingInfo:
+@dataclass
+class Structure:
     """ Metadata class for each level building info"""
-    nbt_path: str
+    jsonPath: Path
+    nbtPath: Path
+    nbtFile: nbt.NBTFile
     level: int
     size: ivec3
     entries: list[Entry]
@@ -61,65 +38,60 @@ class LevelBuildingInfo:
     requirement: Resource
     production: Resource
 
-    def init(self, size: ivec3, entries: list[Entry], material: str, level: int,
-             requirement: Resource, production: Resource):
-        # x, z dimension need to be confirmed, this is a PoC
-        self.size = size
-        self.entries = entries
-        self.level = level
-        self.material = material
-        self.requirement = requirement
-        self.production = production
+    def __init__(self, jsonPath: Path, nbtPath: Path):
+        self.jsonPath = jsonPath
+        self.nbtPath = nbtPath
+        self.nbtFile = nbt.NBTFile(filename=self.nbtPath)
 
-    def __init__(self, json_path: str, nbt_path: str):
-        self.nbt_path = nbt_path
-
-        with open(json_path, "r") as f:
-            json_dict = json.load(f)
-
-            entries = []
-            for entry in json_dict["Entries"]:
-                entries.append(Entry(entry["facing"], tuple(
-                    entry["roadStartPosition"]), entry["type"]))
-
-            w, h, l = json_dict["Size"]["width"], json_dict["Size"]["height"], json_dict["Size"]["length"]
-            size = ivec3(w, h, l)
+        with jsonPath.open("r") as f:
+            jsonDict = json.load(f)
+            self.level = int(jsonDict["Level"])
+            self.size = ivec3(*jsonDict["Size"])
+            self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
+            self.material = jsonDict["Material"]
+            self.requirement = Resource.fromDict(jsonDict["RequiredResource"])
+            self.production = Resource.fromDict(jsonDict["ProduceResource"])
 
             # TODO: change material by biome when init
-
-            # call real init
-            self.init(size, entries, json_dict["Material"], int(json_dict["Level"]),
-                      Resource.fromDict(json_dict["RequiredResource"]), Resource.fromDict(json_dict["ProduceResource"]))
+            pass
 
 
+@dataclass
 class BuildingInfo:
     """ Metadata class for storing building info """
 
     # Properties
     type: str
     max_size: ivec3
-    level_building_infos: list[LevelBuildingInfo]
+    structures: list[Structure]
 
-    def __init__(self, variant):
+    def __init__(self, variant: dict):
         self.type = variant["name"]
         # load each level info out of json structure
-        self.level_building_infos = []
+        self.structures = []
         for level_info in variant["level_info"]:
-            self.level_building_infos.append(LevelBuildingInfo(
-                STRUCTURES_PATH / level_info["info"], STRUCTURES_PATH / level_info["nbt"]))
+            jsonPath = STRUCTURES_PATH / level_info["info"]
+            nbtPath = STRUCTURES_PATH / level_info["nbt"]
+            self.structures.append(Structure(jsonPath, nbtPath))
 
         # sort level building info by level
-        self.level_building_infos.sort(key=lambda a: a.level)
+        self.structures.sort(key=lambda a: a.level)
 
         # get max dimensions
         max_length = -1
         max_width = -1
         max_height = -1
-        for level_building_info in self.level_building_infos:
-            max_length = max(max_length, level_building_info.size[0])
-            max_height = max(max_height, level_building_info.size[1])
-            max_width = max(max_width, level_building_info.size[2])
+        for structure in self.structures:
+            max_length = max(max_length, structure.size[0])
+            max_height = max(max_height, structure.size[1])
+            max_width = max(max_width, structure.size[2])
 
         self.max_size = ivec3(max_length, max_height, max_width)
+
+    def __str__(self) -> str:
+        return f"BuildingInfo(type={self.type})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
     # TODO: 提供一支 get 的 api 給 building class 升級時使用

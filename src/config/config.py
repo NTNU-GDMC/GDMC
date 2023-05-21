@@ -37,11 +37,14 @@ DEFAULT_CONFIG_PATH = Path("config.json")
 class Config:
     """Config class for storing config data"""
 
-    # buildArea is the area where buildings can be built
+    # The area where buildings can be built
     buildArea: Box = Box((0, 0, 0), (255, 255, 255))
 
-    # unit is the size of a single unit on the map
+    # The size of a single unit on the blueprint
     unit: int = 2
+
+    # The path to the data structures
+    structuresPath: Path = Path("data/structures")
 
     # * You can add new config data here:
 
