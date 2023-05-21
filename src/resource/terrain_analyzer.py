@@ -25,6 +25,10 @@ class Resource():
     iron: int = 0
     grass: int = 0
 
+    @staticmethod
+    def fromDict(d: dict[str, int]) -> "Resource":
+        return Resource(d["human"], d["wood"], d["stone"], d["food"], d["ironOre"], d["iron"], d["grass"])
+
 
 @dataclass
 class ResourceMap():
