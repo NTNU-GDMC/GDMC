@@ -1,5 +1,6 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
+import numpy as np
 from dataclasses import dataclass
 from gdpc import WorldSlice
 from gdpc.vector_tools import Rect
@@ -24,22 +25,26 @@ class Resource():
     iron: int = 0
     grass: int = 0
 
+
+@dataclass
 class ResourceMap():
+    human: np.ndarray
+    wood: np.ndarray
+    stone: np.ndarray
+    food: np.ndarray
+    ironOre: np.ndarray
+    iron: np.ndarray
+    grass: np.ndarray
+
     def __init__(self, area: Rect):
-        self.human = [[0] * area.size.x] * area.size.y
-        self.wood = [[0] * area.size.x] * area.size.y
-        self.stone = [[0] * area.size.x] * area.size.y
-        self.food = [[0] * area.size.x] * area.size.y
-        self.ironOre = [[0] * area.size.x] * area.size.y
-        self.iron = [[0] * area.size.x] * area.size.y
-        self.grass = [[0] * area.size.x] * area.size.y
-
-    def __str__(self):
-        return f"human: {self.human}, wood: {self.wood}, stone: {self.stone}, food: {self.food}, ironOre: {self.ironOre}, iron: {self.iron}, grass: {self.grass}"
-
-    def __repr__(self):
-        return self.__str__()
-
+        shape = area.size.to_tuple()
+        self.human = np.zeros(shape)
+        self.wood = np.zeros(shape)
+        self.stone = np.zeros(shape)
+        self.food = np.zeros(shape)
+        self.ironOre = np.zeros(shape)
+        self.iron = np.zeros(shape)
+        self.grass = np.zeros(shape)
 
 
 def analyzeResource(materialDict: Counter):
