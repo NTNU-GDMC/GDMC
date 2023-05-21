@@ -44,6 +44,14 @@ def nbtToString(nbt_struct: nbt.TAG):
             return '{}'.format(str(nbt_struct))
 
 
+def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
+    palatte = struct["palette"]
+    for blk in struct["blocks"]:
+        pos = ivec3(*map(lambda p: int(p.value), blk["pos"]))
+        stateTag = palatte[blk["state"].value]
+        block = Block.fromBlockStateTag(stateTag)
+        yield pos + offset, block
+
 def buildFromStructureNBT(editor: Editor, nbt_struct: nbt.NBTFile, pos: ivec3, biome: str = "", keep=False):
     palatte = nbt_struct["palette"]
     for blk in nbt_struct["blocks"]:
