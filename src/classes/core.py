@@ -74,6 +74,10 @@ class Core():
     def blueprint(self):
         return self._blueprint
 
+    @property
+    def blueprintData(self):
+        return self._blueprintData
+
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
@@ -160,11 +164,6 @@ class Core():
             nbt_struct = nbt.NBTFile(nbtPath)
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = self.getHeightMap("mean", area)
-            print("build at:", area)
-            print("y:", y)
-            buildFromStructureNBT(nbt_struct, *addY(pos, y))
-
-    @property
-    def blueprint_data(self):
-        return self._blueprintData
+            y = round(self.getHeightMap("mean", area))
+            print("build at:", area, ",y:", y)
+            buildFromStructureNBT(self._editor, nbt_struct, addY(pos, y))

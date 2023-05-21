@@ -41,4 +41,6 @@ if __name__ == '__main__':
                 pass
         # TODO: update state if needed
 
+    core.startBuildingInMinecraft()
+
     plotBlueprint(core)

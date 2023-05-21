@@ -8,7 +8,7 @@ def plotBlueprint(core: Core):
 
     buildArea = core._editor.getBuildArea()
 
-    for id, building in core.blueprint_data.items():
+    for id, building in core.blueprintData.items():
         begin = building.position
         size = building.dimension
         p = mpatch.Rectangle(begin, size[0], size[1], fill=True, color="blue")
