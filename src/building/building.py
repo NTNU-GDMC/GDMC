@@ -49,7 +49,7 @@ class Building:
 
     @property
     def dimension(self):
-        return self.building_info.level_building_info[self.level-1].dim
+        return self.building_info.level_building_info[self.level-1].size
 
 
 def printNbtSize(name: str):

@@ -51,41 +51,47 @@ class Entry:
         self.type = type_
 
 
+class LevelBuildingInfo:
+    """ Metadata class for each level building info"""
+    size: ivec3
+    entries: list[Entry]
+    material: str
+    level: int
+    resource: Resource
+    nbt_path: str
+
+    def init(self, size: ivec3, entries: list[Entry], material: str, level: int,
+             resource: Resource):
+        # x, z dimension need to be confirmed, this is a PoC
+        self.size = size
+        self.entries = entries
+        self.level = level
+        self.material = material
+        self.resource = resource
+
+    def __init__(self, json_path: str, nbt_path: str):
+        self.nbt_path = nbt_path
+
+        with open(json_path, "r") as f:
+            json_dict = json.load(f)
+
+            entries = []
+            for entry in json_dict["Entries"]:
+                entries.append(Entry(entry["facing"], tuple(
+                    entry["roadStartPosition"]), entry["type"]))
+
+            w, h, l = json_dict["Size"]["width"], json_dict["Size"]["height"], json_dict["Size"]["length"]
+            size = ivec3(w, h, l)
+
+            # TODO: change material by biome when init
+
+            # call real init
+            self.init(size, entries, json_dict["Material"], int(json_dict["Level"]),
+                      Resource.fromDict(json_dict["RequiredResource"]))
+
+
 class BuildingInfo:
     """ Metadata class for storing building info """
-
-    class LevelBuildingInfo:
-        """ Metadata class for each level building info"""
-        dim: ivec3
-        entries: list[Entry]
-        material: str
-        level: int
-        resource: Resource
-        nbt_path: str
-
-        def init(self, w: int, h: int, l: int, entries: list[Entry], material: str, level: int,
-                 resource: Resource):
-            self.dim = ivec3([w, h, l])  # x, z dimension need to be confirmed, this is a PoC
-            self.entries = entries
-            self.level = level
-            self.material = material
-            self.resource = resource
-
-        def __init__(self, json_path: str, nbt_path: str):
-            with open(json_path, "r") as f:
-                json_dict = json.load(f)
-
-                entries = []
-                for entry in json_dict["Entries"]:
-                    entries.append(Entry(entry["facing"], tuple(entry["roadStartPosition"]), entry["type"]))
-
-                # TODO: change material by biome when init
-
-                self.nbt_path = nbt_path
-                # call real init
-                self.init(int(json_dict["Size"]["width"]), int(json_dict["Size"]["height"]), int(json_dict["Size"]["length"]),
-                          entries, json_dict["Material"], int(json_dict["Level"]),
-                          Resource(**json_dict["RequiredResource"]))
 
     # Properties
     max_length: int
@@ -99,7 +105,7 @@ class BuildingInfo:
         # load each level info out of json structure
         self.level_building_info = []
         for var in variant["level_info"]:
-            self.level_building_info.append(self.LevelBuildingInfo(os.path.join(STRUCTURES_PATH, var["info"]),
+            self.level_building_info.append(LevelBuildingInfo(os.path.join(STRUCTURES_PATH, var["info"]),
                                                                    os.path.join(STRUCTURES_PATH, var["nbt"])))
 
         # sort level building info by level
@@ -110,9 +116,9 @@ class BuildingInfo:
         self.max_width = -1
         self.max_height = -1
         for lbi in self.level_building_info:
-            self.max_length = max(self.max_length, lbi.dim[0])
-            self.max_width = max(self.max_width, lbi.dim[2])
-            self.max_height = max(self.max_height, lbi.dim[1])
+            self.max_length = max(self.max_length, lbi.size[0])
+            self.max_width = max(self.max_width, lbi.size[2])
+            self.max_height = max(self.max_height, lbi.size[1])
 
     # TODO: 提供一支 get 的 api 給 building class 升級時使用
 
