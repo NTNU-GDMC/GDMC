@@ -7,7 +7,7 @@ from ..building.building import Building
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
-from ..building.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+
 
 DEFAULT_BUILD_AREA = Box((0, 0, 0), (255, 255, 255))
 
@@ -166,4 +166,4 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print("build at:", area, ",y:", y)
-            buildFromStructureNBT(self._editor, nbt_struct, addY(pos, y))
+            buildFromNBT(self._editor, nbt_struct, addY(pos, y))

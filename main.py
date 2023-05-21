@@ -5,6 +5,7 @@ from src.classes.agent import RunableAgent
 from src.classes.agent_generator import RUNABLE_AGENT_TABLE
 from src.visual.blueprint import plotBlueprint
 
+
 import random
 # TODO: logic per round
 
