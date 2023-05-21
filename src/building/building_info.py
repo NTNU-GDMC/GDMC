@@ -53,21 +53,23 @@ class Entry:
 
 class LevelBuildingInfo:
     """ Metadata class for each level building info"""
+    nbt_path: str
+    level: int
     size: ivec3
     entries: list[Entry]
     material: str
-    level: int
-    resource: Resource
-    nbt_path: str
+    requirement: Resource
+    production: Resource
 
     def init(self, size: ivec3, entries: list[Entry], material: str, level: int,
-             resource: Resource):
+             requirement: Resource, production: Resource):
         # x, z dimension need to be confirmed, this is a PoC
         self.size = size
         self.entries = entries
         self.level = level
         self.material = material
-        self.resource = resource
+        self.requirement = requirement
+        self.production = production
 
     def __init__(self, json_path: str, nbt_path: str):
         self.nbt_path = nbt_path
@@ -87,24 +89,24 @@ class LevelBuildingInfo:
 
             # call real init
             self.init(size, entries, json_dict["Material"], int(json_dict["Level"]),
-                      Resource.fromDict(json_dict["RequiredResource"]))
+                      Resource.fromDict(json_dict["RequiredResource"]), Resource.fromDict(json_dict["ProduceResource"]))
 
 
 class BuildingInfo:
     """ Metadata class for storing building info """
 
     # Properties
+    type: str
     max_size: ivec3
     level_building_infos: list[LevelBuildingInfo]
-    type: str
 
     def __init__(self, variant):
         self.type = variant["name"]
         # load each level info out of json structure
         self.level_building_infos = []
         for level_info in variant["level_info"]:
-            self.level_building_infos.append(LevelBuildingInfo(os.path.join(STRUCTURES_PATH, level_info["info"]),
-                                                                   os.path.join(STRUCTURES_PATH, level_info["nbt"])))
+            self.level_building_infos.append(LevelBuildingInfo(
+                STRUCTURES_PATH / level_info["info"], STRUCTURES_PATH / level_info["nbt"]))
 
         # sort level building info by level
         self.level_building_infos.sort(key=lambda a: a.level)
@@ -121,7 +123,3 @@ class BuildingInfo:
         self.max_size = ivec3(max_length, max_height, max_width)
 
     # TODO: 提供一支 get 的 api 給 building class 升級時使用
-
-    @property
-    def dimension(self):
-        return ivec3(self.max_size)

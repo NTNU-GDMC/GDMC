@@ -22,7 +22,7 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
-        length, _, width = self.buildingInfo.dimension
+        length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
             length, width)
         if len(possibleLocations) == 0:

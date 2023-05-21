@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     for agent in agents:
         print(agent.buildingType)
-        print(agent.buildingInfo.dimension)
+        print(agent.buildingInfo.max_size)
         print(agent.buildingInfo.type)
 
     # iterate rounds
