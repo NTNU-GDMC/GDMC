@@ -45,10 +45,9 @@ class Structure:
 
         with jsonPath.open("r") as f:
             jsonDict = json.load(f)
-            w, h, l = jsonDict["Size"]["width"], jsonDict["Size"]["height"], jsonDict["Size"]["length"]
-            self.size = ivec3(w, h, l)
-            self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
             self.level = int(jsonDict["Level"])
+            self.size = ivec3(*jsonDict["Size"])
+            self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
             self.material = jsonDict["Material"]
             self.requirement = Resource.fromDict(jsonDict["RequiredResource"])
             self.production = Resource.fromDict(jsonDict["ProduceResource"])
