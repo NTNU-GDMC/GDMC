@@ -8,6 +8,7 @@ from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
+from ..building.nbt_builder import buildFromNBT
 
 DEFAULT_BUILD_AREA = config.buildArea
 
@@ -157,13 +158,11 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
         for id, building in self._blueprintData.items():
-            level = building.level
-            buildingInfo = building.building_info.level_building_infos[level-1]
             pos = building.position
-            nbtPath = buildingInfo.nbt_path
-            nbt_struct = nbt.NBTFile(nbtPath)
+            level = building.level
+            structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print("build at:", area, ",y:", y)
-            buildFromNBT(self._editor, nbt_struct, addY(pos, y))
+            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y))
