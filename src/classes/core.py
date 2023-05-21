@@ -1,13 +1,12 @@
 from gdpc import Editor
-from gdpc.vector_tools import addY, Rect, Box
+from gdpc.vector_tools import addY, dropY, Rect, Box
 from typing import Literal
 import numpy as np
 from nbt import nbt
-from ..building_util.building import Building
+from ..building.building import Building
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
-from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
 from ..config.config import config
 
 DEFAULT_BUILD_AREA = config.buildArea
@@ -16,7 +15,7 @@ UNIT = config.unit
 
 
 class Core():
-    def __init__(self, buildArea: Box=DEFAULT_BUILD_AREA) -> None:
+    def __init__(self, buildArea: Box = DEFAULT_BUILD_AREA) -> None:
         """
         the core will connect with the game
         """
@@ -66,7 +65,7 @@ class Core():
     @property
     def resources(self):
         return self._resources
-    
+
     @property
     def resourcesMap(self):
         return self._resourceMap
@@ -75,13 +74,17 @@ class Core():
     def blueprint(self):
         return self._blueprint
 
+    @property
+    def blueprintData(self):
+        return self._blueprintData
+
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
-        (xlen, zlen) = building.getBuildingInfo().getCurrentBuildingLengthAndWidth()
+        (xlen, _, zlen) = building.dimension
         id = len(self._blueprintData) + 1
         x = (x + UNIT) // UNIT
         z = (z + UNIT) // UNIT
@@ -112,6 +115,7 @@ class Core():
             if val == 0:
                 return 0
             return 1
+
         prefix = np.zeros_like(self.blueprint)
         h, w = prefix.shape[:2]
 
@@ -127,7 +131,7 @@ class Core():
         for i in range(1, h):
             for j in range(1, w):
                 prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
-                    prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
+                               prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
         result: list[Rect] = []
 
         for i in range(h - height):
@@ -153,16 +157,13 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
         for id, building in self._blueprintData.items():
-            pos = building.getBuildingPos()
-            name = building.nbtName
-            type = building.buildingInfo.getCurrentBuildingType()
-            level = building.getBuildingLevel()
-            print(name, type, level)
-            absPath = getNBTAbsPath(name, type, level)
-            nbt_struct = nbt.NBTFile(absPath)
-            area = Rect(
-                pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
-            y = self.getHeightMap("mean", area)
-            print("build at:", area)
-            print("y:", y)
-            buildFromStructureNBT(nbt_struct, *addY(pos, y))
+            level = building.level
+            buildingInfo = building.building_info.level_building_infos[level-1]
+            pos = building.position
+            nbtPath = buildingInfo.nbt_path
+            nbt_struct = nbt.NBTFile(nbtPath)
+            size = building.building_info.max_size
+            area = Rect(pos, dropY(size))
+            y = round(self.getHeightMap("mean", area))
+            print("build at:", area, ",y:", y)
+            buildFromNBT(self._editor, nbt_struct, addY(pos, y))

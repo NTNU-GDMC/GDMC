@@ -1,36 +1,28 @@
 # ! /usr/bin/python3
 from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import BuildAgent
-from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
+from src.classes.agent import RunableAgent
+from src.classes.agent_generator import RUNABLE_AGENT_TABLE
 from src.visual.blueprint import plotBlueprint
 
-from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
-from src.building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
-from gdpc.vector_tools import addY, Rect
 
 import random
 # TODO: logic per round
-analyzeFunctions = [isFlat, hasEnoughWood, closeEnoughToRoad]
-buildingTypes = [CHALET, DESERT_BUILDING]
 
 if __name__ == '__main__':
     COOLDOWN = 5
     ROUND = 50
     core = Core()
 
-    agents: list[BuildAgent] = []
+    agents: list[RunableAgent] = []
+    generators = list(RUNABLE_AGENT_TABLE.values())
     for _ in range(7):
-        agents.append(BuildAgent(core, random.choice(
-            analyzeFunctions), random.choice(buildingTypes), COOLDOWN))
+        generator = random.choice(generators)
+        agent = generator(core)
+        agents.append(agent)
 
     for agent in agents:
-        print(agent.buildingType)
-        print(agent.buildingInfo.getCurrentBuildingLengthAndWidth())
-        print(agent.buildingInfo.getCurrentBuildingType())
-        print(agent.buildingInfo.getCurrentBuildingMaterial())
-        print(agent.buildingInfo.getCurrentRequiredResource().stone)
-        print(agent.buildingInfo.getCurrentRequiredResource().wood)
+        print(agent)
 
     # iterate rounds
     for i in range(ROUND):
@@ -43,5 +35,8 @@ if __name__ == '__main__':
                 # gather resource if the agent cannot do their job
                 pass
         # TODO: update state if needed
+
+    core.startBuildingInMinecraft()
+    core._editor.flushBuffer()
 
     plotBlueprint(core)

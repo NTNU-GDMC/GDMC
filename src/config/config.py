@@ -43,7 +43,7 @@ class Config:
     # unit is the size of a single unit on the map
     unit: int = 2
 
-    #* You can add new config data here:
+    # * You can add new config data here:
 
     def save(self, path: Path = DEFAULT_CONFIG_PATH):
         """Save config to a json file"""

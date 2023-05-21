@@ -23,8 +23,12 @@ README:
 """
 
 import os
+
+import gdpc.vector_tools
 from nbt import nbt
-from ..building_util.building_info import BuildingInfo, Entry
+
+from .nbt_builder import getStructureSizeNBT
+from ..building.building_info import BuildingInfo, Entry
 
 
 def getJsonAbsPath(name: str, type: int, level: int) -> str:
@@ -35,23 +39,17 @@ def getJsonAbsPath(name: str, type: int, level: int) -> str:
     return os.path.abspath(os.path.join(".", os.path.join("data", os.path.join("structures", os.path.join(name + f"{str(type)}", "level" + f"{str(level)}.json")))))
 
 
-class Building():
+class Building:
     # TODO: 需要一個 method BuildingInfo
     # !!! @LoveSnowEx : tags had been removed
-    def __init__(self, nbtName: str, type: int, level: int = 1, position: tuple[int, int] = (0, 0)):
-        self.buildingInfo = BuildingInfo(getJsonAbsPath(nbtName, type, level))
-        self.nbtName = nbtName              # building name
-        self.level = level                  # building level: 1~3
-        self.position = position            # building coord
+    def __init__(self, building_info: BuildingInfo, position: gdpc.vector_tools.Vec2iLike, level = 1):
+        self.building_info = building_info
+        self.level = level
+        self.position = position
 
-    def getBuildingLevel(self):
-        return self.level
-
-    def getBuildingPos(self):
-        return self.position
-
-    def getBuildingInfo(self):
-        return self.buildingInfo
+    @property
+    def dimension(self):
+        return self.building_info.level_building_infos[self.level-1].size
 
 
 def printNbtSize(name: str):

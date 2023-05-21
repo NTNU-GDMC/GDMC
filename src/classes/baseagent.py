@@ -11,20 +11,31 @@ class RunableAgent(Agent):
     def __init__(self, core: Core, cooldown: int) -> None:
         super().__init__(core)
         self.cooldown = cooldown
+        self._remainCD = 0
+
+    @property
+    def remainCD(self):
+        return self._remainCD
+
+    @remainCD.setter
+    def remainCD(self, value: int):
+        if value < 0:
+            raise ValueError("RemainCD cannot be negative")
+        self._remainCD = value
 
     @abstractmethod
     def run(self) -> bool:
         pass
 
+
 def withCooldown(func):
     """Decorator for RunableAgent.run() to add cooldown"""
-    remainCD = 0
+
     def wrapper(self: RunableAgent):
-        nonlocal remainCD
-        if remainCD > 0:
-            remainCD -= 1
+        if self.remainCD > 0:
+            self.remainCD -= 1
             return False
         else:
-            remainCD = self.cooldown
+            self.remainCD = self.cooldown
             return func(self)
     return wrapper
