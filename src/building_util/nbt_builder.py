@@ -53,7 +53,7 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
         yield pos + offset, block
 
 
-def buildFromStructureNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str = "", keep=False):
+def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str = "", keep=False):
     if editor.worldSlice is None:
         raise Exception("Error while building structure: worldSlice is None")
 

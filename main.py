@@ -6,7 +6,7 @@ from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMIL
 from src.visual.blueprint import plotBlueprint
 
 from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
-from src.building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
+from src.building_util.nbt_builder import getNBTAbsPath, buildFromNBT
 from gdpc.vector_tools import addY, Rect
 
 import random
