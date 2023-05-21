@@ -1,5 +1,6 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
+from dataclasses import dataclass
 from gdpc import WorldSlice
 from gdpc.vector_tools import Rect
 from ..resource.analyze_material import analyzeSettlementMaterial, analyzeOneBlockVerticalMaterial
@@ -13,21 +14,15 @@ ironList = ["minecraft:iron_ore", "minecraft:raw_iron_block",
             "minecraft:deepslate_iron_ore"]
 
 
+@dataclass
 class Resource():
-    def __init__(self, human: int, wood: int, stone: int, food: int, ironOre: int, iron: int, grass: int):
-        self.human = human
-        self.wood = wood
-        self.stone = stone
-        self.food = food
-        self.ironOre = ironOre
-        self.iron = iron
-        self.grass = grass
-
-    def __str__(self):
-        return f"human: {self.human}, wood: {self.wood}, stone: {self.stone}, food: {self.food}, ironOre: {self.ironOre}, iron: {self.iron}, grass: {self.grass}"
-
-    def __repr__(self):
-        return self.__str__()
+    human: int = 0
+    wood: int = 0
+    stone: int = 0
+    food: int = 0
+    ironOre: int = 0
+    iron: int = 0
+    grass: int = 0
 
 class ResourceMap():
     def __init__(self, area: Rect):
