@@ -4,7 +4,8 @@ from .core import Core
 from .baseagent import RunableAgent, withCooldown
 from ..building_util.building import Building
 from ..building_util.building_info import BuildingInfo, getJsonAbsPath
-from random import sample
+from ..resource.terrain_analyzer import Resource
+from random import sample, randint
 
 class BuildAgent(RunableAgent):
     def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int) -> None:
@@ -51,3 +52,17 @@ class BuildAgent(RunableAgent):
         # do something about the building class (add nessarry data to it)
         self.core.addBuilding(building)
         return True
+
+    def gather(self):
+        # After we can access to the level requirement, we gather the resource we needed the most
+        # Workaround: Choose randomly
+        gatheredResource = Resource(
+                human=0,
+                wood=randint(0,50),
+                stone=randint(0,50),
+                ironOre=randint(0,30),
+                iron=randint(0,10),
+                food=randint(0,30),
+                grass=0 
+            )
+        return gatheredResource

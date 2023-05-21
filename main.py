@@ -34,14 +34,16 @@ if __name__ == '__main__':
 
     # iterate rounds
     for i in range(ROUND):
-        # TODO: increase game resources
+        core.updateResource()
+
         for agent in random.sample(agents, len(agents)):
             # run agent
             success = agent.run()
 
             if not success:
                 # gather resource if the agent cannot do their job
-                pass
+                core.storeResource(agent.gather())
+
         # TODO: update state if needed
 
     plotBlueprint(core)

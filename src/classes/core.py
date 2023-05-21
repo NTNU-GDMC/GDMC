@@ -6,7 +6,7 @@ from nbt import nbt
 from ..building_util.building import Building
 from ..height_info import HeightInfo
 from ..resource.analyze_biome import getAllBiomeList
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
+from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap, Resource
 from ..building_util.nbt_builder import getNBTAbsPath, buildFromStructureNBT
 
 
@@ -157,6 +157,10 @@ class Core():
                     result.append(Rect((i * UNIT, j * UNIT), (height * UNIT, height * UNIT)))
 
         return result
+
+    def storeResource(self, resourceGatheredByAgent: Resource):
+        self._resources = self._resources + resourceGatheredByAgent
+        return
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
