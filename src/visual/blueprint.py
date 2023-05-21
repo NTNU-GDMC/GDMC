@@ -11,7 +11,7 @@ def plotBlueprint(core: Core):
     for id, building in core.blueprintData.items():
         begin = building.position
         size = building.dimension
-        p = mpatch.Rectangle(begin, size[0], size[1], fill=True, color="blue")
+        p = mpatch.Rectangle(begin, size.x, size.z, fill=True, color="blue")
         ax.add_artist(p)
         rx, ry = p.get_xy()
         cx = rx + p.get_width() / 2.0
