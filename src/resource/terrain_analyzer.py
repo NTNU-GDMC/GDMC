@@ -71,6 +71,7 @@ def analyzeResource(materialDict: Counter):
     r = Resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
     return r
 
+
 def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resource:
     """
     analyze area material to resource
@@ -78,6 +79,7 @@ def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resourc
     materialDict = analyzeSettlementMaterial(worldSlice, area)
     r = analyzeResource(materialDict)
     return r
+
 
 def getMaterialToResourceMap(worldSlice: WorldSlice, area: Rect) -> ResourceMap:
     rMap = ResourceMap(area)

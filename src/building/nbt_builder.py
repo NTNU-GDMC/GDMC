@@ -15,7 +15,7 @@ import os
 from nbt import nbt as nbt
 from gdpc import Editor, Block, Box
 from gdpc.vector_tools import ivec3
-from src.building_util.building_info import CHALET, DESERT_BUILDING
+from src.building.building_info import CHALET, DESERT_BUILDING
 
 
 def getNBTAbsPath(name: str, type: int, level: int) -> str:

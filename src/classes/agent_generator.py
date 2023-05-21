@@ -2,7 +2,7 @@ from typing import Callable
 from src.classes.core import Core
 from src.classes.agent import RunableAgent
 from src.classes.agent import BuildAgent
-from src.building_util.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
+from src.building.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
 from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
 
 

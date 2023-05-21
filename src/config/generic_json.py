@@ -1,14 +1,6 @@
 import json
 
 
-def isimmutable(obj):
-    try:
-        hash(obj)
-        return True
-    except (TypeError, AttributeError):
-        return False
-
-
 class GenericJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         """Implement this method in a subclass such that it returns"""
