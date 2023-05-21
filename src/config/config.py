@@ -43,6 +43,9 @@ class Config:
     # The size of a single unit on the blueprint
     unit: int = 2
 
+    # The path to the data structures
+    structuresPath: Path = Path("data/structures")
+
     # * You can add new config data here:
 
     def save(self, path: Path = DEFAULT_CONFIG_PATH):

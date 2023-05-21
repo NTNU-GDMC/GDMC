@@ -1,43 +1,18 @@
 import json
-import os
-
 from glm import ivec3
 from pathlib import Path
-
 from ..resource.terrain_analyzer import Resource
+from ..config.config import config
 
 CHALET = "chalet"
 DESERT_BUILDING = "desert_building"
 HUGE_SAWMILL = "huge_sawmill"
-STRUCTURES_PATH = Path("data/structures")
+STRUCTURES_PATH = config.structuresPath
 
 
 def getJsonAbsPath(name: str, type: int, level: int) -> Path:
     # Example: absPath("chalet", 1, 2) -> "...chalet1/level2.json"
     return STRUCTURES_PATH/f"{name}{type}/level{level}.json"
-
-
-def getNbtLengthAndWidth(name: str, type: int, level: int) -> tuple[int, int]:
-    filename = getJsonAbsPath(name, type, level)
-    with open(filename, "r") as f:
-        fileData = json.load(f)
-        x = fileData["Size"]["length"]
-        z = fileData["Size"]["width"]
-    return x, z
-
-
-def getNbtRequiredResource(name: str, type: int, level: int) -> Resource:
-    filename = getJsonAbsPath(name, type, level)
-    with open(filename, "r") as f:
-        file_data = json.load(f)
-        human = file_data["RequiredResource"]["human"]
-        wood = file_data["RequiredResource"]["wood"]
-        stone = file_data["RequiredResource"]["stone"]
-        food = file_data["RequiredResource"]["food"]
-        iron_ore = file_data["RequiredResource"]["ironOre"]
-        iron = file_data["RequiredResource"]["iron"]
-        grass = file_data["RequiredResource"]["grass"]
-    return Resource(human, wood, stone, food, iron_ore, iron, grass)
 
 
 class Entry:
