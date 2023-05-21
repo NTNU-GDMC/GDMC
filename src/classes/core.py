@@ -1,5 +1,5 @@
 from gdpc import Editor
-from gdpc.vector_tools import addY, Rect, Box
+from gdpc.vector_tools import addY, dropY, Rect, Box
 from typing import Literal
 import numpy as np
 from nbt import nbt
@@ -153,15 +153,13 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
         for id, building in self._blueprintData.items():
-            pos = building.getBuildingPos()
-            name = building.nbtName
-            type = building.buildingInfo.getCurrentBuildingType()
-            level = building.getBuildingLevel()
-            print(name, type, level)
-            absPath = getNBTAbsPath(name, type, level)
-            nbt_struct = nbt.NBTFile(absPath)
-            area = Rect(
-                pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
+            level = building.level
+            buildingInfo = building.building_info.level_building_infos[level-1]
+            pos = building.position
+            nbtPath = buildingInfo.nbt_path
+            nbt_struct = nbt.NBTFile(nbtPath)
+            size = building.building_info.max_size
+            area = Rect(pos, dropY(size))
             y = self.getHeightMap("mean", area)
             print("build at:", area)
             print("y:", y)
