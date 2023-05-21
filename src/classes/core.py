@@ -66,7 +66,7 @@ class Core():
     @property
     def resources(self):
         return self._resources
-    
+
     @property
     def resourcesMap(self):
         return self._resourceMap
@@ -162,7 +162,6 @@ class Core():
             nbt_struct = nbt.NBTFile(absPath)
             area = Rect(
                 pos, building.buildingInfo.getCurrentBuildingLengthAndWidth())
-            y = self.getHeightMap("mean", area)
-            print("build at:", area)
-            print("y:", y)
-            buildFromStructureNBT(nbt_struct, *addY(pos, y))
+            y = int(self.getHeightMap("mean", area))
+            print("build at:", area, ",y:", y)
+            buildFromStructureNBT(self._editor, nbt_struct, addY(pos, y))
