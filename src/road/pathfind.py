@@ -1,171 +1,101 @@
-from typing import Iterable, Union
-from gdpc import world_slice as WL
-from gdpc import minecraft_tools as TB
-from gdpc import interface as INTF
-from gdpc import geometry as GEO
-from gdpc import vector_tools as VT
-from gdpc import Editor, Block
-import astar
-import random
-from gdpc.vector_tools import *
+from astar import find_path
+from random import choices
+from gdpc.vector_tools import ivec2, Rect, l1Distance, l1Norm, neighbors2D, addY
+from ..classes.core import Core
+from ..road.road_network import RoadNode, RoadEdge
+from ..config.config import config
+
+UNIT = config.unit
+
+# hash function of ivec2 for RoadNode
 
 
-def groundY(point: ivec2, heights: np.ndarray) -> int:
-    return heights[ivec2(point).to_tuple()] - 1
+def hashfunc(o: object) -> int:
+    if isinstance(o, ivec2):
+        return o.to_tuple().__hash__()
+    raise TypeError
 
 
-def setGroundY2D(point: ivec2, heights: np.ndarray) -> ivec3:
-    return addY(point, groundY(point, heights))
+def pathfind(
+        core: Core,
+        begin: RoadNode[ivec2],
+        end: RoadNode[ivec2],
+) -> RoadEdge[ivec2] | None:
 
+    roadNetwork = core.roadNetwork
+    boundingRect = core.buildArea.toRect()
 
-def setGroundY3D(point: ivec3, heights: np.ndarray) -> ivec3:
-    return setGroundY2D(dropY(point), heights)
+    print(f"connecting {begin} to {end}")
 
+    def exists(n: RoadNode[ivec2]) -> bool:
+        return n in roadNetwork.subnodes
 
-# fix path y around target
-def fixedPath(path: list[ivec3], targetY: int):
-    for i in range(len(path)):
-        if i != 0:
-            if targetY > path[i][1]:
-                targetY -= 1
-            elif targetY < path[i][1]:
-                targetY += 1
+    def height(n: RoadNode[ivec2]):
+        return round(core.getHeightMap("mean", Rect(n.val, (UNIT, UNIT))))
 
-        # break if already at target y
-        if path[i][1] == targetY:
-            break
+    def tooFar(n: RoadNode[ivec2]) -> bool:
+        return l1Distance(n.val, begin.val) + l1Distance(n.val, end.val) > 2 * l1Distance(begin.val, end.val)
 
-        newLoc = setY(path[i], targetY)
-        print(f"fixing path: {path[i]} -> {newLoc}")
-        path[i] = newLoc
+    def isRoad(n: RoadNode[ivec2]) -> bool:
+        return core.blueprint[n.val.x//UNIT, n.val.y//UNIT] == -1
 
-    return path
+    def isEmpty(n: RoadNode[ivec2]) -> bool:
+        return core.blueprint[n.val.x//UNIT, n.val.y//UNIT] == 0
 
+    def neighbors(n: RoadNode[ivec2]):
+        for neighbor in neighbors2D(n.val, boundingRect=boundingRect, stride=UNIT):
+            node = roadNetwork.newNode(neighbor)
 
-def pathFind(
-    start: ivec3,
-    target: ivec3,
-    exists: set[ivec3],
-    ignores: set[ivec3],
-    buildArea: VT.Box,
-    heights: np.ndarray,
-) -> Union[Iterable[ivec3], None]:
-
-    # return true if n is too far to start and target
-    def tooFar(n: ivec3) -> bool:
-        return l1Distance(n, start) + l1Distance(n, target) > 2 * l1Distance(start, target)
-
-    # get neighbors of n
-    def neighbors(n: ivec3):
-        for (x1, z1) in neighbors2D(dropY(n), buildArea.toRect()):
-            n1 = setGroundY2D((x1, z1), heights)
-
-            # skip if too far
-            if tooFar(n1):
+            if tooFar(node):
                 continue
 
-            # skip if delta y is > 1
-            if abs(n[1] - n1[1]) > 1:
+            if abs(height(node) - height(n)) > 1:
                 continue
 
-            # skip if not in build area
-            if not buildArea.contains(n1):
+            if not isEmpty(node) and not isRoad(node):
                 continue
 
-            # skip if in ignore list
-            if n1 in ignores:
-                continue
-
-            yield n1
+            yield node
 
     # real distance
-    def adjDistance(n1: ivec3, n2: ivec3) -> float:
-        if n1 in exists and n2 in exists:
+    def distance(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
+        if exists(a) and exists(b):
             return 0.0
 
-        delta = n2 - n1
+        delta2D = b.val - a.val
 
         # weight for distance
-        delta = setY(delta, delta[1] * 2)
+        delta3D = addY(delta2D, (height(b) - height(a))*2)
 
-        return l1Norm(delta)
+        return l1Norm(delta3D)
 
-    # heuristic cost
-    def cost(n: ivec3, goal: ivec3) -> float:
-        dis = l1Distance(n, goal)
+    # heuristic function
+    def heuristic(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
+        dis = l1Distance(a.val, b.val)
+        totalDis = l1Distance(begin.val, end.val)
 
-        if dis / l1Distance(start, goal) < 0.25:
+        if dis / totalDis < 0.25:
             dis *= 0.8
         else:
             dis *= 3
 
-        if n in exists:
+        if exists(a):
             dis *= 0.5
 
         return dis
 
-    # check if n is goal
-    def isReached(n: ivec3, goal: ivec3):
-        return n == goal
+    def isGoal(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> bool:
+        return a == b
 
-    return astar.find_path(start,
-                           target,
-                           neighbors_fnct=neighbors,
-                           reversePath=True,
-                           heuristic_cost_estimate_fnct=cost,
-                           distance_between_fnct=adjDistance,
-                           is_goal_reached_fnct=isReached)
+    path = find_path(begin,
+                     end,
+                     neighbors_fnct=neighbors,
+                     reversePath=True,
+                     heuristic_cost_estimate_fnct=heuristic,
+                     distance_between_fnct=distance,
+                     is_goal_reached_fnct=isGoal)
 
+    if path is None:
+        return None
 
-def buildRoad(target: Vec3iLike,
-              roads: list[Vec3iLike],
-              buildings: list[Vec3iLike],
-              block: Block = Block("minecraft:dirt_path")):
-    editor = Editor(buffering=True)
-    buildArea = INTF.getBuildArea()
-    WORLDSLICE = WL.WorldSlice(buildArea.toRect())
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-
-    # run astar with retries
-    def run(retries: int = 1) -> Union[Iterable[ivec3], None]:
-        if len(roads) == 0:
-            return iter([target])
-
-        def randomStart():
-            return random.choice(list(roads))
-
-        start = randomStart()
-
-        print("[astar] searching...")
-        print(f"start: {start}, target: {target}")
-        res = pathFind(
-            start=start,
-            target=setGroundY3D(target, heights),
-            exists=roads,
-            ignores=buildings,
-            buildArea=buildArea,
-            heights=heights)
-        if res == None and retries > 0:
-            return run(retries - 1)
-        return res
-
-    res = run()
-    if res is None:
-        print("[astar] searching failed!")
-        return False
-    print("[astar] searching sucessful!")
-
-    path = fixedPath(list(res), target[1])
-
-    for loc in path:
-        roads.append(loc)
-
-        # remove blocks above
-        ground = groundY(dropY(loc), heights)
-        if loc.y < ground:
-            for i in range(ground, loc.y, -1):
-                editor.placeBlock(setY(loc, i), Block("minecraft:air"))
-
-        editor.placeBlock(loc, block)
-
-    return True
+    return RoadEdge(list(path))

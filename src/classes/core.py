@@ -9,9 +9,13 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
-from ..road.road_network import RoadNetwork
+from ..road.road_network import RoadNetwork, RoadEdge
 
 UNIT = config.unit
+
+
+def hashfunc(o: object) -> int:
+    return o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__()
 
 
 class Core():
@@ -21,7 +25,8 @@ class Core():
         the core will connect with the game
         """
         # initalize editor
-        editor = Editor(buffering=config.buffering, caching=config.caching, host=config.host)
+        editor = Editor(buffering=config.buffering,
+                        caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
@@ -47,7 +52,9 @@ class Core():
         self._blueprint = np.zeros(
             (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
-        self._roadNetwork = RoadNetwork[ivec2]()
+        self._roadNetwork = RoadNetwork[ivec2](
+            hotThreshold=10,
+            hashfunc=lambda o: o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__())
 
         self.buildSubject = Subject[BuildEvent]()
         self.upgradeSubject = Subject[UpgradeEvent]()
@@ -111,6 +118,12 @@ class Core():
 
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
+
+    def addRoadEdge(self, edge: RoadEdge[ivec2]):
+        self._roadNetwork.addEdge(edge)
+        for node in edge.path:
+            x, z = node.val
+            self._blueprint[x:x+1, z:z+1] = -1
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
         if heightType == "var":
@@ -184,3 +197,12 @@ class Core():
             y = round(self.getHeightMap("mean", area))
             print("build at:", area, ",y:", y)
             buildFromNBT(self._editor, structure.nbtFile, addY(pos, y))
+
+        for node in self._roadNetwork.subnodes:
+            area = Rect(node.val, (UNIT, UNIT))
+            y = round(self.getHeightMap("mean", area))
+            pos = addY(node.val, y)
+            self.editor.runCommand(
+                f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} minecraft:stone", syncWithBuffer=True)
+
+        self.editor.flushBuffer()

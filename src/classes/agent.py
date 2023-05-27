@@ -8,6 +8,7 @@ from ..building.master_building_info import GLOBAL_BUILDING_INFO
 from ..building.building import Building
 from ..config.config import config
 from ..road.road_network import RoadEdge, RoadNode
+from ..road.pathfind import pathfind
 
 UNIT = config.unit
 
@@ -57,7 +58,7 @@ class BuildAgent(RunableAgent):
                 bestLocation = location
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"building position: {building.position}, building level: {building.level}")
+            f"building position: {building.position}, building: {building.building_info}")
         # do something about the building class (add necessary data to it)
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
@@ -78,23 +79,42 @@ class RoadAgent(Agent):
         self.connectRoadTo(event.building)
 
     def connectRoadTo(self, building: Building):
+        """Connect the building to the road network"""
         entryPos = building.entryPos
         if entryPos is None:
             return
 
+        # align the entryPos to the grid
+        entryPos = (entryPos // UNIT) * UNIT
+
         roadNetwork = self.core.roadNetwork
 
+        begin = roadNetwork.newNode(entryPos)
+
         nodes = list(roadNetwork.nodes)
-        begin = entryPos // UNIT
-        weights = list(map(lambda node: 1/l1Distance(node.val, begin), nodes))
-        end = choices(nodes, weights=weights, k=1)[0].val
 
-        # TODO: add a path finding algorithm here
+        # if there is no node in the network, just add the node
+        if len(nodes) == 0:
+            roadNetwork.addNode(begin)
+            x, y = entryPos//UNIT
+            self.core.blueprint[x, y] = -1
+            return
 
-        path: list[RoadNode[ivec2]] = [RoadNode(begin), RoadNode(end)]
-        edge: RoadEdge[ivec2] = RoadEdge(path)
-        roadNetwork.addEdge(edge)
+        def calcWeight(node: RoadNode[ivec2]):
+            dis = l1Distance(node.val, begin.val)
+            return 1/dis if dis != 0 else 10
 
-        for node in path:
-            for pos in Rect(node.val, ivec2(UNIT, UNIT)).inner:
-                self.core.blueprint[pos.x, pos.y] = -1
+        weights = list(map(calcWeight, nodes))
+        end = choices(nodes, weights=weights, k=1)[0]
+
+        print(f"connecting {begin.val.to_tuple()} to {end.val.to_tuple()}...")
+
+        edge = pathfind(self.core, begin, end)
+
+        if edge is None:
+            print(f"no path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
+            return
+
+        print(f"path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
+
+        self.core.addRoadEdge(edge)
