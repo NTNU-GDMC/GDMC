@@ -102,6 +102,16 @@ class LevelManager:
         elif self.isLackBuilding(numberOfBuilding, levelBuildingData[level]):
             return False
         return True
+    def resourceNeededToLevelUp(self, currentLevel: int, resource: Resource) -> Resource:
+        targetResource = levelResourceData[currentLevel]
+        return Resource(
+            human=max(0,targetResource.human - resource.human),
+            wood=max(0,targetResource.wood - resource.wood),
+            stone=max(0, targetResource.stone - resource.stone),
+            ironOre=max(0, targetResource.ironOre - resource.ironOre),
+            iron=max(0, targetResource.iron - resource.iron),
+            foof=max(0, targetResource.food - resource.food),
+        )
     def getLimitResource(self, level: int) -> Resource:
         return levelResourceData[level-1]
     def getLimitBuilding(self, level: int) -> int:
