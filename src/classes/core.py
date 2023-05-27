@@ -47,7 +47,7 @@ class Core():
         self._blueprint = np.zeros(
             (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
-        self._roadNetwork = RoadNetwork()
+        self._roadNetwork = RoadNetwork[ivec2]()
 
         self.buildSubject = Subject[BuildEvent]()
         self.upgradeSubject = Subject[UpgradeEvent]()
