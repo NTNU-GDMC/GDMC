@@ -1,18 +1,15 @@
-from random import sample
+from random import sample, choices
+from typing import Callable
+from gdpc.vector_tools import Rect, ivec2, l1Distance
+from .core import Core
+from .event import Observer, BuildEvent
+from .baseagent import RunableAgent, withCooldown, Agent
 from ..building.master_building_info import GLOBAL_BUILDING_INFO
 from ..building.building import Building
-from .baseagent import RunableAgent, withCooldown
-from ..building_util.building_info import BuildingInfo, getJsonAbsPath
-from ..building_util.building import Building
-from .event import Observer, BuildEvent
-from .baseagent import RunableAgent, Agent
-from typing import Callable
-from gdpc.vector_tools import Rect, ivec2
-from .core import Core
-<< << << < HEAD
+from ..config.config import config
+from ..road.road_network import RoadEdge, RoadNode
 
-== == == =
->>>>>> > origin/main
+UNIT = config.unit
 
 
 class BuildAgent(RunableAgent):
@@ -81,5 +78,23 @@ class RoadAgent(Agent):
         self.connectRoadTo(event.building)
 
     def connectRoadTo(self, building: Building):
-        # TODO: build road
-        pass
+        entryPos = building.entryPos
+        if entryPos is None:
+            return
+
+        roadNetwork = self.core.roadNetwork
+
+        nodes = list(roadNetwork.nodes)
+        begin = entryPos // UNIT
+        weights = list(map(lambda node: 1/l1Distance(node.val, begin), nodes))
+        end = choices(nodes, weights=weights, k=1)[0].val
+
+        # TODO: add a path finding algorithm here
+
+        path: list[RoadNode[ivec2]] = [RoadNode(begin), RoadNode(end)]
+        edge: RoadEdge[ivec2] = RoadEdge(path)
+        roadNetwork.addEdge(edge)
+
+        for node in path:
+            for pos in Rect(node.val, ivec2(UNIT, UNIT)).inner:
+                self.core.blueprint[pos.x, pos.y] = -1
