@@ -1,5 +1,5 @@
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2
 from typing import Literal, Any
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
