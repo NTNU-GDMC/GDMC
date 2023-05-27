@@ -1,37 +1,42 @@
 # ! /usr/bin/python3
+from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import BuildAgent
-from src.building_util.building_info import CHALET, DESERT_BUILDING
+from src.classes.agent import RunableAgent
+from src.classes.agent_generator import RUNABLE_AGENT_TABLE
 from src.visual.blueprint import plotBlueprint
-from src.analyze_util.basic import isFlat
 
 
 import random
 # TODO: logic per round
+
 if __name__ == '__main__':
+    COOLDOWN = 5
+    ROUND = 50
     core = Core()
-    agents = [
-        # TODO: analyzeFunction: 決定一塊空地的價值(偏好程度)
-        # building type 決定 Agent 要 build 什麼類型的建築
-        BuildAgent(core, isFlat , CHALET),
-        BuildAgent(core, isFlat, DESERT_BUILDING),
-    ]
+
+    agents: list[RunableAgent] = []
+    generators = list(RUNABLE_AGENT_TABLE.values())
+    for _ in range(7):
+        generator = random.choice(generators)
+        agent = generator(core)
+        agents.append(agent)
 
     for agent in agents:
-        print(agent.buildingType)
-        print(agent.buildingInfo.getCurrentBuildingLengthAndWidth())
-        print(agent.buildingInfo.getCurrentBuildingType())
-        print(agent.buildingInfo.getCurrentBuildingMaterial())
-        print(agent.buildingInfo.getCurrentRequiredResource().stone)
-        print(agent.buildingInfo.getCurrentRequiredResource().wood)
+        print(agent)
 
-    # iterate 10 rounds
-    round = 10
-
-    for i in range(round):
-        # randomize agent order
+    # iterate rounds
+    for i in range(ROUND):
+        # TODO: increase game resources
         for agent in random.sample(agents, len(agents)):
             # run agent
-            agent.run()
+            success = agent.run()
+
+            if not success:
+                # gather resource if the agent cannot do their job
+                pass
+        # TODO: update state if needed
+
+    core.startBuildingInMinecraft()
+    core._editor.flushBuffer()
 
     plotBlueprint(core)

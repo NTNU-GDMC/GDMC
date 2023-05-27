@@ -1,46 +1,71 @@
-from typing import Callable
-from gdpc.vector_tools import Rect
-from .core import Core
-from .baseagent import RunableAgent, Agent
-from .event import Observer, BuildEvent
-from ..building_util.building import Building
+from random import sample
+from ..building.master_building_info import GLOBAL_BUILDING_INFO
+from ..building.building import Building
+from .baseagent import RunableAgent, withCooldown
 from ..building_util.building_info import BuildingInfo, getJsonAbsPath
+from ..building_util.building import Building
+from .event import Observer, BuildEvent
+from .baseagent import RunableAgent, Agent
+from typing import Callable
+from gdpc.vector_tools import Rect, ivec2
+from .core import Core
+<< << << < HEAD
+
+== == == =
+>>>>>> > origin/main
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int) -> None:
         """Assume one agent one build one building for now"""
-        super().__init__(core)
+        super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
         self.analysis = analyzeFunction
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info
-        self.buildingInfo = BuildingInfo(getJsonAbsPath(buildingType, 1, 1))
+        self.buildingInfo = GLOBAL_BUILDING_INFO[buildingType][0]
 
-    def run(self):
-        self.analysisAndBuild()
+    def __str__(self) -> str:
+        return f"BuildAgent({self.buildingInfo})"
 
-    def analysisAndBuild(self):
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    @withCooldown
+    def run(self) -> bool:
+        return self.analysisAndBuild()
+
+    def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
-        length, width = self.buildingInfo.getCurrentBuildingLengthAndWidth()
-        possibleLocation = self.core.getEmptyArea(
+        length, _, width = self.buildingInfo.max_size
+        possibleLocations = self.core.getEmptyArea(
             length, width)
-        if len(possibleLocation) == 0:
+        if len(possibleLocations) == 0:
             return
-        bestLocation = possibleLocation[0]
+        bestLocation = possibleLocations[0]
         bestLocationValue = 0
-        for location in possibleLocation:
+        buildArea = self.core._editor.getBuildArea().toRect()
+        for location in sample(possibleLocations, len(possibleLocations)):
+            # FIXME: this is a temporary solution for checking if the location is in the build area
+
+            def inBuildArea():
+                return buildArea.contains(location.begin) and buildArea.contains(location.last)
+
+            if not inBuildArea():
+                continue
+
             value = self.analysis(self.core, location)
             if value > bestLocationValue:
                 bestLocationValue = value
                 bestLocation = location
-        building = Building(
-            self.buildingType, self.buildingInfo.getCurrentBuildingType(), 1, bestLocation.begin)
+        building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"building position: {building.getBuildingPos()}, building level: {building.getBuildingLevel()}")
-        # do something about the building class (add nessarry data to it)
+            f"building position: {building.position}, building level: {building.level}")
+        # do something about the building class (add necessary data to it)
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
+
+        return True
 
 
 class RoadAgent(Agent):

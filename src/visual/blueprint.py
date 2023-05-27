@@ -8,10 +8,10 @@ def plotBlueprint(core: Core):
 
     buildArea = core._editor.getBuildArea()
 
-    for id, building in core._blueprintData.items():
+    for id, building in core.blueprintData.items():
         begin = building.position
-        size = building.buildingInfo.getCurrentBuildingLengthAndWidth()
-        p = mpatch.Rectangle(begin, size[0], size[1], fill=True, color="blue")
+        size = building.dimension
+        p = mpatch.Rectangle(begin, size.x, size.z, fill=True, color="blue")
         ax.add_artist(p)
         rx, ry = p.get_xy()
         cx = rx + p.get_width() / 2.0
