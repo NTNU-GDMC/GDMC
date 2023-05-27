@@ -47,6 +47,7 @@ def initLimitResource():
                 iron = data["iron"][i]
                 food = data["food"][i]
                 levelResourceData.append(Resource(human, wood, stone, food, iron_ore, iron))
+
 def initLimitBuilding():
     with open("src/level/building_limit.json", "r") as f:
         data = json.load(f)
@@ -59,12 +60,42 @@ class LevelManager:
         initLimitResource()
         initLimitBuilding()
     
-    def isLevelUp(self, level:int) -> bool: 
-        """ return true if level up successfully, else false """
+    def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
+        """ return one lack resource name(str) which is the most shortage"""
+        lack = [tuple[int, str]]
+        lack.append(limitResource.human - existResource.human, str("human"))
+        lack.append(limitResource.wood - existResource.wood, str("wood"))
+        lack.append(limitResource.stone - existResource.stone, str("stone"))
+        lack.append(limitResource.ironOre - existResource.ironOre, str("iron_ore"))
+        lack.append(limitResource.iron - existResource.iron, str("iron"))
+        lack.append(limitResource.food - existResource.food, str("food"))
+        maxlack:tuple[int, str] = max(lack)
+        if maxlack[0] <= 0:
+            return str("None")
+        return maxlack[1]
+    
+    def isLackBuilding(self, existBuilding: int, limitBuilding: int) -> bool:
+        """ return true if building is lack, else false """
+        if existBuilding < limitBuilding:
+            return True
+        return False
+    
+    def isLevelUp(self, level:int, resource:Resource, numberOfBuilding:int) -> bool: 
+        """ 
+            if level up successfully, it means that:
+                1. level is not maxLevel
+                2. all resources are enough
+                3. number of building is enough
+        """
         if level ==  maxLevel:
+            return False
+        elif self.getMostLackResource(resource, levelResourceData[level]) != "None":
+            return False
+        elif self.isLackBuilding(numberOfBuilding, levelBuildingData[level]):
             return False
         return True
     def getLimitResource(self, level: int) -> Resource:
         return levelResourceData[level]
     def getLimitBuilding(self, level: int) -> int:
         return levelBuildingData[level]
+    # get agent limit
