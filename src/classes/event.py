@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from building.building import Building
-from typing import Generic, TypeVar
-from abc import ABC, abstractmethod
+from typing import Generic, TypeVar, Callable
+from ..building.building import Building
 
 
 @dataclass
@@ -20,11 +19,14 @@ E = TypeVar('E', BuildEvent, UpgradeEvent)
 """Generic type for event"""
 
 
-class Observer(ABC, Generic[E]):
+@dataclass
+class Observer(Generic[E]):
     """Observer class for observer pattern"""
-    @abstractmethod
-    def update(self, event: E):
-        pass
+    owner: object
+    update: Callable[[E], None]
+
+    def __hash__(self):
+        return hash(self.owner)
 
 
 class Subject(Generic[E]):
