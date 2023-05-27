@@ -10,7 +10,7 @@ Use islevelup = levelManager.isLevelUp(core.level, core.resources, len(core.blue
         3. number of building reach the goal in this level
 
 Call core to level up:
-    core.levelUp(levelManager.getLimitResource(core.level), levelManager.getLimitBuilding(core.level))
+    core.levelUp(levelManager.getLimitResource(core.level+1), levelManager.getLimitBuilding(core.level+1))
     use the code above can make core level to level up and update resourceLimit and buildingLimit simultaneously
     
 Use levelManager.getMostLackResource(...), (return value type is str)
