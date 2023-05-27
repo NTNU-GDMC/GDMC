@@ -1,6 +1,9 @@
 """
+In main.py, use levelManager = LevelManager() to create a LevelManager object
+    LevelManager path is src/level/level_manager.py
+
 Use islevelup = levelManager.isLevelUp(core.level, core.resources, len(core.blueprintData))
-    to ask levelManager can level up or not
+    to ask levelManager whether core can level up or not
     if islevelup == True, it means that:
         1. level is not reach the maxlevel
         2. all resources items reach the goal in this level
@@ -8,19 +11,29 @@ Use islevelup = levelManager.isLevelUp(core.level, core.resources, len(core.blue
 
 Call core to level up:
     core.levelUp(levelManager.getLimitResource(core.level), levelManager.getLimitBuilding(core.level))
-    use the code above can level up and update resourceLimit and buildingLimit
+    use the code above can make core level to level up and update resourceLimit and buildingLimit simultaneously
     
 Use levelManager.getMostLackResource(...), (return value type is str)
     to get the resource name(str) that is MOST SHORTAGE
-    this function CAN/MAYBE used to decide which resource should be gathered by agents
+    this function CAN/MAYBE used to decide which resource should be gathered by agents who have nothing to do
 
 Use levelManager.isLackBuilding(...), (return value type is bool)
-    to check if building is lack, namely, existBuilding < limitBuilding
+    to check if building is lack, namely, existBuilding < limitBuilding(in this level)
     this function CAN/MAYBE used to decide if agent should build building in this level or not
 
 Use core.conformToResourceLimit
     to make the resource conform to the resource limit
     namely, if current resource is more than resource limit, then set current resource to resource limit
+
+Use levelManager.getUnlockAgent(...), (return value type is str) (please see the name(str) in agent_limit.json)
+    to get the SPECIAL agent name(str) that can be unlocked after this level
+    if the return value is "none", it means that there is NO SPECIAL agent can be generate after this level
+    NOTICE 1: this agent can only generate ONCE, for example, you can ONLY generate one sawmill agent in whole game. 
+              (Because it is special agent, not wood/sand house agent)
+    NOTICE 2: if you want to add new action like "some SPECIFIC building can only be upgraded after ? level", 
+              you can add new name(str) in agent_limit.json, 
+              and use this function to get the name(str) while you reach the level,
+              then write YOUR OWN LOGIC to distinguish the name(str)
 """
 
 # ! /usr/bin/python3
