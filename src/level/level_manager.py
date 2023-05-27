@@ -88,7 +88,7 @@ class LevelManager:
             return True
         return False
     
-    def isLevelUp(self, level:int, resource:Resource, numberOfBuilding:int) -> bool: 
+    def canLevelUp(self, level:int, resource:Resource, numberOfBuilding:int) -> bool: 
         """ 
             if level up successfully, it means that:
                 1. level is not maxLevel
