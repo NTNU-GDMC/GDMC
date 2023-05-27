@@ -27,6 +27,7 @@ Example:
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from gdpc.interface import DEFAULT_HOST
 from gdpc.vector_tools import Box
 from .generic_json import GenericJSONEncoder, GenericJSONDecoder
 
@@ -36,6 +37,16 @@ DEFAULT_CONFIG_PATH = Path("config.json")
 @dataclass
 class Config:
     """Config class for storing config data"""
+
+    # The host of the editor
+    host = DEFAULT_HOST
+
+    # Buffering and caching of the editor
+    buffering: bool = True
+    caching: bool = True
+
+    # Do block updates
+    doBlockUpdates: bool = False
 
     # The area where buildings can be built
     buildArea: Box = Box((0, 0, 0), (255, 255, 255))
