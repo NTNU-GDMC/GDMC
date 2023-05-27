@@ -12,9 +12,6 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
-<< << << < HEAD
-== == == =
->>>>>> > feat/pathfind-blueprint
 
 UNIT = config.unit
 
@@ -152,7 +149,7 @@ class Core():
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
-            x, z = node.val
+            x, z = node.val // UNIT
             self._blueprint[x:x+1, z:z+1] = -1
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
