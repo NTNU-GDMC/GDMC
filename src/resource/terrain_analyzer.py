@@ -50,6 +50,17 @@ class Resource():
                 self.grass - other.grass
         )
 
+    def __add__(self, other):
+        return Resource(
+                self.human + other.human,
+                self.wood + other.wood,
+                self.stone + other.stone,
+                self.food + other.food,
+                self.ironOre + other.ironOre,
+                self.iron + other.iron,
+                self.grass + other.grass
+        )
+
 
 @dataclass
 class ResourceMap():
