@@ -70,13 +70,13 @@ class LevelManager:
 
     def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
         """ return one lack resource name(str) which is the most shortage"""
-        lack = [tuple[int, str]]
-        lack.append(limitResource.human - existResource.human, str("human"))
-        lack.append(limitResource.wood - existResource.wood, str("wood"))
-        lack.append(limitResource.stone - existResource.stone, str("stone"))
-        lack.append(limitResource.ironOre - existResource.ironOre, str("iron_ore"))
-        lack.append(limitResource.iron - existResource.iron, str("iron"))
-        lack.append(limitResource.food - existResource.food, str("food"))
+        lack: list[tuple[int, str]] =[]
+        lack.append((limitResource.human - existResource.human, str("human")))
+        lack.append((limitResource.wood - existResource.wood, str("wood")))
+        lack.append((limitResource.stone - existResource.stone, str("stone")))
+        lack.append((limitResource.ironOre - existResource.ironOre, str("iron_ore")))
+        lack.append((limitResource.iron - existResource.iron, str("iron")))
+        lack.append((limitResource.food - existResource.food, str("food")))
         maxlack:tuple[int, str] = max(lack)
         if maxlack[0] <= 0:
             return str("None")
@@ -103,8 +103,8 @@ class LevelManager:
             return False
         return True
     def getLimitResource(self, level: int) -> Resource:
-        return levelResourceData[level]
+        return levelResourceData[level-1]
     def getLimitBuilding(self, level: int) -> int:
-        return levelBuildingData[level]
+        return levelBuildingData[level-1]
     def getUnlockAgent(self, level: int) -> str:
-        return levelUnlockAgentData[level]
+        return levelUnlockAgentData[level-1]
