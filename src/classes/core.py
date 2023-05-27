@@ -203,6 +203,6 @@ class Core():
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
             self.editor.runCommand(
-                f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} minecraft:stone", syncWithBuffer=True)
+                f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
 
         self.editor.flushBuffer()
