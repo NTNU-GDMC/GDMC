@@ -100,6 +100,11 @@ class Core():
     def buildingLimit(self):
         return self._buildingLimit
 
+    def updateResource(self):
+        for _, building in self.blueprintData.items():
+            buildingLevel = building.level
+            self.resource += building.building_info.structures[buildingLevel-1].production
+
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
