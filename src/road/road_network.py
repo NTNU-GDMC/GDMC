@@ -73,11 +73,12 @@ class RoadEdge(Generic[T]):
 
 
 class RoadNetwork(Generic[T]):
-    def __init__(self, hotThreshold: int = 10):
+    def __init__(self, hotThreshold: int = 10, hashfunc: Callable[[object], int] = hash):
         """A graph of RoadNodes and RoadEdges. The graph is undirected, and edges are bidirectional."""
         self._adj = dict[RoadNode[T], set[RoadEdge[T]]]()
         self._hotness = dict[RoadNode[T], int]()
         self._hotThreshold = hotThreshold
+        self._hashfunc = hashfunc
 
     def __str__(self) -> str:
         return str(self._adj)
@@ -120,14 +121,11 @@ class RoadNetwork(Generic[T]):
         """Updates the hotspots in the graph."""
         edges = set(self.edges)
         toUpgrade = set()
-        toDowngrade = set()
 
         # Find nodes to upgrade and downgrade
         for node in self._hotness:
             if self.isHotspot(node) and node not in self._adj:
                 toUpgrade.add(node)
-            elif not self.isHotspot(node) and node in self._adj:
-                toDowngrade.add(node)
 
         # upgrade nodes
         for node in toUpgrade:
@@ -138,9 +136,9 @@ class RoadNetwork(Generic[T]):
                     self.addEdge(edge1, updateHotspots=False)
                     self.addEdge(edge2, updateHotspots=False)
 
-        # downgrade nodes
-        for node in toDowngrade:
-            self.removeNode(node, updateHotspots=False)
+    def newNode(self, val: T) -> RoadNode[T]:
+        """Creates a new node and adds it to the graph."""
+        return RoadNode(val, hashfunc=self._hashfunc)
 
     def addNode(self, node: RoadNode[T]):
         """Adds a node to the graph."""
@@ -164,16 +162,8 @@ class RoadNetwork(Generic[T]):
         if node not in self._adj:
             return
 
-        for edge in self._adj[node]:
-            self._adj[edge.node1].remove(edge)
-            self._adj[edge.node2].remove(edge.reverse())
-
-            for node in edge.path:
-                # update hotness
-                self._hotness[node] -= 1
-
-                if self._hotness[node] == 0:
-                    del self._hotness[node]
+        for edge in list(self._adj[node]):
+            self.removeEdge(edge, updateHotspots=False)
 
         del self._adj[node]
 
@@ -208,4 +198,3 @@ class RoadNetwork(Generic[T]):
             if edge.node2 == node2:
                 return edge
         return None
-
