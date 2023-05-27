@@ -9,6 +9,7 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..road.road_network import RoadNetwork
 
 UNIT = config.unit
 
@@ -46,6 +47,8 @@ class Core():
         self._blueprint = np.zeros(
             (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
+        self._roadNetwork = RoadNetwork()
+
         self.buildSubject = Subject[BuildEvent]()
         self.upgradeSubject = Subject[UpgradeEvent]()
 
