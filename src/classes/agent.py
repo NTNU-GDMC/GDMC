@@ -57,3 +57,6 @@ class BuildAgent(RunableAgent):
         self.core.addBuilding(building)
 
         return True
+
+    def gatherResource(self, resourceType: str):
+        self.core.resource[resourceType] += self.core.resourceLimit[resourceType] * 0.05 # gain 5% of the limit
