@@ -86,9 +86,20 @@ class RoadNetwork(Generic[T]):
         return self.__str__()
 
     @property
+    def subnodes(self):
+        """Returns an iterator over all subnodes in the graph. Subnodes are nodes that are contained in an edge."""
+        return self._hotness.keys()
+
+    @property
     def nodes(self):
         """Returns an iterator over all main nodes in the graph."""
-        yield from self._adj.keys()
+        return self._adj.keys()
+
+    @property
+    def edges(self):
+        """Returns an iterator over all edges in the graph."""
+        for edges in self._adj.values():
+            yield from edges
 
     @property
     def hotspots(self):
@@ -107,7 +118,7 @@ class RoadNetwork(Generic[T]):
 
     def updateHotspots(self):
         """Updates the hotspots in the graph."""
-        edges = set(self.edges())
+        edges = set(self.edges)
         toUpgrade = set()
         toDowngrade = set()
 
@@ -140,8 +151,8 @@ class RoadNetwork(Generic[T]):
         self._adj.setdefault(edge.node1, set()).add(edge)
         self._adj.setdefault(edge.node2, set()).add(edge.reverse())
 
-        # update hotness
         for node in edge.path:
+            # update hotness
             self._hotness.setdefault(node, 0)
             self._hotness[node] += 1
 
@@ -157,9 +168,12 @@ class RoadNetwork(Generic[T]):
             self._adj[edge.node1].remove(edge)
             self._adj[edge.node2].remove(edge.reverse())
 
-            # update hotness
             for node in edge.path:
+                # update hotness
                 self._hotness[node] -= 1
+
+                if self._hotness[node] == 0:
+                    del self._hotness[node]
 
         del self._adj[node]
 
@@ -174,9 +188,12 @@ class RoadNetwork(Generic[T]):
         self._adj[edge.node1].remove(edge)
         self._adj[edge.node2].remove(edge.reverse())
 
-        # update hotness
         for node in edge.path:
+            # update hotness
             self._hotness[node] -= 1
+
+            if self._hotness[node] == 0:
+                del self._hotness[node]
 
         if updateHotspots:
             self.updateHotspots()
@@ -192,7 +209,3 @@ class RoadNetwork(Generic[T]):
                 return edge
         return None
 
-    def edges(self):
-        """Returns an iterator over all edges in the graph."""
-        for node in self._adj:
-            yield from self._adj[node]
