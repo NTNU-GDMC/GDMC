@@ -92,6 +92,10 @@ class Core():
     def blueprintData(self):
         return self._blueprintData
 
+    @property
+    def roadNetwork(self):
+        return self._roadNetwork
+
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
