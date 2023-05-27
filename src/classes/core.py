@@ -100,6 +100,10 @@ class Core():
     def buildingLimit(self):
         return self._buildingLimit
 
+    @property
+    def numberOfBuildings(self):
+        return len(self._blueprintData)
+
     def updateResource(self):
         for _, building in self.blueprintData.items():
             buildingLevel = building.level
