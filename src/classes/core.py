@@ -21,7 +21,7 @@ class Core():
         the core will connect with the game
         """
         # initalize editor
-        editor = Editor(buffering=config.buffering, caching=config.caching)
+        editor = Editor(buffering=config.buffering, caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
