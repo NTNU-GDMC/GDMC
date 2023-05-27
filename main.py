@@ -66,7 +66,8 @@ if __name__ == '__main__':
     # iterate rounds
     for i in range(ROUND):
         core.updateResource()
-
+        
+        
         for agent in random.sample(agentPool, len(agentPool)):
             # run agent
             success = agent.run()
@@ -76,9 +77,17 @@ if __name__ == '__main__':
                 resourceType = levelManager.getMostLackResource(core.resource, core.resourceLimit)
                 if resourceType != "none":
                     agent.gatherResource(resourceType)
+            else:
+                if agent.special:
+                    # remove from the pool or assigned other things to this agent
+                    pass
 
         if levelManager.canLevelUp(core.level, core.resource , core.numberOfBuildings):
             core.levelUp()
+            unlockedAgent = levelManager.getUnlockAgent(core.level)
+            if unlockedAgent != "none":
+                # add agent to pool
+                pass
 
         # clamp resource to limit
         core.conformToResourceLimit()
