@@ -1,3 +1,4 @@
+import math
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2
 from .core import Core
@@ -27,6 +28,13 @@ class BuildAgent(RunableAgent):
     def run(self) -> bool:
         return self.analysisAndBuild()
 
+    def rest(self) -> bool:
+        resourceType = self.core.getMostLackResource(self.core.resources, self.core.resourceLimit)
+        if resourceType != "none":
+            self.gatherResource(resourceType)
+            return True
+        return False
+
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
         length, _, width = self.buildingInfo.max_size
@@ -36,7 +44,7 @@ class BuildAgent(RunableAgent):
         if self.core.buildingLimit <= self.core.numberOfBuildings:
             return False
         if len(possibleLocations) == 0:
-            return
+            return False
         bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
@@ -62,4 +70,4 @@ class BuildAgent(RunableAgent):
         return True
 
     def gatherResource(self, resourceType: str):
-        self.core.resource[resourceType] += self.core.resourceLimit[resourceType] * 0.05 # gain 5% of the limit
+        self.core.resources[resourceType] += math.ceil(self.core.resourceLimit[resourceType] * 0.05) # gain 5% of the limit

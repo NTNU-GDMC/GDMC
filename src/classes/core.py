@@ -103,7 +103,7 @@ class Core():
     def updateResource(self):
         for _, building in self.blueprintData.items():
             buildingLevel = building.level
-            self.resource += building.building_info.structures[buildingLevel-1].production
+            self._resources += building.building_info.structures[buildingLevel-1].production
 
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
@@ -180,6 +180,20 @@ class Core():
                     result.append(Rect((i * UNIT, j * UNIT), (height * UNIT, height * UNIT)))
 
         return result
+
+    def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
+        """ return one lack resource name(str) which is the most shortage"""
+        lack: list[tuple[int, str]] =[]
+        lack.append((limitResource.human - existResource.human, str("human")))
+        lack.append((limitResource.wood - existResource.wood, str("wood")))
+        lack.append((limitResource.stone - existResource.stone, str("stone")))
+        lack.append((limitResource.ironOre - existResource.ironOre, str("ironOre")))
+        lack.append((limitResource.iron - existResource.iron, str("iron")))
+        lack.append((limitResource.food - existResource.food, str("food")))
+        maxlack:tuple[int, str] = max(lack)
+        if maxlack[0] <= 0:
+            return str("none")
+        return maxlack[1]
 
     def levelUp(self, resource: Resource, buildingLimit: int):
         """"level up and update resource limit and building limit"""

@@ -31,7 +31,6 @@ class Resource():
 
     def __lt__(self, other):
         return (
-                self.grass < other.grass or
                 self.wood < other.wood or
                 self.stone < other.stone or
                 self.food < other.food or
@@ -61,6 +60,11 @@ class Resource():
                 self.grass + other.grass
         )
 
+    def __getitem__(self, key:str):
+        return getattr(self, key)
+
+    def __setitem__(self, key:str, value:int):
+        setattr(self, key, value)
 
 @dataclass
 class ResourceMap():

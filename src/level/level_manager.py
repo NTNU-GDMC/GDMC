@@ -1,5 +1,5 @@
 """
-only check human, wood, stone, iron_ore, iron, food
+only check human, wood, stone, ironOre, iron, food
 not check grass limit
 
 function levelUp:
@@ -24,10 +24,10 @@ def getResourceLimit(level:int) -> Resource:
         human = data["human"][level-1]
         wood = data["wood"][level-1]
         stone = data["stone"][level-1]
-        iron_ore = data["iron_ore"][level-1]
+        ironOre = data["ironOre"][level-1]
         iron = data["iron"][level-1]
         food = data["food"][level-1]
-        return Resource(human, wood, stone, food, iron_ore, iron)
+        return Resource(human, wood, stone, food, ironOre, iron)
 
 def getBuildingLimit(level:int) -> int:
     """ return building limit of level """
@@ -44,10 +44,10 @@ def initLimitResource():
                 human = data["human"][i]
                 wood = data["wood"][i]
                 stone = data["stone"][i]
-                iron_ore = data["iron_ore"][i]
+                ironOre = data["ironOre"][i]
                 iron = data["iron"][i]
                 food = data["food"][i]
-                levelResourceData.append(Resource(human, wood, stone, food, iron_ore, iron))
+                levelResourceData.append(Resource(human, wood, stone, food, ironOre, iron))
 
 def initLimitBuilding():
     with open("src/level/building_limit.json", "r") as f:
@@ -67,20 +67,6 @@ class LevelManager:
         initLimitResource()
         initLimitBuilding()
         initUnlockAgent()
-
-    def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
-        """ return one lack resource name(str) which is the most shortage"""
-        lack: list[tuple[int, str]] =[]
-        lack.append((limitResource.human - existResource.human, str("human")))
-        lack.append((limitResource.wood - existResource.wood, str("wood")))
-        lack.append((limitResource.stone - existResource.stone, str("stone")))
-        lack.append((limitResource.ironOre - existResource.ironOre, str("iron_ore")))
-        lack.append((limitResource.iron - existResource.iron, str("iron")))
-        lack.append((limitResource.food - existResource.food, str("food")))
-        maxlack:tuple[int, str] = max(lack)
-        if maxlack[0] <= 0:
-            return str("None")
-        return maxlack[1]
     
     def isLackBuilding(self, existBuilding: int, limitBuilding: int) -> bool:
         """ return true if building is lack, else false """
@@ -97,9 +83,9 @@ class LevelManager:
         """
         if level ==  maxLevel:
             return False
-        elif self.getMostLackResource(resource, levelResourceData[level]) != "None":
+        elif resource < levelResourceData[level-1]:
             return False
-        elif self.isLackBuilding(numberOfBuilding, levelBuildingData[level]):
+        elif self.isLackBuilding(numberOfBuilding, levelBuildingData[level-1]):
             return False
         return True
     def resourceNeededToLevelUp(self, currentLevel: int, resource: Resource) -> Resource:
@@ -110,7 +96,7 @@ class LevelManager:
             stone=max(0, targetResource.stone - resource.stone),
             ironOre=max(0, targetResource.ironOre - resource.ironOre),
             iron=max(0, targetResource.iron - resource.iron),
-            foof=max(0, targetResource.food - resource.food),
+            food=max(0, targetResource.food - resource.food),
         )
     def getLimitResource(self, level: int) -> Resource:
         return levelResourceData[level-1]

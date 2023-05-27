@@ -27,6 +27,10 @@ class RunableAgent(Agent):
     def run(self) -> bool:
         pass
 
+    @abstractmethod
+    def rest(self) -> bool:
+        pass
+
 
 def withCooldown(func):
     """Decorator for RunableAgent.run() to add cooldown"""
