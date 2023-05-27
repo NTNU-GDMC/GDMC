@@ -32,6 +32,9 @@ class BuildAgent(RunableAgent):
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
             length, width)
+
+        if self.core.buildingLimit <= self.core.numberOfBuildings:
+            return False
         if len(possibleLocations) == 0:
             return
         bestLocation = possibleLocations[0]
