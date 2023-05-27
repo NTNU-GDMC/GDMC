@@ -1,3 +1,4 @@
+import math
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2
 from .core import Core
@@ -7,7 +8,7 @@ from ..building.master_building_info import GLOBAL_BUILDING_INFO
 from random import sample
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int, special: bool = False) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
@@ -15,6 +16,7 @@ class BuildAgent(RunableAgent):
         self.buildingType = buildingType
         # FIXME: this is a temporary solution for the building info
         self.buildingInfo = GLOBAL_BUILDING_INFO[buildingType][0]
+        self.speical = special
 
     def __str__(self) -> str:
         return f"BuildAgent({self.buildingInfo})"
@@ -26,13 +28,23 @@ class BuildAgent(RunableAgent):
     def run(self) -> bool:
         return self.analysisAndBuild()
 
+    def rest(self) -> bool:
+        resourceType = self.core.getMostLackResource(self.core.resources, self.core.resourceLimit)
+        if resourceType != "none":
+            self.gatherResource(resourceType)
+            return True
+        return False
+
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
             length, width)
+
+        if self.core.buildingLimit <= self.core.numberOfBuildings:
+            return False
         if len(possibleLocations) == 0:
-            return
+            return False
         bestLocation = possibleLocations[0]
         bestLocationValue = 0
         buildArea = self.core._editor.getBuildArea().toRect()
@@ -56,3 +68,6 @@ class BuildAgent(RunableAgent):
         self.core.addBuilding(building)
 
         return True
+
+    def gatherResource(self, resourceType: str):
+        self.core.resources[resourceType] += math.ceil(self.core.resourceLimit[resourceType] * 0.05) # gain 5% of the limit

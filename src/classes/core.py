@@ -9,6 +9,8 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..resource.terrain_analyzer import Resource
+from ..level.level_manager import getResourceLimit, getBuildingLimit
 
 UNIT = config.unit
 
@@ -46,7 +48,10 @@ class Core():
         self._blueprint = np.zeros(
             (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
-
+        # init level is 1, and get resource limit and building limit of level 1
+        self._level = int(1)
+        self._resourceLimit = getResourceLimit(self._level)
+        self._buildingLimit:int = getBuildingLimit(self._level)
     @property
     def buildArea(self):
         return self._buildArea
@@ -86,6 +91,27 @@ class Core():
     @property
     def blueprintData(self):
         return self._blueprintData
+
+    @property
+    def level(self):
+        return self._level
+    
+    @property
+    def resourceLimit(self):
+        return self._resourceLimit
+    
+    @property
+    def buildingLimit(self):
+        return self._buildingLimit
+
+    @property
+    def numberOfBuildings(self):
+        return len(self._blueprintData)
+
+    def updateResource(self):
+        for _, building in self.blueprintData.items():
+            buildingLevel = building.level
+            self._resources += building.building_info.structures[buildingLevel-1].production
 
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
@@ -163,6 +189,39 @@ class Core():
                                   (height * UNIT, height * UNIT)))
 
         return result
+
+    def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
+        """ return one lack resource name(str) which is the most shortage"""
+        lack: list[tuple[int, str]] =[]
+        lack.append((limitResource.human - existResource.human, str("human")))
+        lack.append((limitResource.wood - existResource.wood, str("wood")))
+        lack.append((limitResource.stone - existResource.stone, str("stone")))
+        lack.append((limitResource.ironOre - existResource.ironOre, str("ironOre")))
+        lack.append((limitResource.iron - existResource.iron, str("iron")))
+        lack.append((limitResource.food - existResource.food, str("food")))
+        maxlack:tuple[int, str] = max(lack)
+        if maxlack[0] <= 0:
+            return str("none")
+        return maxlack[1]
+
+    def levelUp(self, resource: Resource, buildingLimit: int):
+        """"level up and update resource limit and building limit"""
+        self._level += 1
+        self._resourceLimit = resource
+        self._buildingLimit = buildingLimit
+
+    def conformToResourceLimit(self):
+        """
+            Conform the resources to the resource limit, and this method should be called every round.
+            if resource.item > resourceLimit.item, resource.item = resourceLimit.item
+            else resource.item = resource.item
+        """
+        self.resources.human = min(self._resourceLimit.human, self._resources.human)
+        self.resources.wood = min(self._resourceLimit.wood, self._resources.wood)
+        self.resources.stone = min(self._resourceLimit.stone, self._resources.stone)
+        self.resources.food = min(self._resourceLimit.food, self._resources.food)
+        self.resources.ironOre = min(self._resourceLimit.ironOre, self._resources.ironOre)
+        self.resources.iron = min(self._resourceLimit.iron, self._resources.iron)
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
