@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Generic, TypeVar, Callable
-from building.building import Building
-from typing import Generic, TypeVar
+from ..building.building import Building
 
 
 @dataclass
