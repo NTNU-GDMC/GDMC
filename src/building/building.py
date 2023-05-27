@@ -35,3 +35,7 @@ class Building:
     @property
     def dimension(self):
         return self.building_info.structures[self.level-1].size
+
+    @property
+    def entryPos(self):
+        return self.building_info.structures[self.level-1].entries[0].pos
