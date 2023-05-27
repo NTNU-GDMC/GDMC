@@ -85,10 +85,6 @@ class Core():
         return self._blueprintData
 
     @property
-    def levelManager(self):
-        return self._levelManager
-
-    @property
     def level(self):
         return self._level
     
