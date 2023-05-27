@@ -10,19 +10,18 @@ from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMateri
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
 
-DEFAULT_BUILD_AREA = config.buildArea
 UNIT = config.unit
 
 
 class Core():
 
-    def __init__(self, buildArea: Box = DEFAULT_BUILD_AREA) -> None:
+    def __init__(self, buildArea: Box = config.buildArea) -> None:
         """
         the core will connect with the game
         """
         # initalize editor
-        editor = Editor(buffering=True, caching=True)
-        editor.doBlockUpdates = False
+        editor = Editor(buffering=config.buffering, caching=config.caching)
+        editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
