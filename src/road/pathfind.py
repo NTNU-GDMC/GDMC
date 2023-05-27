@@ -25,8 +25,6 @@ def pathfind(
     roadNetwork = core.roadNetwork
     boundingRect = core.buildArea.toRect()
 
-    print(f"connecting {begin} to {end}")
-
     def exists(n: RoadNode[ivec2]) -> bool:
         return n in roadNetwork.subnodes
 
