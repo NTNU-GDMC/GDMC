@@ -182,6 +182,19 @@ class Core():
         self._resourceLimit = resource
         self._buildingLimit = buildingLimit
 
+    def conformToResourceLimit(self):
+        """
+            Conform the resources to the resource limit, and this method should be called every round.
+            if resource.item > resourceLimit.item, resource.item = resourceLimit.item
+            else resource.item = resource.item
+        """
+        self.resources.human = min(self._resourceLimit.human, self._resources.human)
+        self.resources.wood = min(self._resourceLimit.wood, self._resources.wood)
+        self.resources.stone = min(self._resourceLimit.stone, self._resources.stone)
+        self.resources.food = min(self._resourceLimit.food, self._resources.food)
+        self.resources.ironOre = min(self._resourceLimit.ironOre, self._resources.ironOre)
+        self.resources.iron = min(self._resourceLimit.iron, self._resources.iron)
+
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
         for id, building in self._blueprintData.items():

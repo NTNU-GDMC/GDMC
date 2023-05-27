@@ -1,21 +1,26 @@
 """
 Use islevelup = levelManager.isLevelUp(core.level, core.resources, len(core.blueprintData))
     to ask levelManager can level up or not
-    if level up successfully, it means that:
-        1. level is not maxLevel
-        2. all resources are enough in this level
-        3. number of building is enough in this level
+    if islevelup == True, it means that:
+        1. level is not reach the maxlevel
+        2. all resources items reach the goal in this level
+        3. number of building reach the goal in this level
 
 Call core to level up:
     core.levelUp(levelManager.getLimitResource(core.level), levelManager.getLimitBuilding(core.level))
-
+    use the code above can level up and update resourceLimit and buildingLimit
+    
 Use levelManager.getMostLackResource(...), (return value type is str)
-    to get the resource name(str) that is most shortage
+    to get the resource name(str) that is MOST SHORTAGE
     this function CAN/MAYBE used to decide which resource should be gathered by agents
 
 Use levelManager.isLackBuilding(...), (return value type is bool)
-    to check if building is lack,namely, existBuilding < limitBuilding
+    to check if building is lack, namely, existBuilding < limitBuilding
     this function CAN/MAYBE used to decide if agent should build building in this level or not
+
+Use core.conformToResourceLimit
+    to make the resource conform to the resource limit
+    namely, if current resource is more than resource limit, then set current resource to resource limit
 """
 
 # ! /usr/bin/python3
