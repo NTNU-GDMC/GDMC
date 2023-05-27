@@ -14,6 +14,7 @@ from ..resource.terrain_analyzer import Resource
 
 levelResourceData: list[Resource] = []
 levelBuildingData: list[int] = []
+levelUnlockAgentData: list[str] = []
 maxLevel:int = 0
 
 def getResourceLimit(level:int) -> Resource:
@@ -54,12 +55,19 @@ def initLimitBuilding():
         for i in range(maxLevel):
             levelBuildingData.append(data["building_limit"][i])
 
+def initUnlockAgent():
+    with open("src/level/agent_limit.json", "r") as f:
+        data = json.load(f)
+        for i in range(maxLevel):
+            levelUnlockAgentData.append(data["unlock_agent"][i])
+
 @dataclass
 class LevelManager:
     def __init__(self):
         initLimitResource()
         initLimitBuilding()
-    
+        initUnlockAgent()
+
     def getMostLackResource(self, existResource: Resource, limitResource: Resource) -> str:
         """ return one lack resource name(str) which is the most shortage"""
         lack = [tuple[int, str]]
@@ -98,4 +106,5 @@ class LevelManager:
         return levelResourceData[level]
     def getLimitBuilding(self, level: int) -> int:
         return levelBuildingData[level]
-    # get agent limit
+    def getUnlockAgent(self, level: int) -> str:
+        return levelUnlockAgentData[level]
