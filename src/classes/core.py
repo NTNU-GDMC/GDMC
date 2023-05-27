@@ -9,6 +9,8 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..resource.terrain_analyzer import Resource
+from ..level.level_manager import getResourceLimit, getBuildingLimit
 
 DEFAULT_BUILD_AREA = config.buildArea
 
@@ -46,7 +48,10 @@ class Core():
         self._blueprint = np.zeros(
             (x // UNIT, z // UNIT), dtype=int)  # unit is 2x2
         self._blueprintData: dict[int, Building] = {}
-
+        # init level is 1, and get resource limit and building limit of level 1
+        self._level = int(1)
+        self._resourceLimit = getResourceLimit(self._level)
+        self._buildingLimit:int = getBuildingLimit(self._level)
     @property
     def worldSlice(self):
         return self._worldSlice
@@ -78,6 +83,22 @@ class Core():
     @property
     def blueprintData(self):
         return self._blueprintData
+
+    @property
+    def levelManager(self):
+        return self._levelManager
+
+    @property
+    def level(self):
+        return self._level
+    
+    @property
+    def resourceLimit(self):
+        return self._resourceLimit
+    
+    @property
+    def buildingLimit(self):
+        return self._buildingLimit
 
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
@@ -154,6 +175,12 @@ class Core():
                     result.append(Rect((i * UNIT, j * UNIT), (height * UNIT, height * UNIT)))
 
         return result
+
+    def levelUp(self, resource: Resource, buildingLimit: int):
+        """"level up and update resource limit and building limit"""
+        self._level += 1
+        self._resourceLimit = resource
+        self._buildingLimit = buildingLimit
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
