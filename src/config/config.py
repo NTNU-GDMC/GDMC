@@ -59,7 +59,7 @@ class Config:
     """
 
     # The host of the editor
-    host = DEFAULT_HOST
+    host: str = DEFAULT_HOST
 
     # Buffering and caching of the editor
     buffering: bool = True
@@ -77,6 +77,12 @@ class Config:
 
     # The size of a single unit on the blueprint
     unit: int = 2
+
+    """
+    ================ agent ================
+    """
+
+    agentCooldown: int = 5
 
     """
     ================ structure ================
