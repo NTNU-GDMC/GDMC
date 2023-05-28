@@ -11,8 +11,8 @@
 """
 
 from nbt import nbt as nbt
-from gdpc import Editor, Block, Box
-from gdpc.vector_tools import ivec3
+from gdpc import Editor, Block, Box, Rect
+from gdpc.vector_tools import ivec3, dropY
 from ..resource.biome_substitute import isChangeBlock, changeBlock
 
 
@@ -59,6 +59,15 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: s
         last = bound.last
         clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
         editor.runCommand(clearCmd, syncWithBuffer=True)
+
+    rect = Rect(dropY(offset), dropY(size))
+    worldSlice = editor.loadWorldSlice(rect, cache=True)
+    height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    for x, z in rect.inner:
+        floory = height[x - offset.x, z - offset.z]
+        for y in range(floory, offset.y):
+            cmd = f"setblock {x} {y} {z} minecraft:cobblestone replace"
+            editor.runCommand(cmd, syncWithBuffer=True)
 
     for pos, block in NBT2Blocks(struct, offset):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
