@@ -56,8 +56,6 @@ class Core():
         self._blueprintData: dict[int, Building] = {}
         # init level is 1, and get resource limit and building limit of level 1
         self._level = int(1)
-        self._resourceLimit = getResourceLimit(self._level)
-        self._buildingLimit: int = getBuildingLimit(self._level)
         self._roadNetwork = RoadNetwork[ivec2](
             hotThreshold=10,
             hashfunc=lambda o: o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__())
@@ -115,15 +113,28 @@ class Core():
 
     @property
     def resourceLimit(self):
-        return self._resourceLimit
+        return getResourceLimit(self._level)
 
-    @property
-    def buildingLimit(self):
-        return self._buildingLimit
+    def getBuildings(self, buildingLevel: int, buildingType: str | None = None):
+        for building in self._blueprintData.values():
+            if building.level == buildingLevel and (buildingType is None or building.building_info.type == buildingType):
+                yield building
 
-    @property
-    def numberOfBuildings(self):
-        return len(self._blueprintData)
+    def getBuildingLimit(self, buildingLevel: int):
+        return getBuildingLimit(self._level, buildingLevel)
+
+    def numberOfBuildings(self, buildingLevel: int = 0):
+        if buildingLevel == 0:
+            return len(self._blueprintData)
+        return len([building for building in self._blueprintData.values() if building.level == buildingLevel])
+
+    def canBuildOrUpgradeTo(self, buildingLevel: int):
+        """
+        Check if the core can build or upgrade a building of the given level\n
+        level 1 is the lowest level for build\n
+        level 2 or higher is for upgrade
+        """
+        return self.numberOfBuildings(buildingLevel) < self.getBuildingLimit(buildingLevel)
 
     def updateResource(self):
         for _, building in self.blueprintData.items():
@@ -136,7 +147,7 @@ class Core():
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
-        (xlen, _, zlen) = building.dimension
+        (xlen, _, zlen) = building.maxSize
         id = len(self._blueprintData) + 1
         x = (x + UNIT) // UNIT
         z = (z + UNIT) // UNIT
@@ -228,11 +239,9 @@ class Core():
             return str("none")
         return maxlack[1]
 
-    def levelUp(self, resource: Resource, buildingLimit: int):
+    def levelUp(self):
         """"level up and update resource limit and building limit"""
         self._level += 1
-        self._resourceLimit = resource
-        self._buildingLimit = buildingLimit
 
     def conformToResourceLimit(self):
         """
@@ -241,17 +250,17 @@ class Core():
             else resource.item = resource.item
         """
         self.resources.human = min(
-            self._resourceLimit.human, self._resources.human)
+            self.resourceLimit.human, self._resources.human)
         self.resources.wood = min(
-            self._resourceLimit.wood, self._resources.wood)
+            self.resourceLimit.wood, self._resources.wood)
         self.resources.stone = min(
-            self._resourceLimit.stone, self._resources.stone)
+            self.resourceLimit.stone, self._resources.stone)
         self.resources.food = min(
-            self._resourceLimit.food, self._resources.food)
+            self.resourceLimit.food, self._resources.food)
         self.resources.ironOre = min(
-            self._resourceLimit.ironOre, self._resources.ironOre)
+            self.resourceLimit.ironOre, self._resources.ironOre)
         self.resources.iron = min(
-            self._resourceLimit.iron, self._resources.iron)
+            self.resourceLimit.iron, self._resources.iron)
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""

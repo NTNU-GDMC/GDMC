@@ -38,30 +38,6 @@ DEFAULT_CONFIG_PATH = Path("config.json")
 class Config:
     """Config class for storing config data"""
 
-    # The host of the editor
-    host = DEFAULT_HOST
-
-    # Buffering and caching of the editor
-    buffering: bool = True
-    caching: bool = True
-
-    # Do block updates
-    doBlockUpdates: bool = False
-
-    # The area where buildings can be built
-    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
-
-    # The size of a single unit on the blueprint
-    unit: int = 2
-
-    # The path to the data structures
-    structuresPath: Path = Path("data/structures")
-
-    # Material of road
-    roadMaterial: str = "minecraft:dirt_path"
-
-    # * You can add new config data here:
-
     def save(self, path: Path = DEFAULT_CONFIG_PATH):
         """Save config to a json file"""
         if not path.parent.exists():
@@ -77,6 +53,46 @@ class Config:
         with path.open("r") as f:
             data: Config = json.load(f, cls=GenericJSONDecoder)
             return data
+
+    # ================ editor ================
+
+    host: str = "http://218.35.182.2:9000"
+    """The host of the editor"""
+
+    buffering: bool = True
+    """The buffering of the editor"""
+
+    caching: bool = True
+    """The caching of the editor"""
+
+    doBlockUpdates: bool = False
+    """Do block updates"""
+
+    # ================ core ================
+
+    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
+    """The area where buildings can be built"""
+
+    unit: int = 2
+    """The size of a single unit on the blueprint"""
+
+    # ================ agent ================
+
+    agentCooldown: int = 5
+    """The cooldown of the agent"""
+
+    # ================ data ================
+
+    structuresPath: Path = Path("data/structures")
+    """The path to the data of structures"""
+
+    levelLimitPath: Path = Path("data/level_limit/limit.json")
+    """The path to the data of level"""
+
+    # ================ road ================
+
+    roadMaterial: str = "minecraft:dirt_path"
+    """The material of the road"""
 
 
 config = Config.load()
