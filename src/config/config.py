@@ -84,7 +84,10 @@ class Config:
     # ================ data ================
 
     structuresPath: Path = Path("data/structures")
-    """The path to the data structures"""
+    """The path to the data of structures"""
+
+    levelLimitPath: Path = Path("data/level_limit")
+    """The path to the data of level"""
 
     # ================ road ================
 
