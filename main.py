@@ -91,6 +91,5 @@ if __name__ == '__main__':
 
 
     core.startBuildingInMinecraft()
-    core._editor.flushBuffer()
 
     plotBlueprint(core)
