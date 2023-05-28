@@ -121,7 +121,12 @@ class Core():
     def numberOfBuildings(self, buildingLevel: int):
         return len([building for building in self._blueprintData.values() if building.level == buildingLevel])
 
-    def canBuild(self, buildingLevel: int):
+    def canBuildOrUpgradeTo(self, buildingLevel: int):
+        """
+        Check if the core can build or upgrade a building of the given level\n
+        level 1 is the lowest level for build\n
+        level 2 or higher is for upgrade
+        """
         return self.numberOfBuildings(buildingLevel) < self.getBuildingLimit(buildingLevel)
 
     def updateResource(self):
