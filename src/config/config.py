@@ -54,49 +54,42 @@ class Config:
             data: Config = json.load(f, cls=GenericJSONDecoder)
             return data
 
-    """
-    ================ editor ================
-    """
+    # ================ editor ================
 
-    # The host of the editor
     host: str = DEFAULT_HOST
+    """The host of the editor"""
 
-    # Buffering and caching of the editor
     buffering: bool = True
+    """The buffering of the editor"""
+
     caching: bool = True
+    """The caching of the editor"""
 
-    # Do block updates
     doBlockUpdates: bool = False
+    """Do block updates"""
 
-    """
-    ================ core ================
-    """
+    # ================ core ================
 
-    # The area where buildings can be built
     buildArea: Box = Box((0, 0, 0), (255, 255, 255))
+    """The area where buildings can be built"""
 
-    # The size of a single unit on the blueprint
     unit: int = 2
+    """The size of a single unit on the blueprint"""
 
-    """
-    ================ agent ================
-    """
+    # ================ agent ================
 
     agentCooldown: int = 5
+    """The cooldown of the agent"""
 
-    """
-    ================ structure ================
-    """
+    # ================ data ================
 
-    # The path to the data structures
     structuresPath: Path = Path("data/structures")
+    """The path to the data structures"""
 
-    """
-    ================ road ================
-    """
+    # ================ road ================
 
-    # Material of road
     roadMaterial: str = "minecraft:dirt_path"
+    """The material of the road"""
 
 
 config = Config.load()
