@@ -117,12 +117,11 @@ class Core():
         return getResourceLimit(self._level)
 
     @property
-    def buildingLimit(self):
-        return self._buildingLimit
-
-    @property
     def numberOfBuildings(self):
         return len(self._blueprintData)
+
+    def getBuildingLimit(self, buildingLevel: int):
+        return getBuildingLimit(self._level, buildingLevel)
 
     def updateResource(self):
         for _, building in self.blueprintData.items():
