@@ -19,7 +19,7 @@ def getResourceLimit(level: int) -> Resource:
     return levelLimit.resources[level-1]
 
 
-def getBuildingLimit(coreLevel: int, buildingLevel) -> int:
+def getBuildingLimit(coreLevel: int, buildingLevel: int) -> int:
     """ return building limit of level """
     return levelLimit.buildings[coreLevel-1][buildingLevel-1]
 
