@@ -226,7 +226,7 @@ class Core():
             return str("none")
         return maxlack[1]
 
-    def levelUp(self, resource: Resource, buildingLimit: int):
+    def levelUp(self, buildingLimit: int):
         """"level up and update resource limit and building limit"""
         self._level += 1
         self._buildingLimit = buildingLimit
