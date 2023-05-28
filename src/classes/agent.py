@@ -47,7 +47,7 @@ class BuildAgent(RunableAgent):
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
 
-        if self.core.getBuildingLimit(1) <= self.core.numberOfBuildings:
+        if self.core.canBuild(1):
             return False
 
         length, _, width = self.buildingInfo.max_size
