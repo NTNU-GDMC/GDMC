@@ -13,6 +13,11 @@
                         "level": 2,
                         "info": "chalet1/level2.json",
                         "nbt": "chalet1/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "chalet1/level3.json",
+                        "nbt": "chalet1/level3.nbt"
                     }
                 ]
             }

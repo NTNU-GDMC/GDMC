@@ -39,8 +39,8 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 # ! /usr/bin/python3
 from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import RunableAgent
-from src.classes.agent_generator import RUNABLE_AGENT_TABLE
+from src.classes.agent import RunableAgent, RoadAgent
+from src.classes.agent_generator import RUNABLE_AGENT_TABLE, CHALET
 from src.level.level_manager import LevelManager
 from src.visual.blueprint import plotBlueprint
 
@@ -50,12 +50,13 @@ import random
 
 if __name__ == '__main__':
     COOLDOWN = 5
-    ROUND = 500
+    ROUND = 1000
     core = Core()
     levelManager = LevelManager()
     agentPool: list[RunableAgent] = []
-    generators = list(RUNABLE_AGENT_TABLE.values())
-    for _ in range(7):
+    generators = [RUNABLE_AGENT_TABLE[CHALET]]
+    RoadAgent(core)
+    for _ in range(10):
         generator = random.choice(generators)
         agent = generator(core)
         agentPool.append(agent)
@@ -65,31 +66,47 @@ if __name__ == '__main__':
 
     # iterate rounds
     for i in range(ROUND):
+        print(f"Round: {i}")
+        print(f"Level: {core.level}")
+        print(
+            f"Buildings: {[core.numberOfBuildings(level) for level in range(1, 4)]}")
+        print(
+            f"Max Buildings:  {[core.getBuildingLimit(level) for level in range(1, 4)]}")
+        print(f"Resources: {core.resources}")
+
+        restingAgents = 0
+
         core.updateResource()
+
+        print("Start running agents")
+
         for agent in random.sample(agentPool, len(agentPool)):
             # run agent
             success = agent.run()
 
             if not success:
                 # gather resource if the agent cannot do their job
+                restingAgents += 1
                 agent.rest()
             # else:
             #     if agent.special:
-                    # remove from the pool or assigned other things to this agent
-                    # pass
+                # remove from the pool or assigned other things to this agent
+                # pass
 
-        if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings):
-            core.levelUp(levelManager.getLimitResource(core.level+1), levelManager.getLimitBuilding(core.level+1))
+        print(f"Resting agents: {restingAgents}")
+
+        if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
+            core.levelUp()
             unlockedAgent = levelManager.getUnlockAgent(core.level)
             if unlockedAgent != "none":
                 # add agent to pool
                 pass
-
         # clamp resource to limit
         core.conformToResourceLimit()
 
+        print("Round Done")
+        print("=====")
 
     core.startBuildingInMinecraft()
-    core._editor.flushBuffer()
 
     plotBlueprint(core)
