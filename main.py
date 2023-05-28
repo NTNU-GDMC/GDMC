@@ -55,6 +55,7 @@ if __name__ == '__main__':
     levelManager = LevelManager()
     agentPool: list[RunableAgent] = []
     generators = list(RUNABLE_AGENT_TABLE.values())
+    RoadAgent(core)
     for _ in range(7):
         generator = random.choice(generators)
         agent = generator(core)
