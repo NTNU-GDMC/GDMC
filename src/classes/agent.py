@@ -97,7 +97,7 @@ class BuildAgent(RunableAgent):
                 bestLocation = location
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"Building '{building.building_info.type}' at position {building.position.to_tuple()}")
+            f"Build '{building.building_info.type}' at position: {building.position.to_tuple()}")
         # do something about the building class (add necessary data to it)
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
