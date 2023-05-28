@@ -10,10 +10,11 @@
     - biome default is "".
 """
 
+import copy
 from nbt import nbt as nbt
 from gdpc import Editor, Block, Box, Rect
 from gdpc.vector_tools import ivec3, dropY
-from ..resource.biome_substitute import isChangeBlock, changeBlock
+from ..resource.biome_substitute import changeBlock
 
 
 def NBT2Str(struct: nbt.TAG):
@@ -72,7 +73,10 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: s
     for pos, block in NBT2Blocks(struct, offset):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
-            blkName = changeBlock(material, blkName)
+            blkString = changeBlock(material, block.id)
+            state = copy.deepcopy(block.states)
+            data = copy.deepcopy(block.data)
+            block = Block(blkString, state, data)
 
         cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
 

@@ -172,50 +172,60 @@ material: biome =>
 """
 
 spruceSet = {
-    "taiga", "snowy_tundra", "snowy_mountains", "taiga_hills", "snowy_beach",
-    "snowy_taiga", "snowy_taiga_hills", "giant_tree_taiga",
-    "giant_tree_taiga_hills", "taiga_mountains", "ice_spikes",
-    "snowy_taiga_mountains", "giant_spruce_taiga", "giant_spruce_taiga_hills"
+    "minecraft:taiga", "minecraft:snowy_tundra", "minecraft:snowy_mountains", "minecraft:taiga_hills", "minecraft:snowy_beach",
+    "minecraft:snowy_taiga", "minecraft:snowy_taiga_hills", "minecraft:giant_tree_taiga",
+    "minecraft:giant_tree_taiga_hills", "minecraft:taiga_mountains", "minecraft:ice_spikes",
+    "minecraft:snowy_taiga_mountains", "minecraft:giant_spruce_taiga", "minecraft:giant_spruce_taiga_hills"
 }
+
 birchSet = {
-    "forest", "birch_forest", "birch_forest_hills", "flower_forest", "tall_birch_forest", "tall_birch_hills"
+    "minecraft:forest", "minecraft:birch_forest", "minecraft:birch_forest_hills", "minecraft:flower_forest",
+    "minecraft:tall_birch_forest", "minecraft:tall_birch_hills"
 }
+
 jungleSet = {
-    "jungle", "jungle_hills", "jungle_edge", "modified_jungle", "modified_jungle_edge"
+    "minecraft:jungle", "minecraft:jungle_hills", "minecraft:jungle_edge", "minecraft:modified_jungle",
+    "minecraft:modified_jungle_edge"
 }
+
 acaciaSet = {
-    "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau"
+    "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:shattered_savanna", "minecraft:shattered_savanna_plateau"
 }
+
 darkOakSet = {
-    "dark_forest", "dark_forest_hills"
+    "minecraft:dark_forest", "minecraft:dark_forest_hills"
 }
+
 desertSet = {
-    "desert", "desert_hills", "desert_lakes"
+    "minecraft:desert", "minecraft:desert_hills", "minecraft:desert_lakes"
+}
+
+otherSet = {
+    "minecraft:forest", "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:shattered_savanna", 
+    "minecraft:shattered_savanna_plateau", "minecraft:flower_forest"
 }
 
 def getChangeMaterialList(biomeList: list[str]) -> list[str]:
-    retList: list[str] = []
+    retList = set()
     for biome in biomeList:
         if biome in spruceSet:
-            if("spruce" not in retList):
-                retList.append("spruce")
+            retList.add("spruce")
         elif biome in birchSet:
-            if("birch" not in retList):
-                retList.append("birch")
+            retList.add("birch")
         elif biome in jungleSet:
-            if("jungle" not in retList):
-                retList.append("jungle")
+            retList.add("jungle")
         elif biome in acaciaSet:
-            if("acacia" not in retList):
-                retList.append("acacia")
+            retList.add("acacia")
         elif biome in darkOakSet:
-            if("dark_oak" not in retList):
-                retList.append("dark_oak")
+            retList.add("dark_oak")
+        elif biome in otherSet:
+            retList.add("oak")
         elif biome in desertSet:
+            # this has problem with mix desert and whatever biome
             return ["desert"]
     if(("spruce" not in retList) and ("dark_oak" not in retList)):
-        retList.append("oak")
-    return retList
+        retList.add("oak")
+    return list[str](retList)
 
 def changeBlock(material: str, blockName: str):
     # This function will change block definitely via building_info material

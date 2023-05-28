@@ -31,7 +31,7 @@ class Building:
         self.building_info = building_info
         self.level = level
         self.position = position
-        self.material = "oak"
+        self._material = "oak"
 
     @property
     def type(self):
@@ -52,3 +52,11 @@ class Building:
             return None
         pos = entries[0].pos
         return self.position + dropY(pos)
+    
+    @property
+    def material(self):
+        return self._material
+
+    @material.setter
+    def material(self, name:str):
+        self._material = name
