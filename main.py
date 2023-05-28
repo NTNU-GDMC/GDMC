@@ -79,7 +79,7 @@ if __name__ == '__main__':
                     # remove from the pool or assigned other things to this agent
                     # pass
 
-        if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings):
+        if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings()):
             core.levelUp()
             unlockedAgent = levelManager.getUnlockAgent(core.level)
             if unlockedAgent != "none":

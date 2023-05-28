@@ -118,7 +118,9 @@ class Core():
     def getBuildingLimit(self, buildingLevel: int):
         return getBuildingLimit(self._level, buildingLevel)
 
-    def numberOfBuildings(self, buildingLevel: int):
+    def numberOfBuildings(self, buildingLevel: int = 0):
+        if buildingLevel == 0:
+            return len(self._blueprintData)
         return len([building for building in self._blueprintData.values() if building.level == buildingLevel])
 
     def canBuildOrUpgradeTo(self, buildingLevel: int):
