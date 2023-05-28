@@ -57,6 +57,9 @@ class Config:
     # The path to the data structures
     structuresPath: Path = Path("data/structures")
 
+    # Material of road
+    roadMaterial: str = "minecraft:dirt_path"
+
     # * You can add new config data here:
 
     def save(self, path: Path = DEFAULT_CONFIG_PATH):

@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatch
 from ..classes.core import Core
+from ..config.config import config
+
+UNIT = config.unit
 
 
 def plotBlueprint(core: Core):
@@ -18,6 +21,10 @@ def plotBlueprint(core: Core):
         cy = ry + p.get_height() / 2.0
         ax.annotate(f"{id}", (cx, cy), color="w", weight="bold",
                     fontsize=6, ha="center", va="center")
+
+    for node in core.roadNetwork.subnodes:
+        p = mpatch.Rectangle(node.val, UNIT, UNIT, fill=True, color="red")
+        ax.add_artist(p)
 
     ax.set_xlim(buildArea.begin.x, buildArea.end.x)
     ax.set_ylim(buildArea.begin.z, buildArea.end.z)

@@ -18,6 +18,10 @@ def newSawmillAgent(core: Core):
     def analyzeFunction(c, a): return isFlat(c, a) + hasEnoughWood(c, a) * 5
     return BuildAgent(core, analyzeFunction, HUGE_SAWMILL, 5)
 
+def placeholder(core: Core):
+    def analyzeFunction(c, a): return isFlat(c, a) + hasEnoughWood(c, a) * 5
+    return BuildAgent(core, analyzeFunction, HUGE_SAWMILL, 5)
+
 
 RunableAgentGenerator = Callable[[Core], RunableAgent]
 
@@ -25,4 +29,13 @@ RUNABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
     CHALET: newChaleteAgent,
     DESERT_BUILDING: newDesertBuildingAgent,
     HUGE_SAWMILL: newSawmillAgent
+}
+
+# TODO: add real agent after the building is completed
+UNLOCKABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
+   "sawmill":placeholder,
+   "farm": placeholder,
+   "quarry":placeholder,
+   "forge":placeholder,
+   "church":placeholder,
 }
