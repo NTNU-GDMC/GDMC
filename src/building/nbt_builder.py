@@ -46,7 +46,7 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
         yield pos + offset, block
 
 
-def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str = "", keep=False):
+def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: str = "oak", keep=False):
     if editor.worldSlice is None:
         raise Exception("Error while building structure: worldSlice is None")
 
@@ -62,8 +62,8 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str 
 
     for pos, block in NBT2Blocks(struct, offset):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
-        # if isChangeBlock(biome) == True:
-        #     blkName = changeBlock(biome, blkName)
+        if material != "oak":
+            blkName = changeBlock(material, blkName)
 
         cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
 
