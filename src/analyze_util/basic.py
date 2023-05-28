@@ -35,11 +35,12 @@ def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
     return thresholdSD / std
 
 
-def isLiquid(core: Core, area: Rect):
+def isLiquid(core: Core, area: Rect)->float:
     ret = False
     for x, z in area.inner:
-        ret = ret and core.liquidMap[x, z]
-    return ret
+        if core.liquidMap[x, z]:
+            return 1
+    return 0
 
 
 MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
