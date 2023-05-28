@@ -73,11 +73,13 @@ class RoadEdge(Generic[T]):
 
 
 class RoadNetwork(Generic[T]):
-    def __init__(self, hotThreshold: int = 10, hashfunc: Callable[[object], int] = hash):
+    def __init__(self, hotThreshold: int = 10, maxHotspots: int = 30, hashfunc: Callable[[object], int] = hash):
         """A graph of RoadNodes and RoadEdges. The graph is undirected, and edges are bidirectional."""
         self._adj = dict[RoadNode[T], set[RoadEdge[T]]]()
         self._hotness = dict[RoadNode[T], int]()
+        self._hotspots = set[RoadNode[T]]()
         self._hotThreshold = hotThreshold
+        self._maxHotspots = maxHotspots
         self._hashfunc = hashfunc
 
     def __str__(self) -> str:
@@ -102,13 +104,6 @@ class RoadNetwork(Generic[T]):
         for edges in self._adj.values():
             yield from edges
 
-    @property
-    def hotspots(self):
-        """Returns an iterator over all hotspots in the graph. Hotspots are nodes with a hotness above the hotThreshold."""
-        for node in self._hotness:
-            if self.isHotspot(node):
-                yield node
-
     def hotness(self, node: RoadNode[T]) -> int:
         """Returns the hotness of a node. Hotness is the number of edges that contain the node."""
         return self._hotness[node]
@@ -119,6 +114,9 @@ class RoadNetwork(Generic[T]):
 
     def updateHotspots(self):
         """Updates the hotspots in the graph."""
+        if len(self._hotspots) > self._maxHotspots:
+            return
+
         edges = set(self.edges)
         toUpgrade = set()
 
@@ -129,6 +127,11 @@ class RoadNetwork(Generic[T]):
 
         # upgrade nodes
         for node in toUpgrade:
+            if len(self._hotspots) >= self._maxHotspots:
+                break
+
+            self._hotspots.add(node)
+
             for edge in edges:
                 if node in edge:
                     self.removeEdge(edge, updateHotspots=False)

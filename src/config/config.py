@@ -56,7 +56,7 @@ class Config:
 
     # ================ editor ================
 
-    host: str = "http://218.35.182.2:9000"
+    host: str = DEFAULT_HOST
     """The host of the editor"""
 
     buffering: bool = True
@@ -80,6 +80,8 @@ class Config:
 
     agentCooldown: int = 5
     """The cooldown of the agent"""
+
+    analyzeThreshold: float = 1
 
     # ================ data ================
 
