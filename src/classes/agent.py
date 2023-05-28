@@ -37,7 +37,8 @@ class BuildAgent(RunableAgent):
         return self.analysisAndBuild()
 
     def rest(self) -> bool:
-        resourceType = self.core.getMostLackResource(self.core.resources, self.core.resourceLimit)
+        resourceType = self.core.getMostLackResource(
+            self.core.resources, self.core.resourceLimit)
         if resourceType != "none":
             self.gatherResource(resourceType)
             return True
@@ -45,12 +46,14 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
+
+        if self.core.buildingLimit <= self.core.numberOfBuildings:
+            return False
+
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
             length, width)
 
-        if self.core.buildingLimit <= self.core.numberOfBuildings:
-            return False
         if len(possibleLocations) == 0:
             return False
         bestLocation = possibleLocations[0]
@@ -79,7 +82,10 @@ class BuildAgent(RunableAgent):
         return True
 
     def gatherResource(self, resourceType: str):
-        self.core.resources[resourceType] += math.ceil(self.core.resourceLimit[resourceType] * 0.05) # gain 5% of the limit
+        # gain 5% of the limit
+        self.core.resources[resourceType] += math.ceil(
+            self.core.resourceLimit[resourceType] * 0.05)
+
 
 class RoadAgent(Agent):
     def __init__(self, core: Core) -> None:
@@ -127,7 +133,8 @@ class RoadAgent(Agent):
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print(f"no path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
+            print(
+                f"no path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
             return
 
         print(f"path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
