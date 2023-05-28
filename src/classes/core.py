@@ -56,7 +56,6 @@ class Core():
         self._blueprintData: dict[int, Building] = {}
         # init level is 1, and get resource limit and building limit of level 1
         self._level = int(1)
-        self._buildingLimit: int = getBuildingLimit(self._level)
         self._roadNetwork = RoadNetwork[ivec2](
             hotThreshold=10,
             hashfunc=lambda o: o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__())
@@ -226,10 +225,9 @@ class Core():
             return str("none")
         return maxlack[1]
 
-    def levelUp(self, buildingLimit: int):
+    def levelUp(self):
         """"level up and update resource limit and building limit"""
         self._level += 1
-        self._buildingLimit = buildingLimit
 
     def conformToResourceLimit(self):
         """

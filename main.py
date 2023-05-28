@@ -80,7 +80,7 @@ if __name__ == '__main__':
                     # pass
 
         if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings):
-            core.levelUp(levelManager.getLimitBuilding(core.level+1))
+            core.levelUp()
             unlockedAgent = levelManager.getUnlockAgent(core.level)
             if unlockedAgent != "none":
                 # add agent to pool
