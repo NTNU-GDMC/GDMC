@@ -13,6 +13,7 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
+ANALYZE_THRESHOLD = config.analyzeThreshold
 
 
 class BuildAgent(RunableAgent):
@@ -48,6 +49,7 @@ class BuildAgent(RunableAgent):
         weights = [calcWeight(level) for level in levels]
 
         if all([weight == 0 for weight in weights]):
+            print("No building can be built")
             return False
 
         level = choices(levels, weights=weights, k=1)[0]
@@ -71,15 +73,19 @@ class BuildAgent(RunableAgent):
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
 
+        print("Agent: analysis and build")
+
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
             length, width)
 
         if len(possibleLocations) == 0:
             return False
-        bestLocation = possibleLocations[0]
+
+        bestLocation = None
         bestLocationValue = 0
-        buildArea = self.core._editor.getBuildArea().toRect()
+
+        buildArea = self.core.buildArea.toRect()
         for location in sample(possibleLocations, len(possibleLocations)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
 
@@ -90,20 +96,33 @@ class BuildAgent(RunableAgent):
                 continue
 
             value = self.analysis(self.core, location)
-            if value > bestLocationValue:
-                bestLocationValue = value
-                bestLocation = location
+
+            if value < ANALYZE_THRESHOLD:
+                continue
+
+            if value <= bestLocationValue:
+                continue
+
+            bestLocationValue = value
+            bestLocation = location
+
+        if bestLocation is None:
+            return False
+
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
             f"Build '{building.building_info.type}' at position: {building.position.to_tuple()}")
-        # do something about the building class (add necessary data to it)
+
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
+
+        print(f"Agent: {self.buildingInfo.type} built")
 
         return True
 
     def upgrade(self, buildingLevel) -> bool:
-        buildings =  list(self.core.getBuildings(buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
+        buildings = list(self.core.getBuildings(
+            buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
 
         if len(buildings) == 0:
             return False
@@ -112,7 +131,6 @@ class BuildAgent(RunableAgent):
         building.level += 1
 
         return True
-
 
     def gatherResource(self, resourceType: str):
         # gain 5% of the limit
@@ -161,14 +179,19 @@ class RoadAgent(Agent):
         weights = list(map(calcWeight, nodes))
         end = choices(nodes, weights=weights, k=1)[0]
 
-        print(f"connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+        print(
+            f"Connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print("failed.")
+            print("Failed.")
             return
 
-        print()
+        print("Done.")
+
+        print(f"Adding edge...")
 
         self.core.addRoadEdge(edge)
+
+        print(f"Adding edge done.")
