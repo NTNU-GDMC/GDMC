@@ -34,7 +34,6 @@ class Structure:
     level: int
     size: ivec3
     entries: list[Entry]
-    material: str
     requirement: Resource
     production: Resource
 
@@ -48,11 +47,8 @@ class Structure:
             self.level = int(jsonDict["Level"])
             self.size = ivec3(*jsonDict["Size"])
             self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
-            self.material = jsonDict["Material"]
             self.requirement = Resource.fromDict(jsonDict["RequiredResource"])
             self.production = Resource.fromDict(jsonDict["ProduceResource"])
-
-            # TODO: change material by biome when init
             pass
 
 

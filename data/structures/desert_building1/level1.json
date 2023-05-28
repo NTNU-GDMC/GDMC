@@ -7,7 +7,6 @@
         }
     ],
     "Size": [12, 7, 9],
-    "Material": "sand",
     "Type": 1,
     "Level": 1,
     "RequiredResource": {

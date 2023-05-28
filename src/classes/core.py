@@ -1,3 +1,4 @@
+import random
 from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.level_manager import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
@@ -12,6 +13,7 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..resource.biome_substitute import getChangeMaterialList
 
 UNIT = config.unit
 
@@ -45,6 +47,7 @@ class Core():
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
+        self._materialList = getChangeMaterialList(self._biomeList)
         self._resources = analyzeAreaMaterialToResource(
             worldSlice, buildArea.toRect())
         self._resourceMap = getMaterialToResourceMap(
@@ -144,6 +147,11 @@ class Core():
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
+    def getResource(self) -> str:
+        if self._materialList[0] == "desert":
+            return str("desert")
+        return random.choice(self._materialList)
+
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
@@ -156,6 +164,7 @@ class Core():
 
         # We still trust our agent on maintaining resources
         self._resources -= building.building_info.structures[building.level-1].requirement
+        building.material = self.getResource()
 
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
@@ -275,7 +284,7 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print("build at:", area, ",y:", y)
-            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y))
+            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y), building.material)
 
         for node in self._roadNetwork.subnodes:
             area = Rect(node.val, (UNIT, UNIT))

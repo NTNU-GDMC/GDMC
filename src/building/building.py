@@ -31,6 +31,7 @@ class Building:
         self.building_info = building_info
         self.level = level
         self.position = position
+        self.material = "oak"
 
     @property
     def type(self):
