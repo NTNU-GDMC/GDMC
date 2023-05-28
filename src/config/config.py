@@ -56,7 +56,7 @@ class Config:
 
     # ================ editor ================
 
-    host: str = DEFAULT_HOST
+    host: str = "http://218.35.182.2:9000"
     """The host of the editor"""
 
     buffering: bool = True
@@ -86,7 +86,7 @@ class Config:
     structuresPath: Path = Path("data/structures")
     """The path to the data of structures"""
 
-    levelLimitPath: Path = Path("data/level_limit")
+    levelLimitPath: Path = Path("data/level_limit/limit.json")
     """The path to the data of level"""
 
     # ================ road ================

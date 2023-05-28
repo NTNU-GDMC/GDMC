@@ -9,75 +9,28 @@ function levelUp:
 
 import json
 from dataclasses import dataclass
+from .limit import levelLimit
 from ..config.config import config
 from ..resource.terrain_analyzer import Resource
-
-RESOURECE_LIMIT_PATH = config.levelLimitPath/"resource_limit.json"
-BUILDING_LIMIT_PATH = config.levelLimitPath/"building_limit.json"
-AGENT_LIMIT_PATH = config.levelLimitPath/"agent_limit.json"
-
-levelResourceData: list[Resource] = []
-levelBuildingData: list[int] = []
-levelUnlockAgentData: list[str] = []
-maxLevel: int = 0
 
 
 def getResourceLimit(level: int) -> Resource:
     """ return resource limit of level """
-    with RESOURECE_LIMIT_PATH.open("r") as f:
-        data = json.load(f)
-        human = data["human"][level-1]
-        wood = data["wood"][level-1]
-        stone = data["stone"][level-1]
-        ironOre = data["ironOre"][level-1]
-        iron = data["iron"][level-1]
-        food = data["food"][level-1]
-        return Resource(human, wood, stone, food, ironOre, iron)
+    return levelLimit.resources[level-1]
 
 
 def getBuildingLimit(level: int) -> int:
     """ return building limit of level """
-    with BUILDING_LIMIT_PATH.open("r") as f:
-        data = json.load(f)
-        return data["building_limit"][level-1]
-
-
-def initLimitResource():
-    global maxLevel
-    with RESOURECE_LIMIT_PATH.open("r") as f:
-        data = json.load(f)
-        maxLevel = data["maxLevel"]
-        for i in range(maxLevel):
-            human = data["human"][i]
-            wood = data["wood"][i]
-            stone = data["stone"][i]
-            ironOre = data["ironOre"][i]
-            iron = data["iron"][i]
-            food = data["food"][i]
-            levelResourceData.append(
-                Resource(human, wood, stone, food, ironOre, iron))
-
-
-def initLimitBuilding():
-    with BUILDING_LIMIT_PATH.open("r") as f:
-        data = json.load(f)
-        for i in range(maxLevel):
-            levelBuildingData.append(data["building_limit"][i])
-
-
-def initUnlockAgent():
-    with AGENT_LIMIT_PATH.open("r") as f:
-        data = json.load(f)
-        for i in range(maxLevel):
-            levelUnlockAgentData.append(data["unlock_agent"][i])
+    return levelLimit.buildingRequirements[level-1]
 
 
 @dataclass
 class LevelManager:
     def __init__(self):
-        initLimitResource()
-        initLimitBuilding()
-        initUnlockAgent()
+        self.maxLevel: int = levelLimit.maxLevel
+        self.levelResourceData: list[Resource] = levelLimit.resources
+        self.levelBuildingData: list[int] = levelLimit.buildingRequirements
+        self.levelUnlockAgentData: list[str] = levelLimit.unlockAgents
 
     def isLackBuilding(self, existBuilding: int, limitBuilding: int) -> bool:
         """ return true if building is lack, else false """
@@ -86,22 +39,22 @@ class LevelManager:
         return False
 
     def canLevelUp(self, level: int, resource: Resource, numberOfBuilding: int) -> bool:
-        """ 
-            if level up successfully, it means that:
-                1. level is not maxLevel
-                2. all resources are enough
-                3. number of building is enough
         """
-        if level == maxLevel:
+        if level up successfully, it means that:
+            1. level is not maxLevel
+            2. all resources are enough
+            3. number of building is enough
+        """
+        if level == self.maxLevel:
             return False
-        elif resource < levelResourceData[level-1]:
+        elif resource < self.levelResourceData[level-1]:
             return False
-        elif self.isLackBuilding(numberOfBuilding, levelBuildingData[level-1]):
+        elif self.isLackBuilding(numberOfBuilding, self.levelBuildingData[level-1]):
             return False
         return True
 
     def resourceNeededToLevelUp(self, currentLevel: int, resource: Resource) -> Resource:
-        targetResource = levelResourceData[currentLevel]
+        targetResource = self.levelResourceData[currentLevel]
         return Resource(
             human=max(0, targetResource.human - resource.human),
             wood=max(0, targetResource.wood - resource.wood),
@@ -112,10 +65,10 @@ class LevelManager:
         )
 
     def getLimitResource(self, level: int) -> Resource:
-        return levelResourceData[level-1]
+        return self.levelResourceData[level-1]
 
     def getLimitBuilding(self, level: int) -> int:
-        return levelBuildingData[level-1]
+        return self.levelBuildingData[level-1]
 
     def getUnlockAgent(self, level: int) -> str:
-        return levelUnlockAgentData[level-1]
+        return self.levelUnlockAgentData[level-1]
