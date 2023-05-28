@@ -38,30 +38,6 @@ DEFAULT_CONFIG_PATH = Path("config.json")
 class Config:
     """Config class for storing config data"""
 
-    # The host of the editor
-    host = DEFAULT_HOST
-
-    # Buffering and caching of the editor
-    buffering: bool = True
-    caching: bool = True
-
-    # Do block updates
-    doBlockUpdates: bool = False
-
-    # The area where buildings can be built
-    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
-
-    # The size of a single unit on the blueprint
-    unit: int = 2
-
-    # The path to the data structures
-    structuresPath: Path = Path("data/structures")
-
-    # Material of road
-    roadMaterial: str = "minecraft:dirt_path"
-
-    # * You can add new config data here:
-
     def save(self, path: Path = DEFAULT_CONFIG_PATH):
         """Save config to a json file"""
         if not path.parent.exists():
@@ -77,6 +53,44 @@ class Config:
         with path.open("r") as f:
             data: Config = json.load(f, cls=GenericJSONDecoder)
             return data
+
+    """
+    ================ editor ================
+    """
+
+    # The host of the editor
+    host = DEFAULT_HOST
+
+    # Buffering and caching of the editor
+    buffering: bool = True
+    caching: bool = True
+
+    # Do block updates
+    doBlockUpdates: bool = False
+
+    """
+    ================ core ================
+    """
+
+    # The area where buildings can be built
+    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
+
+    # The size of a single unit on the blueprint
+    unit: int = 2
+
+    """
+    ================ structure ================
+    """
+
+    # The path to the data structures
+    structuresPath: Path = Path("data/structures")
+
+    """
+    ================ road ================
+    """
+
+    # Material of road
+    roadMaterial: str = "minecraft:dirt_path"
 
 
 config = Config.load()
