@@ -66,6 +66,12 @@ if __name__ == '__main__':
 
     # iterate rounds
     for i in range(ROUND):
+        print(f"Round: {i}")
+        print(f"Level: {core.level}")
+        print(f"Buildings: {[core.numberOfBuildings(level) for level in range(1, 4)]}")
+        print(f"Max Buildings:  {[core.getBuildingLimit(level) for level in range(1, 4)]}")
+        print("=====")
+
         core.updateResource()
         for agent in random.sample(agentPool, len(agentPool)):
             # run agent

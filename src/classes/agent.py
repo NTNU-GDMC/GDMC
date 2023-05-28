@@ -47,8 +47,6 @@ class BuildAgent(RunableAgent):
 
         weights = [calcWeight(level) for level in levels]
 
-        print(weights)
-
         if all([weight == 0 for weight in weights]):
             return False
 
@@ -163,15 +161,14 @@ class RoadAgent(Agent):
         weights = list(map(calcWeight, nodes))
         end = choices(nodes, weights=weights, k=1)[0]
 
-        print(f"connecting {begin.val.to_tuple()} to {end.val.to_tuple()}...")
+        print(f"connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print(
-                f"no path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
+            print("failed.")
             return
 
-        print(f"path found: {begin.val.to_tuple()} -> {end.val.to_tuple()}")
+        print()
 
         self.core.addRoadEdge(edge)
