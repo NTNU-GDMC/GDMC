@@ -12,10 +12,11 @@ from ..road.road_network import RoadEdge, RoadNode
 from ..road.pathfind import pathfind
 
 UNIT = config.unit
+COOLDOWN = config.agentCooldown
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
