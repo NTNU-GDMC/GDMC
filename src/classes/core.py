@@ -154,6 +154,9 @@ class Core():
         xlen = (xlen + UNIT) // UNIT
         zlen = (zlen + UNIT) // UNIT
 
+        # We still trust our agent on maintaining resources
+        self._resources -= building.building_info.structures[building.level-1].requirement
+
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
 

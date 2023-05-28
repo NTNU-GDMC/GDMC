@@ -82,6 +82,9 @@ class BuildAgent(RunableAgent):
         if len(possibleLocations) == 0:
             return False
 
+        if self.core.resources < self.buildingInfo.structures[0].requirement:
+            return False
+
         bestLocation = None
         bestLocationValue = 0
 
