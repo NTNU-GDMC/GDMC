@@ -56,7 +56,7 @@ class Config:
 
     # ================ editor ================
 
-    host: str = "http://218.35.182.2:9000"
+    host: str = DEFAULT_HOST
     """The host of the editor"""
 
     buffering: bool = True
