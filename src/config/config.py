@@ -81,6 +81,8 @@ class Config:
     agentCooldown: int = 5
     """The cooldown of the agent"""
 
+    analyzeThreshold: float = 1
+
     # ================ data ================
 
     structuresPath: Path = Path("data/structures")

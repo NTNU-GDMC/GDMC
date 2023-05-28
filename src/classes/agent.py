@@ -13,6 +13,7 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
+ANALYZE_THRESHOLD = config.analyzeThreshold
 
 
 class BuildAgent(RunableAgent):
@@ -77,9 +78,11 @@ class BuildAgent(RunableAgent):
 
         if len(possibleLocations) == 0:
             return False
-        bestLocation = possibleLocations[0]
+
+        bestLocation = None
         bestLocationValue = 0
-        buildArea = self.core._editor.getBuildArea().toRect()
+
+        buildArea = self.core.buildArea.toRect()
         for location in sample(possibleLocations, len(possibleLocations)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
 
@@ -90,20 +93,31 @@ class BuildAgent(RunableAgent):
                 continue
 
             value = self.analysis(self.core, location)
-            if value > bestLocationValue:
-                bestLocationValue = value
-                bestLocation = location
+
+            if value < ANALYZE_THRESHOLD:
+                continue
+
+            if value <= bestLocationValue:
+                continue
+
+            bestLocationValue = value
+            bestLocation = location
+
+        if bestLocation is None:
+            return False
+
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
             f"Build '{building.building_info.type}' at position: {building.position.to_tuple()}")
-        # do something about the building class (add necessary data to it)
+
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
 
         return True
 
     def upgrade(self, buildingLevel) -> bool:
-        buildings =  list(self.core.getBuildings(buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
+        buildings = list(self.core.getBuildings(
+            buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
 
         if len(buildings) == 0:
             return False
@@ -112,7 +126,6 @@ class BuildAgent(RunableAgent):
         building.level += 1
 
         return True
-
 
     def gatherResource(self, resourceType: str):
         # gain 5% of the limit
