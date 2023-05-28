@@ -161,7 +161,8 @@ class RoadAgent(Agent):
         weights = list(map(calcWeight, nodes))
         end = choices(nodes, weights=weights, k=1)[0]
 
-        print(f"connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+        print(
+            f"connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
 
         edge = pathfind(self.core, begin, end)
 
@@ -169,6 +170,6 @@ class RoadAgent(Agent):
             print("failed.")
             return
 
-        print()
+        print("done.")
 
         self.core.addRoadEdge(edge)
