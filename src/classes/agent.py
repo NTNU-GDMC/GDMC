@@ -49,6 +49,7 @@ class BuildAgent(RunableAgent):
         weights = [calcWeight(level) for level in levels]
 
         if all([weight == 0 for weight in weights]):
+            print("No building can be built")
             return False
 
         level = choices(levels, weights=weights, k=1)[0]
@@ -71,6 +72,8 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
+
+        print("Agent: analysis and build")
 
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
@@ -112,6 +115,8 @@ class BuildAgent(RunableAgent):
 
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
+
+        print(f"Agent: {self.buildingInfo.type} built")
 
         return True
 
@@ -175,14 +180,18 @@ class RoadAgent(Agent):
         end = choices(nodes, weights=weights, k=1)[0]
 
         print(
-            f"connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+            f"Connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print("failed.")
+            print("Failed.")
             return
 
-        print("done.")
+        print("Done.")
+
+        print(f"Adding edge...")
 
         self.core.addRoadEdge(edge)
+
+        print(f"Adding edge done.")
