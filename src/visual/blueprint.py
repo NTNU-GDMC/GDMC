@@ -13,7 +13,10 @@ def plotBlueprint(core: Core):
 
     for id, building in core.blueprintData.items():
         begin = building.position
-        size = building.dimension
+        size = building.currentSize
+        maxSize = building.maxSize
+        p = mpatch.Rectangle(begin, maxSize.x, maxSize.z, fill=True, color="gray")
+        ax.add_artist(p)
         p = mpatch.Rectangle(begin, size.x, size.z, fill=True, color="blue")
         ax.add_artist(p)
         rx, ry = p.get_xy()

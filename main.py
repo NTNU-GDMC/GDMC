@@ -39,7 +39,7 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 # ! /usr/bin/python3
 from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import RunableAgent
+from src.classes.agent import RunableAgent, RoadAgent
 from src.classes.agent_generator import RUNABLE_AGENT_TABLE
 from src.level.level_manager import LevelManager
 from src.visual.blueprint import plotBlueprint
@@ -55,6 +55,7 @@ if __name__ == '__main__':
     levelManager = LevelManager()
     agentPool: list[RunableAgent] = []
     generators = list(RUNABLE_AGENT_TABLE.values())
+    RoadAgent(core)
     for _ in range(7):
         generator = random.choice(generators)
         agent = generator(core)
@@ -65,6 +66,12 @@ if __name__ == '__main__':
 
     # iterate rounds
     for i in range(ROUND):
+        print(f"Round: {i}")
+        print(f"Level: {core.level}")
+        print(f"Buildings: {[core.numberOfBuildings(level) for level in range(1, 4)]}")
+        print(f"Max Buildings:  {[core.getBuildingLimit(level) for level in range(1, 4)]}")
+        print("=====")
+
         core.updateResource()
         for agent in random.sample(agentPool, len(agentPool)):
             # run agent
@@ -78,8 +85,8 @@ if __name__ == '__main__':
                     # remove from the pool or assigned other things to this agent
                     # pass
 
-        if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings):
-            core.levelUp(levelManager.getLimitResource(core.level+1), levelManager.getLimitBuilding(core.level+1))
+        if levelManager.canLevelUp(core.level, core.resources , core.numberOfBuildings()):
+            core.levelUp()
             unlockedAgent = levelManager.getUnlockAgent(core.level)
             if unlockedAgent != "none":
                 # add agent to pool
@@ -90,6 +97,5 @@ if __name__ == '__main__':
 
 
     core.startBuildingInMinecraft()
-    core._editor.flushBuffer()
 
     plotBlueprint(core)
