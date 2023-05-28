@@ -115,6 +115,11 @@ class Core():
     def resourceLimit(self):
         return getResourceLimit(self._level)
 
+    def getBuildings(self, buildingLevel: int, buildingType: str | None = None):
+        for building in self._blueprintData.values():
+            if building.level == buildingLevel and (buildingType is None or building.building_info.type == buildingType):
+                yield building
+
     def getBuildingLimit(self, buildingLevel: int):
         return getBuildingLimit(self._level, buildingLevel)
 

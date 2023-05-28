@@ -39,7 +39,7 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 # ! /usr/bin/python3
 from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import RunableAgent
+from src.classes.agent import RunableAgent, RoadAgent
 from src.classes.agent_generator import RUNABLE_AGENT_TABLE
 from src.level.level_manager import LevelManager
 from src.visual.blueprint import plotBlueprint

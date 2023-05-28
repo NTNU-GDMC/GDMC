@@ -1,5 +1,5 @@
 import math
-from random import sample, choices
+from random import sample, choices, choice
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2, l1Distance
 from .core import Core
@@ -16,14 +16,14 @@ COOLDOWN = config.agentCooldown
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingType: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
         self.analysis = analyzeFunction
-        self.buildingType = buildingType
+        self.buildingName = buildingName
         # FIXME: this is a temporary solution for the building info
-        self.buildingInfo = GLOBAL_BUILDING_INFO[buildingType][0]
+        self.buildingInfo = choice(GLOBAL_BUILDING_INFO[buildingName])
         self.speical = special
 
     def __str__(self) -> str:
@@ -34,7 +34,33 @@ class BuildAgent(RunableAgent):
 
     @withCooldown
     def run(self) -> bool:
-        return self.analysisAndBuild()
+        maxLevel = len(self.buildingInfo.structures)
+        levels = [level for level in range(1, maxLevel+1)]
+
+        def calcWeight(level: int):
+            num = self.core.numberOfBuildings(level)
+            limit = self.core.getBuildingLimit(level)
+
+            if limit == 0:
+                return 0
+            return 1 - num / limit
+
+        weights = [calcWeight(level) for level in levels]
+
+        print(weights)
+
+        if all([weight == 0 for weight in weights]):
+            return False
+
+        level = choices(levels, weights=weights, k=1)[0]
+
+        if not self.core.canBuildOrUpgradeTo(level):
+            return False
+
+        if level == 1:
+            return self.analysisAndBuild()
+
+        return self.upgrade(level)
 
     def rest(self) -> bool:
         resourceType = self.core.getMostLackResource(
@@ -46,9 +72,6 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
-
-        if self.core.canBuildOrUpgradeTo(1):
-            return False
 
         length, _, width = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(
@@ -74,12 +97,24 @@ class BuildAgent(RunableAgent):
                 bestLocation = location
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"building position: {building.position.to_tuple()}, building: {building.building_info.type}")
+            f"Building '{building.building_info.type}' at position {building.position.to_tuple()}")
         # do something about the building class (add necessary data to it)
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
 
         return True
+
+    def upgrade(self, buildingLevel) -> bool:
+        buildings =  list(self.core.getBuildings(buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
+
+        if len(buildings) == 0:
+            return False
+
+        building = choice(buildings)
+        building.level += 1
+
+        return True
+
 
     def gatherResource(self, resourceType: str):
         # gain 5% of the limit
