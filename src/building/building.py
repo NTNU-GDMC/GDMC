@@ -33,7 +33,15 @@ class Building:
         self.position = position
 
     @property
-    def dimension(self):
+    def type(self):
+        return self.building_info.type
+
+    @property
+    def maxSize(self):
+        return self.building_info.max_size
+
+    @property
+    def currentSize(self):
         return self.building_info.structures[self.level-1].size
 
     @property

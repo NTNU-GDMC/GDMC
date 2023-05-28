@@ -147,7 +147,7 @@ class Core():
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
-        (xlen, _, zlen) = building.dimension
+        (xlen, _, zlen) = building.maxSize
         id = len(self._blueprintData) + 1
         x = (x + UNIT) // UNIT
         z = (z + UNIT) // UNIT
