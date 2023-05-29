@@ -1,7 +1,6 @@
 from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
-from ..classes.agent import RunableAgent
 from ..classes.agent import BuildAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert
 
@@ -58,9 +57,12 @@ def newAgent(core: Core, name: str):
 
         if TAG_LAND in tags and isLiquid(core, area):
             return 0
-        if TAG_DESERT in tags and not isDesert(core, area):
+
+        desertness = isDesert(core, area)
+
+        if TAG_DESERT in tags and not desertness:
             return 0
-        if TAG_DESERT not in tags and isDesert(core, area):
+        if TAG_DESERT not in tags and desertness:
             return 0
 
         flatness = isFlat(core, area)
@@ -73,10 +75,3 @@ def newAgent(core: Core, name: str):
         return total
 
     return BuildAgent(core, analyzeFunction, name)
-
-
-RunableAgentGenerator = Callable[[Core], RunableAgent]
-
-RUNABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
-    name: lambda core: newAgent(core, name) for name in BASIC_BUILDINGS | SPECIAL_BUILDINGS
-}

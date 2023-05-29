@@ -39,11 +39,12 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 # ! /usr/bin/python3
 from nbt import nbt
 from src.classes.core import Core
-from src.classes.agent import RunableAgent, RoadAgent
-from src.classes.agent_generator import RUNABLE_AGENT_TABLE, CHALET
+from src.classes.agent import RoadAgent
+from src.classes.agent_pool import AgentPool
 from src.level.level_manager import LevelManager
 from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
+from src.config.config import config
 
 
 import random
@@ -54,15 +55,10 @@ if __name__ == '__main__':
     ROUND = 50
     core = Core()
     levelManager = LevelManager()
-    agentPool: list[RunableAgent] = []
-    generators = [RUNABLE_AGENT_TABLE[CHALET]]
+    agentPool = AgentPool(core, config.numBasicAgents, config.numSpecialAgents)
     RoadAgent(core)
-    for _ in range(10):
-        generator = random.choice(generators)
-        agent = generator(core)
-        agentPool.append(agent)
 
-    for agent in agentPool:
+    for agent in agentPool.agents:
         print(agent)
 
     # iterate rounds
@@ -79,9 +75,17 @@ if __name__ == '__main__':
 
         core.updateResource()
 
+        unlockedAgents = getUnlockAgents(core.level)
+        print("Unlocked agents: ", unlockedAgents)
+
+        for unlockedAgent in unlockedAgents:
+            agentPool.unlockSpecial(unlockedAgent)
+
         print("Start running agents")
 
-        for agent in random.sample(agentPool, len(agentPool)):
+        agents = list(agentPool.agents)
+
+        for agent in random.sample(agents, len(agents)):
             # run agent
             success = agent.run()
 
@@ -98,10 +102,7 @@ if __name__ == '__main__':
 
         if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
             core.levelUp()
-            unlockedAgents = getUnlockAgents(core.level)
-            for unlockedAgent in unlockedAgents:
-                # add agent to pool
-                pass
+
         # clamp resource to limit
         core.conformToResourceLimit()
 
