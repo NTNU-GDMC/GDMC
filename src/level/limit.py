@@ -36,13 +36,14 @@ class LevelLimit:
             buildingRequirements: list[int] = limit["building_requirements"]
 
             resources = list[Resource]()
-            for i in range(maxLevel):
-                human = resourcesLimit["human"][i]
-                wood = resourcesLimit["wood"][i]
-                stone = resourcesLimit["stone"][i]
-                ironOre = resourcesLimit["ironOre"][i]
-                iron = resourcesLimit["iron"][i]
-                food = resourcesLimit["food"][i]
+            for (human, wood, stone, food, ironOre, iron) in zip(
+                resourcesLimit["human"],
+                resourcesLimit["wood"],
+                resourcesLimit["stone"],
+                resourcesLimit["food"],
+                resourcesLimit["ironOre"],
+                resourcesLimit["iron"]
+            ):
                 resources.append(
                     Resource(human, wood, stone, food, ironOre, iron))
 
