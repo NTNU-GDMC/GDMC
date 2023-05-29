@@ -1,5 +1,5 @@
 from ..road.road_network import RoadNetwork, RoadEdge
-from ..level.level_manager import getResourceLimit, getBuildingLimit
+from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
 from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2

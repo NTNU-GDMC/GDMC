@@ -30,7 +30,6 @@ class LevelManager:
         self.maxLevel: int = levelLimit.maxLevel
         self.levelResourceData: list[Resource] = levelLimit.resources
         self.levelBuildingData: list[int] = levelLimit.buildingRequirements
-        self.levelUnlockAgentData: list[str] = levelLimit.unlockAgents
 
     def isLackBuilding(self, existBuilding: int, limitBuilding: int) -> bool:
         """ return true if building is lack, else false """
@@ -63,12 +62,3 @@ class LevelManager:
             iron=max(0, targetResource.iron - resource.iron),
             food=max(0, targetResource.food - resource.food),
         )
-
-    def getLimitResource(self, level: int) -> Resource:
-        return self.levelResourceData[level-1]
-
-    def getLimitBuilding(self, level: int) -> int:
-        return self.levelBuildingData[level-1]
-
-    def getUnlockAgent(self, level: int) -> str:
-        return self.levelUnlockAgentData[level-1]

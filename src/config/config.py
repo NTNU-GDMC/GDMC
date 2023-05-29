@@ -78,10 +78,17 @@ class Config:
 
     # ================ agent ================
 
-    agentCooldown: int = 5
+    agentCooldown: int = 2
     """The cooldown of the agent"""
 
     analyzeThreshold: float = 1
+    """The threshold of the analyzer"""
+
+    numBasicAgents: int = 10
+    """The number of basic agents"""
+
+    numSpecialAgents: int = 1
+    """The number of special agents"""
 
     # ================ data ================
 
@@ -96,5 +103,7 @@ class Config:
     roadMaterial: str = "minecraft:dirt_path"
     """The material of the road"""
 
+    # ================ main ================
+    gameRound: int = 50
 
 config = Config.load()

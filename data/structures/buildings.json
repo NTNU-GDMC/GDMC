@@ -37,15 +37,15 @@
             }
         ]
     },
-    "huge_sawmill": {
+    "sawmill": {
         "variants": [
             {
-                "name": "huge_sawmill1",
+                "name": "sawmill1",
                 "level_info": [
                     {
                         "level": 3,
-                        "info": "huge_sawmill1/level3.json",
-                        "nbt": "huge_sawmill1/level3.nbt"
+                        "info": "sawmill1/level3.json",
+                        "nbt": "sawmill1/level3.nbt"
                     }
                 ]
             }

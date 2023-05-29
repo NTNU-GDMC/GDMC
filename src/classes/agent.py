@@ -1,4 +1,5 @@
 import math
+import time
 from random import sample, choices, choice
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2, l1Distance
@@ -89,6 +90,9 @@ class BuildAgent(RunableAgent):
         bestLocationValue = 0
 
         buildArea = self.core.buildArea.toRect()
+
+        timeStart = time.time()
+        print("Analyzing...")
         for location in sample(possibleLocations, len(possibleLocations)):
             # FIXME: this is a temporary solution for checking if the location is in the build area
 
@@ -108,6 +112,9 @@ class BuildAgent(RunableAgent):
 
             bestLocationValue = value
             bestLocation = location
+
+        print("Analysis done")
+        print(f"Time used: {time.time() - timeStart:.2f}s")
 
         if bestLocation is None:
             return False
