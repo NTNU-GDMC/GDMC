@@ -6,11 +6,6 @@ from dataclasses import dataclass
 from ..config.config import config
 from ..resource.terrain_analyzer import Resource
 
-CHALET = "chalet"
-DESERT_BUILDING = "desert_building"
-HUGE_SAWMILL = "huge_sawmill"
-
-
 STRUCTURES_PATH = config.structuresPath
 
 
