@@ -50,7 +50,7 @@ import random
 
 if __name__ == '__main__':
     COOLDOWN = 5
-    ROUND = 1000
+    ROUND = 50
     core = Core()
     levelManager = LevelManager()
     agentPool: list[RunableAgent] = []
