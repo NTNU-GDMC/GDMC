@@ -48,14 +48,15 @@ from src.config.config import config
 
 
 import random
-# TODO: logic per round
+
+ROUND = config.gameRound
+NUM_BASIC_AGENTS = config.numBasicAgents
+NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
 if __name__ == '__main__':
-    COOLDOWN = 5
-    ROUND = 50
     core = Core()
     levelManager = LevelManager()
-    agentPool = AgentPool(core, config.numBasicAgents, config.numSpecialAgents)
+    agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
     RoadAgent(core)
 
     for agent in agentPool.agents:
