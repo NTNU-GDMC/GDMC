@@ -2,9 +2,11 @@ from typing import Callable
 from ..classes.core import Core
 from ..classes.agent import RunableAgent
 from ..classes.agent import BuildAgent
-from ..building.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert
 
+CHALET = "chalet"
+DESERT_BUILDING = "desert_building"
+HUGE_SAWMILL = "huge_sawmill"
 
 def newChaleteAgent(core: Core):
     # Obviously fun(X
