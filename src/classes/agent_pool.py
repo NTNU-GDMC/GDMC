@@ -29,7 +29,6 @@ class AgentPool(object):
             yield from agents
 
     def unlockSpecial(self, name: str):
-        input("Press enter to continue")
         if name not in SPECIAL_BUILDINGS:
             raise KeyError(f"{name} is not a special building")
 
