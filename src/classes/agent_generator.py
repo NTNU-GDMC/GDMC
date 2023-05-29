@@ -1,26 +1,38 @@
 from typing import Callable
-from src.classes.core import Core
-from src.classes.agent import RunableAgent
-from src.classes.agent import BuildAgent
-from src.building.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
-from src.analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad
+from ..classes.core import Core
+from ..classes.agent import RunableAgent
+from ..classes.agent import BuildAgent
+from ..building.building_info import CHALET, DESERT_BUILDING, HUGE_SAWMILL
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert
 
 
 def newChaleteAgent(core: Core):
-    return BuildAgent(core, isFlat, CHALET, 5)
+    # Obviously fun(X
+    def analFun(c, a):
+        if isLiquid(c, a) or isDesert(c, a):
+            return 0
+        return isFlat(c, a) 
+    return BuildAgent(core, analFun, CHALET)
 
 
 def newDesertBuildingAgent(core: Core):
-    return BuildAgent(core, isFlat, DESERT_BUILDING, 5)
+    def analFun(c, a):
+        if isLiquid(c, a) or not isDesert(c, a):
+            return 0
+        return isFlat(c, a)
+    return BuildAgent(core, analFun, DESERT_BUILDING)
 
 
 def newSawmillAgent(core: Core):
+    if isLiquid(c, a):
+            return 0
     def analyzeFunction(c, a): return isFlat(c, a) + hasEnoughWood(c, a) * 5
-    return BuildAgent(core, analyzeFunction, HUGE_SAWMILL, 5)
+    return BuildAgent(core, analyzeFunction, HUGE_SAWMILL)
+
 
 def placeholder(core: Core):
     def analyzeFunction(c, a): return isFlat(c, a) + hasEnoughWood(c, a) * 5
-    return BuildAgent(core, analyzeFunction, HUGE_SAWMILL, 5)
+    return BuildAgent(core, analyzeFunction, HUGE_SAWMILL)
 
 
 RunableAgentGenerator = Callable[[Core], RunableAgent]
@@ -33,9 +45,9 @@ RUNABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
 
 # TODO: add real agent after the building is completed
 UNLOCKABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
-   "sawmill":placeholder,
-   "farm": placeholder,
-   "quarry":placeholder,
-   "forge":placeholder,
-   "church":placeholder,
+    "sawmill": placeholder,
+    "farm": placeholder,
+    "quarry": placeholder,
+    "forge": placeholder,
+    "church": placeholder,
 }

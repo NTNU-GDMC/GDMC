@@ -35,6 +35,14 @@ def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
     return thresholdSD / std
 
 
+def isLiquid(core: Core, area: Rect)->float:
+    ret = False
+    for x, z in area.inner:
+        if core.liquidMap[x, z]:
+            return 1
+    return 0
+
+
 MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
 
 
@@ -65,3 +73,14 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
         return isLiquid == 1
 
     return checkEdge(core.liquidMap, area, cmp)
+
+def isDesert(core: Core, area: Rect)->float:
+    ret = False
+    height = core.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    mx, mz = area.size
+    for x in range(0, mx):
+        for z in range(0, mz):
+            ox, oz = area.offset
+            if core.worldSlice.getBiome([x, height[x + ox, z + oz], z]) == "minecraft:desert":
+                return 1
+    return 0

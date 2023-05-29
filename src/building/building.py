@@ -22,7 +22,7 @@ README:
         "red_sand"    -> bad land biome
 """
 
-from gdpc.vector_tools import ivec2
+from gdpc.vector_tools import dropY, ivec2, ivec3
 from ..building.building_info import BuildingInfo
 
 
@@ -33,5 +33,21 @@ class Building:
         self.position = position
 
     @property
-    def dimension(self):
+    def type(self):
+        return self.building_info.type
+
+    @property
+    def maxSize(self):
+        return self.building_info.max_size
+
+    @property
+    def currentSize(self):
         return self.building_info.structures[self.level-1].size
+
+    @property
+    def entryPos(self) -> ivec2 | None:
+        entries = self.building_info.structures[self.level-1].entries
+        if len(entries) == 0:
+            return None
+        pos = entries[0].pos
+        return self.position + dropY(pos)

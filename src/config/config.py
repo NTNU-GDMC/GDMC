@@ -27,6 +27,7 @@ Example:
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from gdpc.interface import DEFAULT_HOST
 from gdpc.vector_tools import Box
 from .generic_json import GenericJSONEncoder, GenericJSONDecoder
 
@@ -36,17 +37,6 @@ DEFAULT_CONFIG_PATH = Path("config.json")
 @dataclass
 class Config:
     """Config class for storing config data"""
-
-    # The area where buildings can be built
-    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
-
-    # The size of a single unit on the blueprint
-    unit: int = 2
-
-    # The path to the data structures
-    structuresPath: Path = Path("data/structures")
-
-    # * You can add new config data here:
 
     def save(self, path: Path = DEFAULT_CONFIG_PATH):
         """Save config to a json file"""
@@ -63,6 +53,48 @@ class Config:
         with path.open("r") as f:
             data: Config = json.load(f, cls=GenericJSONDecoder)
             return data
+
+    # ================ editor ================
+
+    host: str = DEFAULT_HOST
+    """The host of the editor"""
+
+    buffering: bool = True
+    """The buffering of the editor"""
+
+    caching: bool = True
+    """The caching of the editor"""
+
+    doBlockUpdates: bool = False
+    """Do block updates"""
+
+    # ================ core ================
+
+    buildArea: Box = Box((0, 0, 0), (255, 255, 255))
+    """The area where buildings can be built"""
+
+    unit: int = 2
+    """The size of a single unit on the blueprint"""
+
+    # ================ agent ================
+
+    agentCooldown: int = 5
+    """The cooldown of the agent"""
+
+    analyzeThreshold: float = 1
+
+    # ================ data ================
+
+    structuresPath: Path = Path("data/structures")
+    """The path to the data of structures"""
+
+    levelLimitPath: Path = Path("data/level_limit/limit.json")
+    """The path to the data of level"""
+
+    # ================ road ================
+
+    roadMaterial: str = "minecraft:dirt_path"
+    """The material of the road"""
 
 
 config = Config.load()
