@@ -4,9 +4,19 @@ from ..classes.agent import RunableAgent
 from ..classes.agent import BuildAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert
 
+
+# basic buildings
+
 CHALET = "chalet"
 DESERT_BUILDING = "desert_building"
-HUGE_SAWMILL = "huge_sawmill"
+
+# Special buildings
+
+SAWMILL = "sawmill"
+FARM = "farm"
+QUARRY = "quarry"
+FORGE = "forge"
+CHURCH = "church"
 
 def newChaleteAgent(core: Core):
     # Obviously fun(X
@@ -42,7 +52,7 @@ RunableAgentGenerator = Callable[[Core], RunableAgent]
 RUNABLE_AGENT_TABLE: dict[str, RunableAgentGenerator] = {
     CHALET: newChaleteAgent,
     DESERT_BUILDING: newDesertBuildingAgent,
-    HUGE_SAWMILL: newSawmillAgent
+    SAWMILL: newSawmillAgent
 }
 
 # TODO: add real agent after the building is completed
