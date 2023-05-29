@@ -42,6 +42,7 @@ from src.classes.core import Core
 from src.classes.agent import RunableAgent, RoadAgent
 from src.classes.agent_generator import RUNABLE_AGENT_TABLE, CHALET
 from src.level.level_manager import LevelManager
+from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 
 
@@ -97,8 +98,8 @@ if __name__ == '__main__':
 
         if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
             core.levelUp()
-            unlockedAgent = levelManager.getUnlockAgent(core.level)
-            if unlockedAgent != "none":
+            unlockedAgents = getUnlockAgents(core.level)
+            for unlockedAgent in unlockedAgents:
                 # add agent to pool
                 pass
         # clamp resource to limit

@@ -68,11 +68,11 @@
         ]
     ],
     "unlock_agents": [
-        "farm","none","none","none","none","none","none","none","none","none",
-        "sawmill","none","none","none","none","none","none","none","none","none",
-        "quarry","none","none","none","none","none","none","none","none","none",
-        "forge","none","none","none","none","none","none","none","none","none",
-        "church","none","none","none","none","none","none","none","none","none"
+        ["farm"], [], [], [], [], [], [], [], [], [],
+        ["sawmill"], [], [], [], [], [], [], [], [], [],
+        ["quarry"], [], [], [], [], [], [], [], [], [],
+        ["forge"], [], [], [], [], [], [], [], [], [],
+        ["church"], [], [], [], [], [], [], [], [], []
     ],
     "building_requirements": [
         2, 4, 6, 8, 10, 12, 14, 16, 18, 20,

@@ -17,7 +17,7 @@ class LevelLimit:
     buildings: list[list[int]]
     """Building limit of level"""
 
-    unlockAgents: list[str]
+    unlockAgents: list[list[str]]
     """Unlock agents of level"""
 
     buildingRequirements: list[int]
@@ -32,7 +32,7 @@ class LevelLimit:
             maxLevel: int = limit["maxLevel"]
             resourcesLimit: dict = limit["resources"]
             buildings: list[list[int]] = limit["buildings"]
-            unlockAgents: list[str] = limit["unlock_agents"]
+            unlockAgents: list[list[str]] = limit["unlock_agents"]
             buildingRequirements: list[int] = limit["building_requirements"]
 
             resources = list[Resource]()
@@ -52,3 +52,23 @@ class LevelLimit:
 
 
 levelLimit: LevelLimit = LevelLimit.load()
+
+
+def getResourceLimit(coreLevel: int) -> Resource:
+    """Return resource limit of level"""
+    return levelLimit.resources[coreLevel-1]
+
+
+def getBuildingLimit(coreLevel: int, buildingLevel: int) -> int:
+    """Return building limit of level"""
+    return levelLimit.buildings[buildingLevel-1][coreLevel-1]
+
+
+def getUnlockAgents(coreLevel: int) -> list[str]:
+    """Return unlock agents of level"""
+    return levelLimit.unlockAgents[coreLevel-1]
+
+
+def getBuildingRequirements(coreLevel: int) -> int:
+    """Return building requirements of level up"""
+    return levelLimit.buildingRequirements[coreLevel-1]
