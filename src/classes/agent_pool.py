@@ -33,7 +33,7 @@ class AgentPool(object):
             raise KeyError(f"{name} is not a special building")
 
         if name in self._special:
-            raise ValueError(f"{name} is already unlocked")
+            return
 
         self._special[name] = []
         for _ in range(self.numSpecial):
