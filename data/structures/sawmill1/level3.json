@@ -20,8 +20,8 @@
     },
     "ProduceResource": {
         "human": 0,
-        "wood": 2000,
-        "stone": 500,
+        "wood": 300,
+        "stone": 0,
         "food": 0,
         "ironOre": 0,
         "iron": 0,
