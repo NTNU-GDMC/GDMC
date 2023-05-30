@@ -2,7 +2,7 @@ import math
 import time
 from random import sample, choices, choice
 from typing import Callable
-from gdpc.vector_tools import Rect, ivec2, l1Distance
+from gdpc.vector_tools import Rect, ivec2, l1Distance, dropY
 from .core import Core
 from .event import Observer, BuildEvent
 from .baseagent import RunableAgent, withCooldown, Agent
@@ -78,12 +78,10 @@ class BuildAgent(RunableAgent):
             print("Agent: not enough resources")
             return False
 
-
         print("Agent: analysis and build")
 
-        length, _, width = self.buildingInfo.max_size
-        possibleLocations = self.core.getEmptyArea(
-            length, width)
+        size = self.buildingInfo.max_size
+        possibleLocations = self.core.getEmptyArea(dropY(size))
 
         if len(possibleLocations) == 0:
             return False

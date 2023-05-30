@@ -236,7 +236,8 @@ class Core():
             return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
-    def getEmptyArea(self, height: int, width: int) -> list[Rect]:
+    def getEmptyArea(self, size: ivec2) -> list[Rect]:
+        height, width = size
         height = ceil(height / UNIT)
         width = ceil(width / UNIT)
 
