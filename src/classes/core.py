@@ -1,4 +1,5 @@
 import random
+from math import ceil
 from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
@@ -171,10 +172,10 @@ class Core():
         (x, z) = building.position
         (xlen, _, zlen) = building.maxSize
         id = len(self._blueprintData) + 1
-        x = (x + UNIT) // UNIT
-        z = (z + UNIT) // UNIT
-        xlen = (xlen + UNIT) // UNIT
-        zlen = (zlen + UNIT) // UNIT
+        x = x // UNIT
+        z = z // UNIT
+        xlen = ceil(xlen / UNIT)
+        zlen = ceil(zlen / UNIT)
 
         # We still trust our agent on maintaining resources
         self._resources -= building.building_info.structures[building.level-1].requirement
@@ -236,8 +237,8 @@ class Core():
         raise Exception("This type does not exist on heightType")
 
     def getEmptyArea(self, height: int, width: int) -> list[Rect]:
-        height = (height + UNIT) // UNIT
-        width = (width + UNIT) // UNIT
+        height = ceil(height / UNIT)
+        width = ceil(width / UNIT)
 
         def isEmpty(val: Any):
             if val == 0:
