@@ -75,15 +75,6 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
     return checkEdge(core.liquidMap, area, cmp)
 
 
-desertSet = {
-    "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
-}
-
-redSandSet = {
-    "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
-}
-
-
 def isDesert(core: Core, area: Rect) -> float:
     """Check if the area is in the desert"""
     begin, end = area.begin, area.end
