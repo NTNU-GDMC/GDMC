@@ -1,3 +1,4 @@
+import random
 from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
@@ -12,6 +13,8 @@ from ..resource.analyze_biome import getAllBiomeList
 from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..resource.biome_substitute import getChangeMaterialList
+from ..resource.biome_substitute import desertSet, redSandSet
 
 UNIT = config.unit
 
@@ -45,6 +48,7 @@ class Core():
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
+        self._materialList = getChangeMaterialList(self._biomeList)
         self._resources = analyzeAreaMaterialToResource(
             worldSlice, buildArea.toRect())
         self._resourceMap = getMaterialToResourceMap(
@@ -144,6 +148,11 @@ class Core():
     def getBlueprintBuildingData(self, id: int):
         return self._blueprintData[id]
 
+    def getResource(self) -> str:
+        # if self._materialList[0] == "desert":
+        #     return str("desert")
+        return random.choice(self._materialList)
+
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
@@ -156,6 +165,37 @@ class Core():
 
         # We still trust our agent on maintaining resources
         self._resources -= building.building_info.structures[building.level-1].requirement
+        
+        """ 
+            Our desert building will not require wood resource, so I use check building
+            type to determine if the building is desert building
+        """
+        print("building.building_info.structures[building.level-1].requirement.wood", building.building_info.structures[building.level-1].requirement.wood)
+        if building.building_info.structures[building.level-1].requirement.wood == 0:
+            """
+                If we know that the building is desert building 
+                (whatever the biome is pure or mixed with desert or badland)
+                , choose one material from sand or red_sand if self.materialList contains sand or red_sand
+            """
+            print("--------------------------------------------------------------------", any(item in self._biomeList for item in redSandSet))
+            
+            if(any(item in self._biomeList for item in desertSet) or any(item in self._biomeList for item in redSandSet)):
+                tmp_materialList = set()
+                if "sand" in self._materialList:
+                    tmp_materialList.add("sand")
+                if "red_sand" in self._materialList:
+                    tmp_materialList.add("red_sand")
+                building.material = random.choice(list(tmp_materialList))
+                print("Building material ----------------------------------", building.material)
+        else:
+            """
+                If we know that the building is not desert building,
+                choose one material from self.materialList
+            """
+            tmp_material = self.getResource()
+            while tmp_material == "sand" or tmp_material == "red_sand":
+                tmp_material = self.getResource()
+            building.material = tmp_material
 
         self._blueprintData[id] = building
         self._blueprint[x:x + xlen, z:z + zlen] = id
@@ -275,7 +315,7 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print("build at:", area, ",y:", y)
-            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y))
+            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y), building.material)
 
         for node in self._roadNetwork.subnodes:
             area = Rect(node.val, (UNIT, UNIT))

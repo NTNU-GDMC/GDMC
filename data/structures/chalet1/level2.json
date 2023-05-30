@@ -7,7 +7,6 @@
         }
     ],
     "Size": [17, 16, 16],
-    "Material": "oak",
     "Type": 1,
     "Level": 2,
     "RequiredResource": {

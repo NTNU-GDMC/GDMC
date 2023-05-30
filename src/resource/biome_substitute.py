@@ -1,7 +1,11 @@
 # fix: all list need to be fixed - SubaRya
 import re
 
-originTosnowList = {
+"""
+Material Replace Table based on nbt building default material
+"""
+
+originToSpruceList = {
     "oak_planks": "spruce_planks",
     "oak_door": "spruce_door",
     "oak_log": "spruce_log",
@@ -24,24 +28,247 @@ originTosnowList = {
     "potted_oak_sapling": "minecraft:potted_spruce_sapling",
 }
 
+originToBirchList = {
+    "oak_planks": "birch_planks",
+    "oak_door": "birch_door",
+    "oak_log": "birch_log",
+    "oak_wood": "birch_wood",
+    "oak_slab": "birch_slab",
+    "oak_door": "birch_door",
+    "oak_sign": "birch_sign",
+    "oak_fence": "birch_fence",
+    "oak_planks": "birch_planks",
+    "oak_leaves": "birch_leaves",
+    "oak_stairs": "birch_stairs",
+    "oak_button": "birch_button",
+    "oak_sapling": "birch_sapling",
+    "oak_trapdoor": "birch_trapdoor",
+    "oak_wall_sign": "birch_wall_sign",
+    "oak_fence_gate": "birch_fence_gate",
+    "oak_pressure_plate": "birch_pressure_plate",
+    "stripped_oak_log": "stripped_birch_log",
+    "stripped_oak_wood": "stripped_birch_wood",
+    "potted_oak_sapling": "minecraft:potted_birch_sapling",
+}
 
-def snowRepl(m):
+originToJungleList = {
+    "oak_planks": "jungle_planks",
+    "oak_door": "jungle_door",
+    "oak_log": "jungle_log",
+    "oak_wood": "jungle_wood",
+    "oak_slab": "jungle_slab",
+    "oak_door": "jungle_door",
+    "oak_sign": "jungle_sign",
+    "oak_fence": "jungle_fence",
+    "oak_planks": "jungle_planks",
+    "oak_leaves": "jungle_leaves",
+    "oak_stairs": "jungle_stairs",
+    "oak_button": "jungle_button",
+    "oak_sapling": "jungle_sapling",
+    "oak_trapdoor": "jungle_trapdoor",
+    "oak_wall_sign": "jungle_wall_sign",
+    "oak_fence_gate": "jungle_fence_gate",
+    "oak_pressure_plate": "jungle_pressure_plate",
+    "stripped_oak_log": "stripped_jungle_log",
+    "stripped_oak_wood": "stripped_jungle_wood",
+    "potted_oak_sapling": "minecraft:potted_jungle_sapling",
+}
+
+originToAcaciaList = {
+    "oak_planks": "acacia_planks",
+    "oak_door": "acacia_door",
+    "oak_log": "acacia_log",
+    "oak_wood": "acacia_wood",
+    "oak_slab": "acacia_slab",
+    "oak_door": "acacia_door",
+    "oak_sign": "acacia_sign",
+    "oak_fence": "acacia_fence",
+    "oak_planks": "acacia_planks",
+    "oak_leaves": "acacia_leaves",
+    "oak_stairs": "acacia_stairs",
+    "oak_button": "acacia_button",
+    "oak_sapling": "acacia_sapling",
+    "oak_trapdoor": "acacia_trapdoor",
+    "oak_wall_sign": "acacia_wall_sign",
+    "oak_fence_gate": "acacia_fence_gate",
+    "oak_pressure_plate": "acacia_pressure_plate",
+    "stripped_oak_log": "stripped_acacia_log",
+    "stripped_oak_wood": "stripped_acacia_wood",
+    "potted_oak_sapling": "minecraft:potted_acacia_sapling",
+}
+
+originToDarkOakList = {
+    "oak_planks": "dark_oak_planks",
+    "oak_door": "dark_oak_door",
+    "oak_log": "dark_oak_log",
+    "oak_wood": "dark_oak_wood",
+    "oak_slab": "dark_oak_slab",
+    "oak_door": "dark_oak_door",
+    "oak_sign": "dark_oak_sign",
+    "oak_fence": "dark_oak_fence",
+    "oak_planks": "dark_oak_planks",
+    "oak_leaves": "dark_oak_leaves",
+    "oak_stairs": "dark_oak_stairs",
+    "oak_button": "dark_oak_button",
+    "oak_sapling": "dark_oak_sapling",
+    "oak_trapdoor": "dark_oak_trapdoor",
+    "oak_wall_sign": "dark_oak_wall_sign",
+    "oak_fence_gate": "dark_oak_fence_gate",
+    "oak_pressure_plate": "dark_oak_pressure_plate",
+    "stripped_oak_log": "stripped_dark_oak_log",
+    "stripped_oak_wood": "stripped_dark_oak_wood",
+    "potted_oak_sapling": "minecraft:potted_dark_oak_sapling",
+}
+
+originToRedSandList = {
+    "sand": "red_sand",
+    "sandstone": "red_sandstone",
+    "sandstone_slab": "red_sandstone_slab",
+    "sandstone_wall": "red_sandstone_wall",
+    "sandstone_stairs": "red_sandstone_stairs",
+    "smooth_sandstone_slab": "smooth_red_sandstone_slab",
+    "smooth_sandstone_stairs": "smooth_red_sandstone_stairs",
+    "smooth_sandstone": "smooth_red_sandstone",
+    "cut_sandstone_slab": "cut_red_sandstone_slab",
+    "cut_sandstone": "cut_red_sandstone",
+    "chiseled_sandstone": "chiseled_red_sandstone",
+}
+
+
+"""
+Material Replace function
+"""
+
+def spruceRepl(m):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originTosnowList[parseX])
+        parseX = parseX.replace(parseX, originToSpruceList[parseX])
     return ":" + parseX
 
+def birchRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToBirchList[parseX])
+    return ":" + parseX
 
-def isChangeBlock(biome: str):
-    if biome == "snow" or biome == "badland":
-        return True
-    return False
+def jungleRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToJungleList[parseX])
+    return ":" + parseX
 
+def acaciaRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToAcaciaList[parseX])
+    return ":" + parseX
 
-def changeBlock(biome: str, blockName: str):
-    # This function will change block definitely via biome
-    if biome == "snow":
-        blockName = re.sub(r":[\w_]*\b", snowRepl, blockName)
+def darkOakRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToDarkOakList[parseX])
+    return ":" + parseX
+
+def redSandRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("sand") or parseX.startswith("sandstone") or parseX.startswith("smooth_sandstone") or parseX.startswith("cut_sandstone") or parseX.startswith("chiseled_sandstone"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToRedSandList[parseX])
+    return ":" + parseX
+
+"""
+Material <=>  Biome
+According to Java edition.
+"""
+
+spruceSet = {
+    "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga",
+    "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:windswept_hills", "minecraft:windswept_forest", 
+    "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks"
+}
+
+birchSet = {
+    "minecraft:forest", "minecraft:birch_forest", "minecraft:old_growth_birch_forest", "minecraft:meadow"
+}
+
+jungleSet = {
+    "minecraft:jungle", "minecraft:sparse_jungle", "minecraft:bamboo_jungle"
+}
+
+acaciaSet = {
+    "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:windswept_savanna"
+}
+
+darkOakSet = {
+    "minecraft:dark_forest"
+}
+
+otherSet = {
+    "minecraft:flower_forest","minecraft:windswept_hills", "minecraft:windswept_forest", "minecraft:bamboo_jungle",
+    "minecraft:wooded_badlands"
+}
+
+desertSet = {
+    "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
+}
+
+redSandSet = {
+    "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
+}
+
+def getChangeMaterialList(biomeList: list[str]) -> list[str]:
+    """
+        This function return maybe list for
+        1. pure wood
+        2. pure sand
+        3. wood and sand
+    """
+    retList = set()
+    for biome in biomeList:
+        if biome in spruceSet:
+            retList.add("spruce")
+        elif biome in birchSet:
+            retList.add("birch")
+        elif biome in jungleSet:
+            retList.add("jungle")
+        elif biome in acaciaSet:
+            retList.add("acacia")
+        elif biome in darkOakSet:
+            retList.add("dark_oak")
+        elif biome in otherSet:
+            retList.add("oak")
+        elif biome in desertSet:
+            retList.add("sand")
+        elif biome in redSandSet:
+            retList.add("red_sand")
+    """and ("sand" not in retList) and ("red_sand" not in retList)"""
+    if(("spruce" not in retList) and ("dark_oak" not in retList)):
+        retList.add("oak")
+    return list[str](retList)
+
+def changeBlock(material: str, blockName: str):
+    # This function will change block definitely via building_info material
+    if material == "spruce":
+        blockName = re.sub(r":[\w_]*\b", spruceRepl, blockName)
+    elif material == "birch":
+        blockName = re.sub(r":[\w_]*\b", birchRepl, blockName)
+    elif material == "jungle":
+        blockName = re.sub(r":[\w_]*\b", jungleRepl, blockName)
+    elif material == "acacia":
+        blockName = re.sub(r":[\w_]*\b", acaciaRepl, blockName)
+    elif material == "dark_oak":
+        blockName = re.sub(r":[\w_]*\b", darkOakRepl, blockName)
+    elif material == "red_sand":
+        blockName = re.sub(r":[\w_]*\b", redSandRepl, blockName)
     return blockName
