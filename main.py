@@ -37,7 +37,7 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 """
 
 # ! /usr/bin/python3
-from nbt import nbt
+import time
 from src.classes.core import Core
 from src.classes.agent import RoadAgent
 from src.classes.agent_pool import AgentPool
@@ -54,6 +54,8 @@ NUM_BASIC_AGENTS = config.numBasicAgents
 NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
 if __name__ == '__main__':
+    startTime = time.time()
+
     core = Core()
     levelManager = LevelManager()
     agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
@@ -110,6 +112,12 @@ if __name__ == '__main__':
         print("Round Done")
         print("=====")
 
+    print(f"Time: {time.time() - startTime}")
+
+    print("Start building in minecraft")
+
     core.startBuildingInMinecraft()
+
+    print("Done building in minecraft")
 
     plotBlueprint(core)
