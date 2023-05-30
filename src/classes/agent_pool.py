@@ -18,8 +18,7 @@ class AgentPool(object):
         self.numSpecial = numSpecial
 
         for name in BASIC_BUILDINGS:
-            for _ in range(numBasic):
-                self._basic.setdefault(name, []).append(newAgent(core, name))
+            self.addBasic(name, numBasic)
 
     @property
     def agents(self):
@@ -29,15 +28,29 @@ class AgentPool(object):
             yield from agents
 
     def unlockSpecial(self, name: str):
-        if name not in SPECIAL_BUILDINGS:
-            raise KeyError(f"{name} is not a special building")
-
         if name in self._special:
             return
 
-        self._special[name] = []
-        for _ in range(self.numSpecial):
+        self.addSpecial(name, self.numSpecial)
+
+    def addBasic(self, name: str, num: int):
+        if name not in BASIC_BUILDINGS:
+            raise KeyError(f"{name} is not a basic building")
+
+        for _ in range(num):
             try:
-                self._special[name].append(newAgent(self.core, name))
+                self._basic.setdefault(name, []).append(
+                    newAgent(self.core, name))
+            except KeyError:
+                break
+
+    def addSpecial(self, name: str, num: int):
+        if name not in SPECIAL_BUILDINGS:
+            raise KeyError(f"{name} is not a special building")
+
+        for _ in range(num):
+            try:
+                self._special.setdefault(name, []).append(
+                    newAgent(self.core, name))
             except KeyError:
                 break
