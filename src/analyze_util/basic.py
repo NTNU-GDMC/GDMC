@@ -35,7 +35,7 @@ def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
     return thresholdSD / std
 
 
-def isLiquid(core: Core, area: Rect)->float:
+def isLiquid(core: Core, area: Rect) -> float:
     ret = False
     for x, z in area.inner:
         if core.liquidMap[x, z]:
@@ -74,6 +74,7 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
 
     return checkEdge(core.liquidMap, area, cmp)
 
+
 desertSet = {
     "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
 }
@@ -82,7 +83,8 @@ redSandSet = {
     "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
 }
 
-def isDesert(core: Core, area: Rect)->float:
+
+def isDesert(core: Core, area: Rect) -> float:
     ret = False
     height = core.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
@@ -95,3 +97,18 @@ def isDesert(core: Core, area: Rect)->float:
             sum += 1
         total += 1
     return sum / total
+
+
+MINIMUM_BOUND_PADDING = 10
+
+
+def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
+    """Check if the area is close enough to the bound"""
+    bound = core.buildArea.toRect()
+
+    left = area.begin.x - bound.begin.x
+    bottom = area.begin.y - bound.begin.y
+    right = bound.last.x - area.last.x
+    top = bound.last.y - area.last.y
+
+    return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
