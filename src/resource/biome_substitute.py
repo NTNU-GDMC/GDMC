@@ -139,6 +139,7 @@ originToRedSandList = {
 Material Replace function
 """
 
+
 def spruceRepl(m):
     x = m.group()
     parseX = str(x[1:])
@@ -146,6 +147,7 @@ def spruceRepl(m):
         # print("x= ", parseX)
         parseX = parseX.replace(parseX, originToSpruceList[parseX])
     return ":" + parseX
+
 
 def birchRepl(m):
     x = m.group()
@@ -155,6 +157,7 @@ def birchRepl(m):
         parseX = parseX.replace(parseX, originToBirchList[parseX])
     return ":" + parseX
 
+
 def jungleRepl(m):
     x = m.group()
     parseX = str(x[1:])
@@ -162,6 +165,7 @@ def jungleRepl(m):
         # print("x= ", parseX)
         parseX = parseX.replace(parseX, originToJungleList[parseX])
     return ":" + parseX
+
 
 def acaciaRepl(m):
     x = m.group()
@@ -171,6 +175,7 @@ def acaciaRepl(m):
         parseX = parseX.replace(parseX, originToAcaciaList[parseX])
     return ":" + parseX
 
+
 def darkOakRepl(m):
     x = m.group()
     parseX = str(x[1:])
@@ -178,6 +183,7 @@ def darkOakRepl(m):
         # print("x= ", parseX)
         parseX = parseX.replace(parseX, originToDarkOakList[parseX])
     return ":" + parseX
+
 
 def redSandRepl(m):
     x = m.group()
@@ -187,6 +193,7 @@ def redSandRepl(m):
         parseX = parseX.replace(parseX, originToRedSandList[parseX])
     return ":" + parseX
 
+
 """
 Material <=>  Biome
 According to Java edition.
@@ -194,7 +201,7 @@ According to Java edition.
 
 spruceSet = {
     "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga",
-    "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:windswept_hills", "minecraft:windswept_forest", 
+    "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:windswept_hills", "minecraft:windswept_forest",
     "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks"
 }
 
@@ -215,7 +222,7 @@ darkOakSet = {
 }
 
 otherSet = {
-    "minecraft:flower_forest","minecraft:windswept_hills", "minecraft:windswept_forest", "minecraft:bamboo_jungle",
+    "minecraft:flower_forest", "minecraft:windswept_hills", "minecraft:windswept_forest", "minecraft:bamboo_jungle",
     "minecraft:wooded_badlands"
 }
 
@@ -227,6 +234,30 @@ redSandSet = {
     "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
 }
 
+
+def getChangeMaterial(biome: str) -> str:
+    """return change material according to biome"""
+
+    if biome in spruceSet:
+        return "spruce"
+    if biome in birchSet:
+        return "birch"
+    if biome in jungleSet:
+        return "jungle"
+    if biome in acaciaSet:
+        return "acacia"
+    if biome in darkOakSet:
+        return "dark_oak"
+    if biome in otherSet:
+        return "oak"
+    if biome in desertSet:
+        return "sand"
+    if biome in redSandSet:
+        return "red_sand"
+
+    return "oak"
+
+
 def getChangeMaterialList(biomeList: list[str]) -> list[str]:
     """
         This function return maybe list for
@@ -236,26 +267,13 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
     """
     retList = set()
     for biome in biomeList:
-        if biome in spruceSet:
-            retList.add("spruce")
-        elif biome in birchSet:
-            retList.add("birch")
-        elif biome in jungleSet:
-            retList.add("jungle")
-        elif biome in acaciaSet:
-            retList.add("acacia")
-        elif biome in darkOakSet:
-            retList.add("dark_oak")
-        elif biome in otherSet:
-            retList.add("oak")
-        elif biome in desertSet:
-            retList.add("sand")
-        elif biome in redSandSet:
-            retList.add("red_sand")
+        material = getChangeMaterial(biome)
+        retList.add(material)
     """and ("sand" not in retList) and ("red_sand" not in retList)"""
-    if(("spruce" not in retList) and ("dark_oak" not in retList)):
+    if (("spruce" not in retList) and ("dark_oak" not in retList)):
         retList.add("oak")
     return list[str](retList)
+
 
 def changeBlock(material: str, blockName: str):
     # This function will change block definitely via building_info material
