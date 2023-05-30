@@ -20,6 +20,36 @@
                         "nbt": "chalet1/level3.nbt"
                     }
                 ]
+            },
+            {
+                "name": "chalet2",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "chalet2/level1.json",
+                        "nbt": "chalet2/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "chalet2/level2.json",
+                        "nbt": "chalet2/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "chalet2/level3.json",
+                        "nbt": "chalet2/level3.nbt"
+                    }
+                ]
+            },
+            {
+                "name": "chalet3",
+                "level_info": [
+                    {
+                        "level": 2,
+                        "info": "chalet3/level2.json",
+                        "nbt": "chalet3/level2.nbt"
+                    }
+                ]
             }
         ]
     },
