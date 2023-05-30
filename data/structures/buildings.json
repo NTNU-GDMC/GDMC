@@ -53,6 +53,11 @@
                 "name": "sawmill1",
                 "level_info": [
                     {
+                        "level": 1,
+                        "info": "sawmill1/level1.json",
+                        "nbt": "sawmill1/level1.nbt"
+                    },
+                    {
                         "level": 3,
                         "info": "sawmill1/level3.json",
                         "nbt": "sawmill1/level3.nbt"
