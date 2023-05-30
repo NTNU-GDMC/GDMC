@@ -60,9 +60,9 @@ def newAgent(core: Core, name: str):
 
         desertness = isDesert(core, area)
 
-        if TAG_DESERT in tags and not desertness:
+        if TAG_DESERT in tags and desertness <= 0.5:
             return 0
-        if TAG_DESERT not in tags and desertness:
+        if TAG_DESERT not in tags and desertness >= 0.5:
             return 0
 
         flatness = isFlat(core, area)
