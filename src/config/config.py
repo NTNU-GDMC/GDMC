@@ -90,6 +90,8 @@ class Config:
     numSpecialAgents: int = 1
     """The number of special agents"""
 
+    sampleRate: float = 0.5
+
     # ================ data ================
 
     structuresPath: Path = Path("data/structures")

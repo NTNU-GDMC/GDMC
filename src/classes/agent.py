@@ -1,5 +1,5 @@
-import math
 import time
+from math import ceil
 from random import sample, choices, choice
 from typing import Callable
 from gdpc.vector_tools import Rect, ivec2, l1Distance, dropY
@@ -15,6 +15,7 @@ from ..road.pathfind import pathfind
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
 ANALYZE_THRESHOLD = config.analyzeThreshold
+SAMPLE_RATE = config.sampleRate
 
 
 class BuildAgent(RunableAgent):
@@ -73,6 +74,7 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
+        buildArea = self.core.buildArea.toRect()
 
         if self.core.resources < self.buildingInfo.structures[0].requirement:
             print("Agent: not enough resources")
@@ -82,20 +84,25 @@ class BuildAgent(RunableAgent):
 
         size = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(dropY(size))
-
-        if len(possibleLocations) == 0:
-            return False
+        numPossibleLocations = len(possibleLocations)
 
         bestLocation = None
         bestLocationValue = 0
 
-        buildArea = self.core.buildArea.toRect()
-
-        print(f"Analyzing {len(possibleLocations)} locations...")
+        print(f"Analyzing {numPossibleLocations} locations...")
 
         timeStart = time.time()
-        print("Analyzing...")
-        for location in sample(possibleLocations, len(possibleLocations)):
+
+        possibleLocations = sample(possibleLocations, numPossibleLocations)
+        nextCheckIndex = ceil(numPossibleLocations * SAMPLE_RATE)
+        for i in range(numPossibleLocations):
+            if i == nextCheckIndex:
+                print(f"{i}/{numPossibleLocations} locations analyzed")
+                if bestLocation is not None:
+                    break
+                nextCheckIndex += ceil(numPossibleLocations-i * SAMPLE_RATE)
+
+            location = possibleLocations[i]
             # FIXME: this is a temporary solution for checking if the location is in the build area
 
             def inBuildArea():
@@ -146,7 +153,7 @@ class BuildAgent(RunableAgent):
 
     def gatherResource(self, resourceType: str):
         # gain 5% of the limit
-        self.core.resources[resourceType] += math.ceil(
+        self.core.resources[resourceType] += ceil(
             self.core.resourceLimit[resourceType] * 0.05)
 
 
