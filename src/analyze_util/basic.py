@@ -74,6 +74,14 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
 
     return checkEdge(core.liquidMap, area, cmp)
 
+desertSet = {
+    "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
+}
+
+redSandSet = {
+    "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
+}
+
 def isDesert(core: Core, area: Rect)->float:
     ret = False
     height = core.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
@@ -81,6 +89,7 @@ def isDesert(core: Core, area: Rect)->float:
     for x in range(0, mx):
         for z in range(0, mz):
             ox, oz = area.offset
-            if core.worldSlice.getBiome([x, height[x + ox, z + oz], z]) == "minecraft:desert":
+            biomeName = core.worldSlice.getBiome([x, height[x + ox, z + oz], z])
+            if biomeName in desertSet or biomeName in redSandSet:
                 return 1
     return 0

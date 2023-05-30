@@ -1,6 +1,10 @@
 # fix: all list need to be fixed - SubaRya
 import re
 
+"""
+Material Replace Table based on nbt building default material
+"""
+
 originToSpruceList = {
     "oak_planks": "spruce_planks",
     "oak_door": "spruce_door",
@@ -116,6 +120,24 @@ originToDarkOakList = {
     "potted_oak_sapling": "minecraft:potted_dark_oak_sapling",
 }
 
+originToRedSandList = {
+    "sand": "red_sand",
+    "sandstone": "red_sandstone",
+    "sandstone_slab": "red_sandstone_slab",
+    "sandstone_wall": "red_sandstone_wall",
+    "sandstone_stairs": "red_sandstone_stairs",
+    "smooth_sandstone_slab": "smooth_red_sandstone_slab",
+    "smooth_sandstone_stairs": "smooth_red_sandstone_stairs",
+    "smooth_sandstone": "smooth_red_sandstone",
+    "cut_sandstone_slab": "cut_red_sandstone_slab",
+    "cut_sandstone": "cut_red_sandstone",
+    "chiseled_sandstone": "chiseled_red_sandstone",
+}
+
+
+"""
+Material Replace function
+"""
 
 def spruceRepl(m):
     x = m.group()
@@ -157,55 +179,61 @@ def darkOakRepl(m):
         parseX = parseX.replace(parseX, originToDarkOakList[parseX])
     return ":" + parseX
 
+def redSandRepl(m):
+    x = m.group()
+    parseX = str(x[1:])
+    if parseX.startswith("sand") or parseX.startswith("sandstone") or parseX.startswith("smooth_sandstone") or parseX.startswith("cut_sandstone") or parseX.startswith("chiseled_sandstone"):
+        # print("x= ", parseX)
+        parseX = parseX.replace(parseX, originToRedSandList[parseX])
+    return ":" + parseX
+
 """
-material: biome => 
-    spruce: taiga, snowy_tundra, snowy_mountains, taiga_hills, snowy_beach, 
-            snowy_taiga, snowy_taiga_hills, giant_tree_taiga,
-            giant_tree_taiga_hills, taiga_mountains, ice_spikes,
-            snowy_taiga_mountains, giant_spruce_taiga, giant_spruce_taiga_hills
-    birch: forest, birch_forest, birch_forest_hills, flower_forest, tall_birch_forest, tall_birch_hills
-    jungle:jungle, jungle_hills, jungle_edge, modified_jungle, modified_jungle_edge
-    acacia: savanna, savanna_plateau, shattered_savanna, shattered_savanna_plateau
-    dark_oak: dark_forest, dark_forest_hills
-    desert: desert, desert_hills, desert_lakes
-    oak: other
+Material <=>  Biome
+According to Java edition.
 """
 
 spruceSet = {
-    "minecraft:taiga", "minecraft:snowy_tundra", "minecraft:snowy_mountains", "minecraft:taiga_hills", "minecraft:snowy_beach",
-    "minecraft:snowy_taiga", "minecraft:snowy_taiga_hills", "minecraft:giant_tree_taiga",
-    "minecraft:giant_tree_taiga_hills", "minecraft:taiga_mountains", "minecraft:ice_spikes",
-    "minecraft:snowy_taiga_mountains", "minecraft:giant_spruce_taiga", "minecraft:giant_spruce_taiga_hills"
+    "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga",
+    "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:windswept_hills", "minecraft:windswept_forest", 
+    "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks"
 }
 
 birchSet = {
-    "minecraft:forest", "minecraft:birch_forest", "minecraft:birch_forest_hills", "minecraft:flower_forest",
-    "minecraft:tall_birch_forest", "minecraft:tall_birch_hills"
+    "minecraft:forest", "minecraft:birch_forest", "minecraft:old_growth_birch_forest", "minecraft:meadow"
 }
 
 jungleSet = {
-    "minecraft:jungle", "minecraft:jungle_hills", "minecraft:jungle_edge", "minecraft:modified_jungle",
-    "minecraft:modified_jungle_edge"
+    "minecraft:jungle", "minecraft:sparse_jungle", "minecraft:bamboo_jungle"
 }
 
 acaciaSet = {
-    "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:shattered_savanna", "minecraft:shattered_savanna_plateau"
+    "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:windswept_savanna"
 }
 
 darkOakSet = {
-    "minecraft:dark_forest", "minecraft:dark_forest_hills"
-}
-
-desertSet = {
-    "minecraft:desert", "minecraft:desert_hills", "minecraft:desert_lakes"
+    "minecraft:dark_forest"
 }
 
 otherSet = {
-    "minecraft:forest", "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:shattered_savanna", 
-    "minecraft:shattered_savanna_plateau", "minecraft:flower_forest"
+    "minecraft:flower_forest","minecraft:windswept_hills", "minecraft:windswept_forest", "minecraft:bamboo_jungle",
+    "minecraft:wooded_badlands"
+}
+
+desertSet = {
+    "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
+}
+
+redSandSet = {
+    "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands"
 }
 
 def getChangeMaterialList(biomeList: list[str]) -> list[str]:
+    """
+        This function return maybe list for
+        1. pure wood
+        2. pure sand
+        3. wood and sand
+    """
     retList = set()
     for biome in biomeList:
         if biome in spruceSet:
@@ -221,8 +249,10 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
         elif biome in otherSet:
             retList.add("oak")
         elif biome in desertSet:
-            # this has problem with mix desert and whatever biome
-            return ["desert"]
+            retList.add("sand")
+        elif biome in redSandSet:
+            retList.add("red_sand")
+    """and ("sand" not in retList) and ("red_sand" not in retList)"""
     if(("spruce" not in retList) and ("dark_oak" not in retList)):
         retList.add("oak")
     return list[str](retList)
@@ -239,4 +269,6 @@ def changeBlock(material: str, blockName: str):
         blockName = re.sub(r":[\w_]*\b", acaciaRepl, blockName)
     elif material == "dark_oak":
         blockName = re.sub(r":[\w_]*\b", darkOakRepl, blockName)
+    elif material == "red_sand":
+        blockName = re.sub(r":[\w_]*\b", redSandRepl, blockName)
     return blockName
