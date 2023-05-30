@@ -35,7 +35,10 @@ class Core():
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
+        print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
+        print("World slice loaded")
+
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
         # get top left and bottom right coordnidate
@@ -47,12 +50,22 @@ class Core():
         self._roadMap = np.zeros((x, z), dtype=int)
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
+
+        print("Analyzing biome...")
         self._biomeList = getAllBiomeList(worldSlice, buildArea)
         self._materialList = getChangeMaterialList(self._biomeList)
+        print("Biome analyzed")
+
+        print("Analyzing resource...")
         self._resources = analyzeAreaMaterialToResource(
             worldSlice, buildArea.toRect())
+        print("Resource analyzed")
+
+        print("Analyzing resource map...")
         self._resourceMap = getMaterialToResourceMap(
             worldSlice, buildArea.toRect())
+        print("Resource map analyzed")
+
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros(
@@ -165,28 +178,31 @@ class Core():
 
         # We still trust our agent on maintaining resources
         self._resources -= building.building_info.structures[building.level-1].requirement
-        
+
         """ 
             Our desert building will not require wood resource, so I use check building
             type to determine if the building is desert building
         """
-        print("building.building_info.structures[building.level-1].requirement.wood", building.building_info.structures[building.level-1].requirement.wood)
+        print("building.building_info.structures[building.level-1].requirement.wood",
+              building.building_info.structures[building.level-1].requirement.wood)
         if building.building_info.structures[building.level-1].requirement.wood == 0:
             """
                 If we know that the building is desert building 
                 (whatever the biome is pure or mixed with desert or badland)
                 , choose one material from sand or red_sand if self.materialList contains sand or red_sand
             """
-            print("--------------------------------------------------------------------", any(item in self._biomeList for item in redSandSet))
-            
-            if(any(item in self._biomeList for item in desertSet) or any(item in self._biomeList for item in redSandSet)):
+            print("--------------------------------------------------------------------",
+                  any(item in self._biomeList for item in redSandSet))
+
+            if (any(item in self._biomeList for item in desertSet) or any(item in self._biomeList for item in redSandSet)):
                 tmp_materialList = set()
                 if "sand" in self._materialList:
                     tmp_materialList.add("sand")
                 if "red_sand" in self._materialList:
                     tmp_materialList.add("red_sand")
                 building.material = random.choice(list(tmp_materialList))
-                print("Building material ----------------------------------", building.material)
+                print(
+                    "Building material ----------------------------------", building.material)
         else:
             """
                 If we know that the building is not desert building,
@@ -314,8 +330,9 @@ class Core():
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
-            print("build at:", area, ",y:", y)
-            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y), building.material)
+            print(f"Build at {pos} with height {y}")
+            buildFromNBT(self._editor, structure.nbtFile,
+                         addY(pos, y), building.material)
 
         for node in self._roadNetwork.subnodes:
             area = Rect(node.val, (UNIT, UNIT))

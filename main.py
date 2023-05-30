@@ -56,7 +56,11 @@ NUM_SPECIAL_AGENTS = config.numSpecialAgents
 if __name__ == '__main__':
     startTime = time.time()
 
+    print("Initing core...")
     core = Core()
+    print("Done initing core")
+
+
     levelManager = LevelManager()
     agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
     RoadAgent(core)
