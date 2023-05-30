@@ -50,7 +50,7 @@ class BuildAgent(RunableAgent):
         weights = [calcWeight(level) for level in levels]
 
         if all([weight == 0 for weight in weights]):
-            print("No building can be built")
+            print("No building can be built, all building limit reached")
             return False
 
         level = choices(levels, weights=weights, k=1)[0]
@@ -74,6 +74,11 @@ class BuildAgent(RunableAgent):
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
 
+        if self.core.resources < self.buildingInfo.structures[0].requirement:
+            print("Agent: not enough resources")
+            return False
+
+
         print("Agent: analysis and build")
 
         length, _, width = self.buildingInfo.max_size
@@ -83,13 +88,12 @@ class BuildAgent(RunableAgent):
         if len(possibleLocations) == 0:
             return False
 
-        if self.core.resources < self.buildingInfo.structures[0].requirement:
-            return False
-
         bestLocation = None
         bestLocationValue = 0
 
         buildArea = self.core.buildArea.toRect()
+
+        print(f"Analyzing {len(possibleLocations)} locations...")
 
         timeStart = time.time()
         print("Analyzing...")
@@ -113,10 +117,10 @@ class BuildAgent(RunableAgent):
             bestLocationValue = value
             bestLocation = location
 
-        print("Analysis done")
-        print(f"Time used: {time.time() - timeStart:.2f}s")
+        print(f"Analysis done, Time used: {time.time() - timeStart:.2f}s")
 
         if bestLocation is None:
+            print("Agent: no suitable location found")
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
