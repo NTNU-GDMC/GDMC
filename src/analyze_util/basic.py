@@ -85,18 +85,11 @@ redSandSet = {
 
 
 def isDesert(core: Core, area: Rect) -> float:
-    ret = False
-    height = core.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-
-    sum = 0
-    total = 0
-
-    for x, z in area.inner:
-        biomeName = core.worldSlice.getBiome((x, height[x, z], z))
-        if biomeName in desertSet or biomeName in redSandSet:
-            sum += 1
-        total += 1
-    return sum / total
+    """Check if the area is in the desert"""
+    begin, end = area.begin, area.end
+    sum = core.biomeMap.desert[begin.x:end.x, begin.y:end.y].sum() + \
+        core.biomeMap.badlands[begin.x:end.x, begin.y:end.y].sum()
+    return sum / area.area
 
 
 MINIMUM_BOUND_PADDING = 10
