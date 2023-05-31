@@ -84,13 +84,21 @@ class Config:
     analyzeThreshold: float = 1
     """The threshold of the analyzer"""
 
-    numBasicAgents: int = 10
+    numBasicAgents: int = 3
     """The number of basic agents"""
 
     numSpecialAgents: int = 1
     """The number of special agents"""
 
-    sampleRate: float = 0.5
+    sampleRate: float = 0.7
+
+    # ================ analyzer ================
+
+    flatnessThreshold: float = 0.4
+
+    desertnessThreshold: float = 0.4
+
+    forestThreshold: float = 0.4
 
     # ================ data ================
 
@@ -106,6 +114,6 @@ class Config:
     """The material of the road"""
 
     # ================ main ================
-    gameRound: int = 50
+    gameRound: int = 100
 
 config = Config.load()
