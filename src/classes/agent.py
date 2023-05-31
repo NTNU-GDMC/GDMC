@@ -30,7 +30,7 @@ class BuildAgent(RunableAgent):
         self.speical = special
 
     def __str__(self) -> str:
-        return f"BuildAgent({self.buildingInfo})"
+        return f"BuildAgent({self.buildingInfo.type})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -74,13 +74,12 @@ class BuildAgent(RunableAgent):
 
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
-        buildArea = self.core.buildArea.toRect()
+
+        print(f"{self}: Start analysis and build")
 
         if self.core.resources < self.buildingInfo.structures[0].requirement:
-            print("Agent: not enough resources")
+            print(f"No enough resources to build")
             return False
-
-        print("Agent: analysis and build")
 
         size = self.buildingInfo.max_size
         possibleLocations = self.core.getEmptyArea(dropY(size))
@@ -118,17 +117,15 @@ class BuildAgent(RunableAgent):
         print(f"Analysis done, Time used: {time.time() - timeStart:.2f}s")
 
         if bestLocation is None:
-            print("Agent: no suitable location found")
+            print(f"No suitable location found")
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"Build '{building.building_info.type}' at position: {building.position.to_tuple()}")
+            f"Build {self.buildingInfo.type} at position: {building.position.to_tuple()}")
 
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
-
-        print(f"Agent: {self.buildingInfo.type} built")
 
         return True
 
@@ -192,18 +189,15 @@ class RoadAgent(Agent):
         end = choices(nodes, weights=weights, k=1)[0]
 
         print(
-            f"Connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
             print("Failed.")
             return
-
         print("Done.")
 
-        print(f"Adding edge to road network...")
-
+        print(f"Update road network...", end=" ")
         self.core.addRoadEdge(edge)
-
-        print(f"Adding edge done.")
+        print("Done.")
