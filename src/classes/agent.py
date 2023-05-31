@@ -103,17 +103,10 @@ class BuildAgent(RunableAgent):
                 nextCheckIndex += ceil(numPossibleLocations-i * SAMPLE_RATE)
 
             location = possibleLocations[i]
-            # FIXME: this is a temporary solution for checking if the location is in the build area
-
-            def inBuildArea():
-                return buildArea.contains(location.begin) and buildArea.contains(location.last)
-
-            if not inBuildArea():
-                continue
 
             value = self.analysis(self.core, location)
 
-            if value < ANALYZE_THRESHOLD:
+            if value == 0:
                 continue
 
             if value <= bestLocationValue:

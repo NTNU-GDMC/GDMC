@@ -23,37 +23,26 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
     return False
 
 
-THRESHOLD_SD = 8
-
-
-def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
+def isFlat(core: Core, area: Rect) -> float:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
     std = core.getHeightMap("std", area)
-    std = floor(std)
     if std == 0:
         return float('inf')
-    return thresholdSD / std
+    return 1 / std
 
 
 def isLiquid(core: Core, area: Rect) -> float:
-    ret = False
-    for x, z in area.inner:
-        if core.liquidMap[x, z]:
-            return 1
-    return 0
+    begin, end = area.begin, area.end
+    sum = core.liquidMap[begin.x:end.x, begin.y:end.y].sum()
+    return sum / area.area
 
 
-MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
-
-
-def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
+def hasEnoughWood(core: Core, area: Rect) -> float:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    woodSum = 0
-    for pos in area.inner:
-        woodSum += core.resourcesMap.wood[pos.x][pos.y]
-
-    return woodSum >= minWood
+    begin, end = area.begin, area.end
+    sum = core.resourcesMap.wood[begin.x:end.x, begin.y:end.y].sum()
+    return sum/area.area
 
 
 MAXIMUM_ROAD_DISTANCE = 30

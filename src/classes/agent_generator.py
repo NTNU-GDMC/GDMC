@@ -3,6 +3,7 @@ from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound
+from ..config.config import config
 
 
 # basic buildings
@@ -59,23 +60,29 @@ def newAgent(core: Core, name: str):
             return 0
 
         flatness = isFlat(core, area)
-        if flatness == 0:
+        if flatness < config.flatnessThreshold:
             return 0
-        else:
-            total += flatness
+        total += flatness
 
         if TAG_LAND in tags and isLiquid(core, area):
             return 0
 
+        if TAG_FOREST in tags:
+            forestness = hasEnoughWood(core, area)
+            if forestness < config.forestThreshold:
+                return 0
+            total += forestness
+
         desertness = isDesert(core, area)
+        if TAG_DESERT in tags:
+            if desertness <= config.desertnessThreshold:
+                return 0
+            total += desertness
+        if TAG_DESERT not in tags:
+            if desertness >= config.desertnessThreshold:
+                return 0
+            total += 1-desertness
 
-        if TAG_DESERT in tags and desertness <= 0.5:
-            return 0
-        if TAG_DESERT not in tags and desertness >= 0.5:
-            return 0
-
-        if TAG_FOREST:
-            total += hasEnoughWood(core, area)
         return total
 
     return BuildAgent(core, analyzeFunction, name)
