@@ -81,9 +81,6 @@ class Config:
     agentCooldown: int = 2
     """The cooldown of the agent"""
 
-    analyzeThreshold: float = 1
-    """The threshold of the analyzer"""
-
     numBasicAgents: int = 3
     """The number of basic agents"""
 
@@ -91,6 +88,7 @@ class Config:
     """The number of special agents"""
 
     sampleRate: float = 0.7
+    """The sample rate of locations to analyze for agents"""
 
     # ================ analyzer ================
 

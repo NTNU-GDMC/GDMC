@@ -14,7 +14,6 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
-ANALYZE_THRESHOLD = config.analyzeThreshold
 SAMPLE_RATE = config.sampleRate
 
 
