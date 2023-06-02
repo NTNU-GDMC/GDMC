@@ -34,9 +34,10 @@ def isFlat(core: Core, area: Rect) -> float:
 
 def requiredBasement(core: Core, area: Rect) -> int:
     area.offset -= core.buildArea.toRect().offset
-    height = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
-    maxY = np.max(height)
-    return np.sum(maxY - height)
+    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
+    y = round(core.getHeightMap("mean", area))
+    heights = np.minimum(y, heights)
+    return np.sum(y - heights)
 
 
 def isLiquid(core: Core, area: Rect) -> float:
