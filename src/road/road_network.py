@@ -38,6 +38,9 @@ class RoadEdge(Generic[T]):
     def __repr__(self) -> str:
         return self.__str__()
 
+    def __iter__(self):
+        yield from self._path
+
     def __len__(self) -> int:
         return len(self._path)
 
@@ -73,13 +76,10 @@ class RoadEdge(Generic[T]):
 
 
 class RoadNetwork(Generic[T]):
-    def __init__(self, hotThreshold: int = 10, maxHotspots: int = 30, hashfunc: Callable[[object], int] = hash):
+    def __init__(self, hashfunc: Callable[[object], int] = hash):
         """A graph of RoadNodes and RoadEdges. The graph is undirected, and edges are bidirectional."""
         self._adj = dict[RoadNode[T], set[RoadEdge[T]]]()
         self._hotness = dict[RoadNode[T], int]()
-        self._hotspots = set[RoadNode[T]]()
-        self._hotThreshold = hotThreshold
-        self._maxHotspots = maxHotspots
         self._hashfunc = hashfunc
 
     def __str__(self) -> str:
@@ -108,37 +108,6 @@ class RoadNetwork(Generic[T]):
         """Returns the hotness of a node. Hotness is the number of edges that contain the node."""
         return self._hotness.get(node, 0)
 
-    def isHotspot(self, node: RoadNode[T]) -> bool:
-        """Returns whether a node is a hotspot."""
-        return self._hotness[node] >= self._hotThreshold
-
-    def updateHotspots(self):
-        """Updates the hotspots in the graph."""
-        if len(self._hotspots) > self._maxHotspots:
-            return
-
-        edges = set(self.edges)
-        toUpgrade = set()
-
-        # Find nodes to upgrade and downgrade
-        for node in self._hotness:
-            if self.isHotspot(node) and node not in self._adj:
-                toUpgrade.add(node)
-
-        # upgrade nodes
-        for node in toUpgrade:
-            if len(self._hotspots) >= self._maxHotspots:
-                break
-
-            self._hotspots.add(node)
-
-            for edge in edges:
-                if node in edge:
-                    self.removeEdge(edge, updateHotspots=False)
-                    edge1, edge2 = edge.split(node)
-                    self.addEdge(edge1, updateHotspots=False)
-                    self.addEdge(edge2, updateHotspots=False)
-
     def newNode(self, val: T) -> RoadNode[T]:
         """Creates a new node and adds it to the graph."""
         return RoadNode(val, hashfunc=self._hashfunc)
@@ -147,7 +116,7 @@ class RoadNetwork(Generic[T]):
         """Adds a node to the graph."""
         self._adj.setdefault(node, set())
 
-    def addEdge(self, edge: RoadEdge[T], updateHotspots: bool = True):
+    def addEdge(self, edge: RoadEdge[T]):
         """Adds an edge to the graph."""
         self._adj.setdefault(edge.node1, set()).add(edge)
         self._adj.setdefault(edge.node2, set()).add(edge.reverse())
@@ -157,23 +126,19 @@ class RoadNetwork(Generic[T]):
             self._hotness.setdefault(node, 0)
             self._hotness[node] += 1
 
-        if updateHotspots:
-            self.updateHotspots()
 
-    def removeNode(self, node: RoadNode[T], updateHotspots: bool = True):
+    def removeNode(self, node: RoadNode[T]):
         """Removes a node from the graph."""
         if node not in self._adj:
             return
 
         for edge in list(self._adj[node]):
-            self.removeEdge(edge, updateHotspots=False)
+            self.removeEdge(edge)
 
         del self._adj[node]
 
-        if updateHotspots:
-            self.updateHotspots()
 
-    def removeEdge(self, edge: RoadEdge[T], updateHotspots: bool = True):
+    def removeEdge(self, edge: RoadEdge[T]):
         """Removes an edge from the graph."""
         if edge.node1 not in self._adj[edge.node1] or edge.node2 not in self._adj[edge.node2]:
             return
@@ -188,15 +153,19 @@ class RoadNetwork(Generic[T]):
             if self._hotness[node] == 0:
                 del self._hotness[node]
 
-        if updateHotspots:
-            self.updateHotspots()
 
     def neighbors(self, node: RoadNode[T]):
         """Returns an iterator over all neighbors of a node."""
-        yield from (edge.node2 for edge in self._adj[node])
+        if node not in self._adj:
+            return
+        for edge in self._adj[node]:
+            yield edge.node2
 
     def edge(self, node1: RoadNode[T], node2: RoadNode[T]) -> RoadEdge[T] | None:
         """Returns the edge between two nodes, or None if there is no edge between them."""
+        if node1 not in self._adj or node2 not in self._adj:
+            return None
+
         for edge in self._adj[node1]:
             if edge.node2 == node2:
                 return edge

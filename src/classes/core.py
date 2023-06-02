@@ -70,7 +70,6 @@ class Core():
         # init level is 1, and get resource limit and building limit of level 1
         self._level = int(1)
         self._roadNetwork = RoadNetwork[ivec2](
-            hotThreshold=10,
             hashfunc=lambda o: o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__())
 
         self.buildSubject = Subject[BuildEvent]()
