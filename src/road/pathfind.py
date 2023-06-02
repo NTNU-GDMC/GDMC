@@ -50,11 +50,13 @@ class Pathfinder(object):
         """Whether the node is a building"""
         return self.blueprint[n.val.x//UNIT, n.val.y//UNIT] > 0
 
-    def mainNeighbors(self, n: RoadNode[ivec2]):
+    def neighbors(self, n: RoadNode[ivec2]):
         """Neighbors of a node"""
         yield from self.mainNeighbors(n)
-
         yield from self.subNeighbors(n)
+
+    def mainNeighbors(self, n: RoadNode[ivec2]):
+        yield from self.roadNetwork.neighbors(n)
 
     def subNeighbors(self, n: RoadNode[ivec2]):
         """Sub neighbors of a node"""
@@ -111,7 +113,7 @@ def pathfind(
 
     path = find_path(begin,
                      end,
-                     neighbors_fnct=pathfinder.mainNeighbors,
+                     neighbors_fnct=pathfinder.neighbors,
                      reversePath=True,
                      heuristic_cost_estimate_fnct=pathfinder.heuristic,
                      distance_between_fnct=pathfinder.distance,
