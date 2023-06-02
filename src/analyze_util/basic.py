@@ -1,10 +1,12 @@
 import numpy as np
-
-from ..classes.core import Core
 from gdpc.geometry import Rect
-from math import sqrt, floor
 from typing import Callable, Any
 from numpy import ndarray
+from gdpc.vector_tools import distance2
+from ..classes.core import Core
+from ..building.building import Building
+from ..building.building_info import BuildingInfo
+from ..building.master_building_info import GLOBAL_BUILDING_INFO
 
 
 def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
@@ -94,3 +96,14 @@ def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     top = bound.last.y - area.last.y
 
     return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
+
+MINIMUM_BUILDING_MARGIN = 256
+
+def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin=MINIMUM_BUILDING_MARGIN) -> bool:
+    """Check if the area is close enough to the bound"""
+    variants = GLOBAL_BUILDING_INFO[buildingInfo.name]
+    buildings = list[Building]()
+    for variant in variants:
+        buildings += core.getBuildings(buildingType=variant.type)
+
+    return any([distance2(building.position, area.begin) < minMargin**2 for building in buildings])
