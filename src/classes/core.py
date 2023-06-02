@@ -336,7 +336,7 @@ class Core():
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = round(self.getHeightMap("mean", area))
+            y = round(self.getHeightMap("mean", area)) - structure.offsets.y
             print(f"Build at {pos} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
                          addY(pos, y), building.material)
@@ -410,8 +410,6 @@ class Core():
                         x = pos.x - 1
                     if z-pos.y < 0:
                         z = pos.y - 1
-
-                    print(f"Build light at {x} {y} {z}")
 
                     choice([placeLight1, placeLight2])((x, y, z))
                     break
