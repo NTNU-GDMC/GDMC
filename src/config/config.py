@@ -101,6 +101,8 @@ class Config:
 
     forestThreshold: float = 0.4
 
+    minimumBuildingMargin: int = 256
+
     # ================ data ================
 
     structuresPath: Path = Path("data/structures")

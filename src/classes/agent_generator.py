@@ -2,9 +2,9 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
-from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding
 from ..config.config import config
-from building.building_info import BuildingInfo
+from ..building.building_info import BuildingInfo
 
 
 # basic buildings
@@ -69,6 +69,10 @@ def newAgent(core: Core, name: str):
         if flatness < config.flatnessThreshold:
             return 0
         total += flatness
+
+        if name in SPECIAL_BUILDINGS:
+            if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
+                return 0
 
         if TAG_LAND in tags and isLiquid(core, area):
             return 0
