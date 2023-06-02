@@ -44,22 +44,15 @@ class Pathfinder(object):
 
     def tooFar(self, n: RoadNode[ivec2]) -> bool:
         """Whether the node is too far from the begin and end nodes"""
-        return l1Distance(n.val, self.begin.val) + l1Distance(n.val, self.end.val) > 2 * l1Distance(self.begin.val, self._end.val)
+        return l1Distance(n.val, self.begin.val) + l1Distance(n.val, self.end.val) > 3 * l1Distance(self.begin.val, self._end.val)
 
     def isBuilding(self, n: RoadNode[ivec2]) -> bool:
         """Whether the node is a building"""
         return self.blueprint[n.val.x//UNIT, n.val.y//UNIT] > 0
 
-    def neighbors(self, n: RoadNode[ivec2]):
+    def mainNeighbors(self, n: RoadNode[ivec2]):
         """Neighbors of a node"""
-        for neighbor in self.roadNetwork.neighbors(n):
-            if not self.isBuilding(neighbor):
-                continue
-
-            if self.tooFar(neighbor):
-                continue
-
-            yield neighbor
+        yield from self.mainNeighbors(n)
 
         yield from self.subNeighbors(n)
 
@@ -118,7 +111,7 @@ def pathfind(
 
     path = find_path(begin,
                      end,
-                     neighbors_fnct=pathfinder.neighbors,
+                     neighbors_fnct=pathfinder.mainNeighbors,
                      reversePath=True,
                      heuristic_cost_estimate_fnct=pathfinder.heuristic,
                      distance_between_fnct=pathfinder.distance,
