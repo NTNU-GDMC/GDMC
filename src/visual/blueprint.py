@@ -1,3 +1,4 @@
+from math import ceil
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatch
 from ..classes.core import Core
@@ -5,6 +6,8 @@ from ..config.config import config
 
 UNIT = config.unit
 
+def fitToGrid(x: int) -> float:
+    return ceil(x/UNIT)*UNIT
 
 def plotBlueprint(core: Core):
     fig, ax = plt.subplots()
@@ -15,9 +18,9 @@ def plotBlueprint(core: Core):
         begin = building.position
         size = building.currentSize
         maxSize = building.maxSize
-        p = mpatch.Rectangle(begin, maxSize.x, maxSize.z, fill=True, color="gray")
+        p = mpatch.Rectangle(begin, fitToGrid(maxSize.x), fitToGrid(maxSize.z), fill=True, color="gray")
         ax.add_artist(p)
-        p = mpatch.Rectangle(begin, size.x, size.z, fill=True, color="blue")
+        p = mpatch.Rectangle(begin, fitToGrid(size.x), fitToGrid(size.z), fill=True, color="blue")
         ax.add_artist(p)
         rx, ry = p.get_xy()
         cx = rx + p.get_width() / 2.0
