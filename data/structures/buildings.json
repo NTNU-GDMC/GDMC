@@ -114,5 +114,29 @@
                 ]
             }
         ]
+    },
+    "forge": {
+        "variants": [
+            {
+                "name": "forge1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "forge1/level1.json",
+                        "nbt": "forge1/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "forge1/level2.json",
+                        "nbt": "forge1/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "forge1/level3.json",
+                        "nbt": "forge1/level3.nbt"
+                    }
+                ]
+            }
+        ]
     }
 }
