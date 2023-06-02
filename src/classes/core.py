@@ -1,19 +1,25 @@
+from random import choice, shuffle
+from math import ceil
 from ..road.road_network import RoadNetwork, RoadEdge
-from ..level.level_manager import getResourceLimit, getBuildingLimit
+from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2
-from typing import Literal, Any
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, ivec3, neighbors2D
+from typing import Literal, Any, Callable
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
 from ..building.building import Building
 from ..height_info import HeightInfo
-from ..resource.analyze_biome import getAllBiomeList
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
+from ..resource.terrain_analyzer import ResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
+from ..resource.biome_substitute import getChangeMaterial
+from ..resource.analyze_biome import BiomeMap
+from ..poisson_disk_sampling import poissonDiskSample
 
 UNIT = config.unit
+ROAD = -1
+ROAD_RESERVE = -2
 
 
 def hashfunc(o: object) -> int:
@@ -28,11 +34,15 @@ class Core():
         """
         # initalize editor
         editor = Editor(buffering=config.buffering,
+                        bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
         # get world slice and height maps
+        print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
+        print("World slice loaded")
+
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
         # get top left and bottom right coordnidate
@@ -44,11 +54,18 @@ class Core():
         self._roadMap = np.zeros((x, z), dtype=int)
         self._liquidMap = np.where(
             worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"] > worldSlice.heightmaps["OCEAN_FLOOR"], 1, 0)
-        self._biomeList = getAllBiomeList(worldSlice, buildArea)
-        self._resources = analyzeAreaMaterialToResource(
-            worldSlice, buildArea.toRect())
-        self._resourceMap = getMaterialToResourceMap(
-            worldSlice, buildArea.toRect())
+
+        print("Analyzing biome...")
+        self._biomeMap = BiomeMap(worldSlice)
+        print("Biome analyzed")
+
+        print("Analyzing resource...")
+        self._resourceMap = ResourceMap(self.worldSlice)
+        self._resources = self._resourceMap.analyzeResource()
+        print(self._resourceMap)
+        print(self._resources)
+        print("Resource analyzed")
+
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
         self._blueprint = np.zeros(
@@ -57,7 +74,6 @@ class Core():
         # init level is 1, and get resource limit and building limit of level 1
         self._level = int(1)
         self._roadNetwork = RoadNetwork[ivec2](
-            hotThreshold=10,
             hashfunc=lambda o: o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__())
 
         self.buildSubject = Subject[BuildEvent]()
@@ -84,8 +100,8 @@ class Core():
         return self._liquidMap
 
     @property
-    def biomeList(self):
-        return self._biomeList
+    def biomeMap(self):
+        return self._biomeMap
 
     @property
     def resources(self):
@@ -115,9 +131,10 @@ class Core():
     def resourceLimit(self):
         return getResourceLimit(self._level)
 
-    def getBuildings(self, buildingLevel: int, buildingType: str | None = None):
+    def getBuildings(self, buildingLevel: int| None = None, buildingType: str | None = None):
         for building in self._blueprintData.values():
-            if building.level == buildingLevel and (buildingType is None or building.building_info.type == buildingType):
+            if (buildingLevel is None or building.level == buildingLevel) and \
+                (buildingType is None or building.building_info.type == buildingType):
                 yield building
 
     def getBuildingLimit(self, buildingLevel: int):
@@ -142,26 +159,69 @@ class Core():
             self._resources += building.building_info.structures[buildingLevel-1].production
 
     def getBlueprintBuildingData(self, id: int):
-        return self._blueprintData[id]
+        return self._blueprintData.get(id, None)
+
+    def maxBuildingID(self):
+        ids = self._blueprintData.keys()
+        return max(ids) if ids else 0
 
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
         (xlen, _, zlen) = building.maxSize
-        id = len(self._blueprintData) + 1
-        x = (x + UNIT) // UNIT
-        z = (z + UNIT) // UNIT
-        xlen = (xlen + UNIT) // UNIT
-        zlen = (zlen + UNIT) // UNIT
+        id = self.maxBuildingID() + 1
+        x = x // UNIT
+        z = z // UNIT
+        xlen = ceil(xlen / UNIT)
+        zlen = ceil(zlen / UNIT)
+
+        building.id = id
+
+        biome = self.biomeMap.getPrimaryBiome(
+            Rect((x * UNIT, z * UNIT), (xlen * UNIT, z * UNIT)))
+        building.material = getChangeMaterial(biome)
+
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
 
         self._blueprintData[id] = building
-        self._blueprint[x:x + xlen, z:z + zlen] = id
+        self._blueprint[begin.x:end.x, begin.y:end.y] = id
+
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            self._blueprint[x, z] = ROAD_RESERVE
 
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
             x, z = node.val // UNIT
-            self._blueprint[x:x+1, z:z+1] = -1
+            self._blueprint[x, z] = ROAD
+
+    def removeBuilding(self, id: int):
+        building = self._blueprintData[id]
+        (x, z) = building.position
+        (xlen, _, zlen) = building.maxSize
+        x = x // UNIT
+        z = z // UNIT
+        xlen = ceil(xlen / UNIT)
+        zlen = ceil(zlen / UNIT)
+
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
+
+        self._blueprintData.pop(id)
+        self._blueprint[begin.x:end.x, begin.y:end.y] = 0
+
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            for neighbor in neighbors2D((x, z), self.buildArea.toRect()):
+                if self._blueprint[neighbor.to_tuple()] != 0:
+                    continue
+            self._blueprint[x, z] = 0
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
         if heightType == "var":
@@ -176,9 +236,10 @@ class Core():
             return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
-    def getEmptyArea(self, height: int, width: int) -> list[Rect]:
-        height = (height + UNIT) // UNIT
-        width = (width + UNIT) // UNIT
+    def getEmptyArea(self, size: ivec2) -> list[Rect]:
+        height, width = size
+        height = ceil(height / UNIT)
+        width = ceil(width / UNIT)
 
         def isEmpty(val: Any):
             if val == 0:
@@ -264,21 +325,93 @@ class Core():
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
+
+        bound = self.buildArea.toRect()
+
+        # ====== Add building to Minecraft ======
+
         for id, building in self._blueprintData.items():
             pos = building.position
             level = building.level
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = round(self.getHeightMap("mean", area))
-            print("build at:", area, ",y:", y)
-            buildFromNBT(self._editor, structure.nbtFile, addY(pos, y))
+            y = round(self.getHeightMap("mean", area)) - structure.offsets.y
+            print(f"Build at {pos} with height {y}")
+            buildFromNBT(self._editor, structure.nbtFile,
+                         addY(pos, y), building.material)
 
-        for node in self._roadNetwork.subnodes:
+        self.editor.flushBuffer()
+
+        # ====== Add road to Minecraft ======
+
+        roadNodes = set(self._roadNetwork.subnodes)
+        for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
+
+            clearBox = area.toBox(y, 2)
+            for x, y, z in clearBox.inner:
+                block = self.worldSlice.getBlock((x, y, z))
+                if block.id != "minecraft:air":
+                    begin, last = clearBox.begin, clearBox.last
+                    self.editor.runCommand(
+                        f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
+                    break
+
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
+
+        self.editor.flushBuffer()
+
+        # ====== Add light to Minecraft ======
+
+        def sampleRoadNode(point: ivec2, r: int):
+            return choice(list(roadNodes)).val
+
+        def placeLight1(point: ivec3):
+            x, y, z = point
+            self.editor.runCommand(
+                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y} {z} minecraft:oak_fence", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y+1} {z} minecraft:lantern", syncWithBuffer=True)
+
+        def placeLight2(point: ivec3):
+            x, y, z = point
+            self.editor.runCommand(
+                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y} {z} minecraft:cobblestone_wall", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y+1} {z} minecraft:torch", syncWithBuffer=True)
+
+        lightPositions = poissonDiskSample(
+            bound=bound,
+            limit=len(roadNodes)//3,
+            r=10,
+            k=50,
+            sampleFunc=sampleRoadNode,
+            initPoints=list([roadNode.val for roadNode in roadNodes])
+        )
+
+        for pos in lightPositions:
+            area = Rect(pos, (UNIT, UNIT))
+            y = round(self.getHeightMap("mean", area))
+            neighbors = list(neighbors2D(pos, bound, stride=UNIT))
+            shuffle(neighbors)
+            for neighbor in neighbors:
+                x, z = neighbor
+                if self.blueprint[x//UNIT, z//UNIT] == 0:
+
+                    if x-pos.x < 0:
+                        x = pos.x - 1
+                    if z-pos.y < 0:
+                        z = pos.y - 1
+
+                    choice([placeLight1, placeLight2])((x, y, z))
+                    break
 
         self.editor.flushBuffer()

@@ -62,6 +62,9 @@ class Config:
     buffering: bool = True
     """The buffering of the editor"""
 
+    bufferLimit: int = 512
+    """The buffer limit of the editor"""
+
     caching: bool = True
     """The caching of the editor"""
 
@@ -78,10 +81,27 @@ class Config:
 
     # ================ agent ================
 
-    agentCooldown: int = 5
+    agentCooldown: int = 2
     """The cooldown of the agent"""
 
-    analyzeThreshold: float = 1
+    numBasicAgents: int = 3
+    """The number of basic agents"""
+
+    numSpecialAgents: int = 1
+    """The number of special agents"""
+
+    sampleRate: float = 0.4
+    """The sample rate of locations to analyze for agents"""
+
+    # ================ analyzer ================
+
+    flatnessThreshold: float = 0.4
+
+    desertnessThreshold: float = 0.4
+
+    forestThreshold: float = 0.4
+
+    minimumBuildingMargin: int = 256
 
     # ================ data ================
 
@@ -96,5 +116,7 @@ class Config:
     roadMaterial: str = "minecraft:dirt_path"
     """The material of the road"""
 
+    # ================ main ================
+    gameRound: int = 100
 
 config = Config.load()

@@ -1,9 +1,12 @@
-from ..classes.core import Core
+import numpy as np
 from gdpc.geometry import Rect
-from math import sqrt, floor
 from typing import Callable, Any
 from numpy import ndarray
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
+from gdpc.vector_tools import distance2
+from ..classes.core import Core
+from ..building.building import Building
+from ..building.building_info import BuildingInfo
+from ..building.master_building_info import GLOBAL_BUILDING_INFO
 
 
 def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
@@ -23,29 +26,34 @@ def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
     return False
 
 
-THRESHOLD_SD = 8
-
-
-def isFlat(core: Core, area: Rect, thresholdSD: float = THRESHOLD_SD) -> float:
+def isFlat(core: Core, area: Rect) -> float:
     """Only pick if the area's standard deviation is less than maxSD (more flat)"""
     std = core.getHeightMap("std", area)
-    std = floor(std)
     if std == 0:
         return float('inf')
-    return thresholdSD / std
+    return 1 / std
 
 
-MINIMUM_WOOD = 50  # TODO: Ask Subarya how many is enough
+def requiredBasement(core: Core, area: Rect) -> int:
+    area.offset -= core.buildArea.toRect().offset
+    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
+    y = round(core.getHeightMap("mean", area))
+    heights = np.minimum(y, heights)
+    return np.sum(y - heights)
 
 
-def hasEnoughWood(core: Core, area: Rect, minWood=MINIMUM_WOOD) -> bool:
+def isLiquid(core: Core, area: Rect) -> float:
+    begin, end = area.begin, area.end
+    sum = core.liquidMap[begin.x:end.x, begin.y:end.y].sum()
+    return sum / area.area
+
+
+def hasEnoughWood(core: Core, area: Rect) -> float:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
-    woodSum = 0
-    for pos in area.inner:
-        woodSum += core.resourcesMap.wood[pos.x][pos.y]
-
-    return woodSum >= minWood
+    begin, end = area.begin, area.end
+    sum = core.resourcesMap.wood[begin.x:end.x, begin.y:end.y].sum()
+    return sum/area.area
 
 
 MAXIMUM_ROAD_DISTANCE = 30
@@ -65,3 +73,37 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
         return isLiquid == 1
 
     return checkEdge(core.liquidMap, area, cmp)
+
+
+def isDesert(core: Core, area: Rect) -> float:
+    """Check if the area is in the desert"""
+    begin, end = area.begin, area.end
+    sum = core.biomeMap.desert[begin.x:end.x, begin.y:end.y].sum() + \
+        core.biomeMap.badlands[begin.x:end.x, begin.y:end.y].sum()
+    return sum / area.area
+
+
+MINIMUM_BOUND_PADDING = 10
+
+
+def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
+    """Check if the area is close enough to the bound"""
+    bound = core.buildArea.toRect()
+
+    left = area.begin.x - bound.begin.x
+    bottom = area.begin.y - bound.begin.y
+    right = bound.last.x - area.last.x
+    top = bound.last.y - area.last.y
+
+    return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
+
+MINIMUM_BUILDING_MARGIN = 256
+
+def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin=MINIMUM_BUILDING_MARGIN) -> bool:
+    """Check if the area is close enough to the bound"""
+    variants = GLOBAL_BUILDING_INFO[buildingInfo.name]
+    buildings = list[Building]()
+    for variant in variants:
+        buildings += core.getBuildings(buildingType=variant.type)
+
+    return any([distance2(building.position, area.begin) < minMargin**2 for building in buildings])

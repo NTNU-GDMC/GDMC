@@ -1,11 +1,12 @@
-import math
+import time
+from math import ceil
 from random import sample, choices, choice
 from typing import Callable
-from gdpc.vector_tools import Rect, ivec2, l1Distance
+from gdpc.vector_tools import Rect, ivec2, l1Distance, dropY
 from .core import Core
 from .event import Observer, BuildEvent
 from .baseagent import RunableAgent, withCooldown, Agent
-from ..building.master_building_info import GLOBAL_BUILDING_INFO
+from ..building.master_building_info import GLOBAL_BUILDING_INFO, BuildingInfo
 from ..building.building import Building
 from ..config.config import config
 from ..road.road_network import RoadEdge, RoadNode
@@ -13,11 +14,11 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
-ANALYZE_THRESHOLD = config.analyzeThreshold
+SAMPLE_RATE = config.sampleRate
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
@@ -28,7 +29,7 @@ class BuildAgent(RunableAgent):
         self.speical = special
 
     def __str__(self) -> str:
-        return f"BuildAgent({self.buildingInfo})"
+        return f"BuildAgent({self.buildingInfo.type})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -49,7 +50,7 @@ class BuildAgent(RunableAgent):
         weights = [calcWeight(level) for level in levels]
 
         if all([weight == 0 for weight in weights]):
-            print("No building can be built")
+            print("No building can be built, all building limit reached")
             return False
 
         level = choices(levels, weights=weights, k=1)[0]
@@ -73,31 +74,37 @@ class BuildAgent(RunableAgent):
     def analysisAndBuild(self) -> bool:
         """Request to build a building on the blueprint at bound"""
 
-        print("Agent: analysis and build")
+        print(f"{self}: Start analysis and build")
 
-        length, _, width = self.buildingInfo.max_size
-        possibleLocations = self.core.getEmptyArea(
-            length, width)
-
-        if len(possibleLocations) == 0:
+        if self.core.resources < self.buildingInfo.structures[0].requirement:
+            print(f"No enough resources to build")
             return False
+
+        size = self.buildingInfo.max_size
+        possibleLocations = self.core.getEmptyArea(dropY(size))
+        numPossibleLocations = len(possibleLocations)
 
         bestLocation = None
         bestLocationValue = 0
 
-        buildArea = self.core.buildArea.toRect()
-        for location in sample(possibleLocations, len(possibleLocations)):
-            # FIXME: this is a temporary solution for checking if the location is in the build area
+        print(f"Analyzing {numPossibleLocations} locations...")
 
-            def inBuildArea():
-                return buildArea.contains(location.begin) and buildArea.contains(location.last)
+        timeStart = time.time()
 
-            if not inBuildArea():
-                continue
+        possibleLocations = sample(possibleLocations, numPossibleLocations)
+        nextCheckIndex = ceil(numPossibleLocations * SAMPLE_RATE)
+        for i in range(numPossibleLocations):
+            if i == nextCheckIndex:
+                print(f"{i}/{numPossibleLocations} locations analyzed")
+                if bestLocation is not None:
+                    break
+                nextCheckIndex += ceil((numPossibleLocations-i) * SAMPLE_RATE)
 
-            value = self.analysis(self.core, location)
+            location = possibleLocations[i]
 
-            if value < ANALYZE_THRESHOLD:
+            value = self.analysis(self.core, location, self.buildingInfo)
+
+            if value == 0:
                 continue
 
             if value <= bestLocationValue:
@@ -106,17 +113,19 @@ class BuildAgent(RunableAgent):
             bestLocationValue = value
             bestLocation = location
 
+        print(f"Analysis done, Time used: {time.time() - timeStart:.2f}s")
+
         if bestLocation is None:
+            print(f"No suitable location found")
+            self.remainCD += self.cooldown * 10
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
         print(
-            f"Build '{building.building_info.type}' at position: {building.position.to_tuple()}")
+            f"Build {self.buildingInfo.type} at position: {building.position.to_tuple()}")
 
         self.core.addBuilding(building)
         self.core.buildSubject.notify(BuildEvent(building))
-
-        print(f"Agent: {self.buildingInfo.type} built")
 
         return True
 
@@ -134,7 +143,7 @@ class BuildAgent(RunableAgent):
 
     def gatherResource(self, resourceType: str):
         # gain 5% of the limit
-        self.core.resources[resourceType] += math.ceil(
+        self.core.resources[resourceType] += ceil(
             self.core.resourceLimit[resourceType] * 0.05)
 
 
@@ -180,18 +189,17 @@ class RoadAgent(Agent):
         end = choices(nodes, weights=weights, k=1)[0]
 
         print(
-            f"Connecting {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print("Failed.")
+            print("No path found")
+            if building.id:
+                self.core.removeBuilding(building.id)
             return
+        print("Path found")
 
-        print("Done.")
-
-        print(f"Adding edge...")
-
+        print(f"Update road network...", end=" ")
         self.core.addRoadEdge(edge)
-
-        print(f"Adding edge done.")
+        print("Done.")

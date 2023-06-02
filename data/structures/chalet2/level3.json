@@ -2,12 +2,11 @@
     "Entries": [
         {
             "facing": "north",
-            "roadStartPosition": [9, -1, 0],
+            "roadStartPosition": [9, -1, -1],
             "type": "mainEntry"
         }
     ],
     "Size": [21, 17, 22],
-    "Material": "oak",
     "Type": 2,
     "Level": 3,
     "RequiredResource": {

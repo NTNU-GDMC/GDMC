@@ -10,10 +10,11 @@
     - biome default is "".
 """
 
+import copy
 from nbt import nbt as nbt
-from gdpc import Editor, Block, Box
-from gdpc.vector_tools import ivec3
-from ..resource.biome_substitute import isChangeBlock, changeBlock
+from gdpc import Editor, Block, Box, Rect
+from gdpc.vector_tools import ivec3, dropY
+from ..resource.biome_substitute import changeBlock
 
 
 def NBT2Str(struct: nbt.TAG):
@@ -46,7 +47,7 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
         yield pos + offset, block
 
 
-def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str = "", keep=False):
+def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: str = "oak", keep=False):
     if editor.worldSlice is None:
         raise Exception("Error while building structure: worldSlice is None")
 
@@ -60,10 +61,22 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, biome: str 
         clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
         editor.runCommand(clearCmd, syncWithBuffer=True)
 
+    rect = Rect(dropY(offset), dropY(size))
+    worldSlice = editor.loadWorldSlice(rect, cache=True)
+    height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+    for x, z in rect.inner:
+        floory = height[x - offset.x, z - offset.z]
+        for y in range(floory, offset.y):
+            cmd = f"setblock {x} {y} {z} minecraft:cobblestone replace"
+            editor.runCommand(cmd, syncWithBuffer=True)
+
     for pos, block in NBT2Blocks(struct, offset):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
-        # if isChangeBlock(biome) == True:
-        #     blkName = changeBlock(biome, blkName)
+        if material != "oak":
+            blkString = changeBlock(material, block.id)
+            state = copy.deepcopy(block.states)
+            data = copy.deepcopy(block.data)
+            block = Block(blkString, state, data)
 
         cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
 
