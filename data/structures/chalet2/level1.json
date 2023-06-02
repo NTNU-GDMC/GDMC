@@ -2,7 +2,7 @@
     "Entries": [
         {
             "facing": "north",
-            "roadStartPosition": [8, -1, 1],
+            "roadStartPosition": [8, -1, -1],
             "type": "mainEntry"
         }
     ],
