@@ -2,25 +2,25 @@
     "Entries": [
         {
             "facing": "north",
-            "roadStartPosition": [5, -1, -1],
+            "roadStartPosition": [9, -1, 2],
             "type": "mainEntry"
         }
     ],
-    "Size": [11, 10, 11],
+    "Size": [22, 10, 29],
     "Type": 1,
-    "Level": 1,
+    "Level": 2,
     "RequiredResource": {
         "human": 0,
-        "wood": 200,
-        "stone": 100,
+        "wood": 1000,
+        "stone": 350,
         "food": 0,
         "ironOre": 0,
         "iron": 0,
         "grass": 0
     },
     "ProduceResource": {
-        "human": 1,
-        "wood": 0,
+        "human": 0,
+        "wood": 1000,
         "stone": 0,
         "food": 0,
         "ironOre": 0,
