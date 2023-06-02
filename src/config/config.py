@@ -62,6 +62,9 @@ class Config:
     buffering: bool = True
     """The buffering of the editor"""
 
+    bufferLimit: int = 512
+    """The buffer limit of the editor"""
+
     caching: bool = True
     """The caching of the editor"""
 

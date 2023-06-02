@@ -33,6 +33,7 @@ class Core():
         """
         # initalize editor
         editor = Editor(buffering=config.buffering,
+                        bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
@@ -322,8 +323,6 @@ class Core():
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
-        flushCoounter = 0
-
         for id, building in self._blueprintData.items():
             pos = building.position
             level = building.level
@@ -335,21 +334,23 @@ class Core():
             buildFromNBT(self._editor, structure.nbtFile,
                          addY(pos, y), building.material)
 
-            flushCoounter += 10
-            if flushCoounter == 100:
-                self._editor.flushBuffer()
-                flushCoounter = 0
+        self.editor.flushBuffer()
 
-        for node in self._roadNetwork.subnodes:
+        for node in set(self._roadNetwork.subnodes):
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
+
+            clearBox = area.toBox(y, 2)
+            for x, y, z in clearBox.inner:
+                block = self.worldSlice.getBlock((x, y, z))
+                if block.id != "minecraft:air":
+                    begin, last = clearBox.begin, clearBox.last
+                    self.editor.runCommand(
+                        f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
+                    break
+
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
-
-            flushCoounter += 1
-            if flushCoounter == 100:
-                self._editor.flushBuffer()
-                flushCoounter = 0
 
         self.editor.flushBuffer()
