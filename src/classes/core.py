@@ -168,6 +168,8 @@ class Core():
         xlen = ceil(xlen / UNIT)
         zlen = ceil(zlen / UNIT)
 
+        building.id = id
+
         biome = self.biomeMap.getPrimaryBiome(
             Rect((x * UNIT, z * UNIT), (xlen * UNIT, z * UNIT)))
         building.material = getChangeMaterial(biome)

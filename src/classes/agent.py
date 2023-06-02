@@ -194,6 +194,8 @@ class RoadAgent(Agent):
 
         if edge is None:
             print("No path found")
+            if building.id:
+                self.core.removeBuilding(building.id)
             return
         print("Path found")
 
