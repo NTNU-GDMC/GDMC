@@ -28,6 +28,7 @@ from ..building.building_info import BuildingInfo
 
 class Building:
     def __init__(self, building_info: BuildingInfo, position: ivec2, level: int = 1):
+        self.id: int | None = None
         self.building_info = building_info
         self.level = level
         self.position = position
@@ -52,11 +53,11 @@ class Building:
             return None
         pos = entries[0].pos
         return self.position + dropY(pos)
-    
+
     @property
     def material(self):
         return self._material
 
     @material.setter
-    def material(self, name:str):
+    def material(self, name: str):
         self._material = name

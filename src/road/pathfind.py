@@ -1,5 +1,5 @@
+import numpy as np
 from astar import find_path
-from random import choices
 from gdpc.vector_tools import ivec2, Rect, l1Distance, l1Norm, neighbors2D, addY
 from ..classes.core import Core
 from ..road.road_network import RoadNode, RoadEdge
@@ -50,18 +50,17 @@ class Pathfinder(object):
         """Whether the node is a building"""
         return self.blueprint[n.val.x//UNIT, n.val.y//UNIT] > 0
 
+    def isLiquid(self, n: RoadNode[ivec2]) -> bool:
+        """Whether the node is liquid"""
+        return np.sum(self.core.liquidMap[n.val.x:n.val.x+UNIT, n.val.y:n.val.y+UNIT]) > 2
+
     def neighbors(self, n: RoadNode[ivec2]):
         """Neighbors of a node"""
-        for neighbor in self.roadNetwork.neighbors(n):
-            if not self.isBuilding(neighbor):
-                continue
-
-            if self.tooFar(neighbor):
-                continue
-
-            yield neighbor
-
+        yield from self.mainNeighbors(n)
         yield from self.subNeighbors(n)
+
+    def mainNeighbors(self, n: RoadNode[ivec2]):
+        yield from self.roadNetwork.neighbors(n)
 
     def subNeighbors(self, n: RoadNode[ivec2]):
         """Sub neighbors of a node"""
@@ -91,15 +90,20 @@ class Pathfinder(object):
         hotness = self.roadNetwork.hotness(a) + self.roadNetwork.hotness(b)
         dis /= 1+hotness
 
+        if self.isLiquid(a) or self.isLiquid(b):
+            dis *= 10
+
         return dis
 
     def heuristic(self, a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
         """Heuristic distance between two nodes"""
         dis = l1Distance(a.val, b.val)
-        totalDis = l1Distance(self.begin.val, self.end.val)
 
         hotness = self.roadNetwork.hotness(a)
         dis /= 1+hotness
+
+        if self.isLiquid(a) or self.isLiquid(b):
+            dis *= 5
 
         return dis
 

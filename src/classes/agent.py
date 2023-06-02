@@ -117,6 +117,7 @@ class BuildAgent(RunableAgent):
 
         if bestLocation is None:
             print(f"No suitable location found")
+            self.remainCD += self.cooldown * 10
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
@@ -188,14 +189,16 @@ class RoadAgent(Agent):
         end = choices(nodes, weights=weights, k=1)[0]
 
         print(
-            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print("Failed.")
+            print("No path found")
+            if building.id:
+                self.core.removeBuilding(building.id)
             return
-        print("Done.")
+        print("Path found")
 
         print(f"Update road network...", end=" ")
         self.core.addRoadEdge(edge)

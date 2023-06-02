@@ -4,7 +4,7 @@ from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, neighbors2D
 from typing import Literal, Any, Callable
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
@@ -17,6 +17,8 @@ from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 
 UNIT = config.unit
+ROAD = -1
+ROAD_RESERVE = -2
 
 
 def hashfunc(o: object) -> int:
@@ -31,6 +33,7 @@ class Core():
         """
         # initalize editor
         editor = Editor(buffering=config.buffering,
+                        bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.setBuildArea(buildArea)
@@ -154,30 +157,69 @@ class Core():
             self._resources += building.building_info.structures[buildingLevel-1].production
 
     def getBlueprintBuildingData(self, id: int):
-        return self._blueprintData[id]
+        return self._blueprintData.get(id, None)
+
+    def maxBuildingID(self):
+        ids = self._blueprintData.keys()
+        return max(ids) if ids else 0
 
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
         (xlen, _, zlen) = building.maxSize
-        id = len(self._blueprintData) + 1
+        id = self.maxBuildingID() + 1
         x = x // UNIT
         z = z // UNIT
         xlen = ceil(xlen / UNIT)
         zlen = ceil(zlen / UNIT)
 
+        building.id = id
+
         biome = self.biomeMap.getPrimaryBiome(
             Rect((x * UNIT, z * UNIT), (xlen * UNIT, z * UNIT)))
         building.material = getChangeMaterial(biome)
 
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
+
         self._blueprintData[id] = building
-        self._blueprint[x:x + xlen, z:z + zlen] = id
+        self._blueprint[begin.x:end.x, begin.y:end.y] = id
+
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            self._blueprint[x, z] = ROAD_RESERVE
 
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
             x, z = node.val // UNIT
-            self._blueprint[x:x+1, z:z+1] = -1
+            self._blueprint[x, z] = ROAD
+
+    def removeBuilding(self, id: int):
+        building = self._blueprintData[id]
+        (x, z) = building.position
+        (xlen, _, zlen) = building.maxSize
+        x = x // UNIT
+        z = z // UNIT
+        xlen = ceil(xlen / UNIT)
+        zlen = ceil(zlen / UNIT)
+
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
+
+        self._blueprintData.pop(id)
+        self._blueprint[begin.x:end.x, begin.y:end.y] = 0
+
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            for neighbor in neighbors2D((x, z), self.buildArea.toRect()):
+                if self._blueprint[neighbor.to_tuple()] != 0:
+                    continue
+            self._blueprint[x, z] = 0
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
         if heightType == "var":
@@ -292,10 +334,22 @@ class Core():
             buildFromNBT(self._editor, structure.nbtFile,
                          addY(pos, y), building.material)
 
-        for node in self._roadNetwork.subnodes:
+        self.editor.flushBuffer()
+
+        for node in set(self._roadNetwork.subnodes):
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
+
+            clearBox = area.toBox(y, 2)
+            for x, y, z in clearBox.inner:
+                block = self.worldSlice.getBlock((x, y, z))
+                if block.id != "minecraft:air":
+                    begin, last = clearBox.begin, clearBox.last
+                    self.editor.runCommand(
+                        f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
+                    break
+
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
 
