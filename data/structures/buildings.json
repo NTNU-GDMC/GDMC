@@ -100,5 +100,19 @@
                 ]
             }
         ]
+    },
+    "quarry": {
+        "variants": [
+            {
+                "name": "quarry1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "quarry1/level1.json",
+                        "nbt": "quarry1/level1.nbt"
+                    }
+                ]
+            }
+        ]
     }
 }
