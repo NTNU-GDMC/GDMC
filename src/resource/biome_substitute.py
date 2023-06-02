@@ -25,7 +25,7 @@ originToSpruceList = {
     "oak_pressure_plate": "spruce_pressure_plate",
     "stripped_oak_log": "stripped_spruce_log",
     "stripped_oak_wood": "stripped_spruce_wood",
-    "potted_oak_sapling": "minecraft:potted_spruce_sapling",
+    "potted_oak_sapling": "potted_spruce_sapling",
 }
 
 originToBirchList = {
@@ -48,7 +48,7 @@ originToBirchList = {
     "oak_pressure_plate": "birch_pressure_plate",
     "stripped_oak_log": "stripped_birch_log",
     "stripped_oak_wood": "stripped_birch_wood",
-    "potted_oak_sapling": "minecraft:potted_birch_sapling",
+    "potted_oak_sapling": "potted_birch_sapling",
 }
 
 originToJungleList = {
@@ -71,7 +71,7 @@ originToJungleList = {
     "oak_pressure_plate": "jungle_pressure_plate",
     "stripped_oak_log": "stripped_jungle_log",
     "stripped_oak_wood": "stripped_jungle_wood",
-    "potted_oak_sapling": "minecraft:potted_jungle_sapling",
+    "potted_oak_sapling": "potted_jungle_sapling",
 }
 
 originToAcaciaList = {
@@ -94,7 +94,7 @@ originToAcaciaList = {
     "oak_pressure_plate": "acacia_pressure_plate",
     "stripped_oak_log": "stripped_acacia_log",
     "stripped_oak_wood": "stripped_acacia_wood",
-    "potted_oak_sapling": "minecraft:potted_acacia_sapling",
+    "potted_oak_sapling": "potted_acacia_sapling",
 }
 
 originToDarkOakList = {
@@ -117,7 +117,7 @@ originToDarkOakList = {
     "oak_pressure_plate": "dark_oak_pressure_plate",
     "stripped_oak_log": "stripped_dark_oak_log",
     "stripped_oak_wood": "stripped_dark_oak_wood",
-    "potted_oak_sapling": "minecraft:potted_dark_oak_sapling",
+    "potted_oak_sapling": "potted_dark_oak_sapling",
 }
 
 originToRedSandList = {
