@@ -4,7 +4,7 @@ from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, neighbors2D
 from typing import Literal, Any, Callable
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
@@ -17,6 +17,8 @@ from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 
 UNIT = config.unit
+ROAD = -1
+ROAD_RESERVE = -2
 
 
 def hashfunc(o: object) -> int:
@@ -170,21 +172,47 @@ class Core():
             Rect((x * UNIT, z * UNIT), (xlen * UNIT, z * UNIT)))
         building.material = getChangeMaterial(biome)
 
-        ROAD_RESERVE = -2
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
 
         self._blueprintData[id] = building
-        self._blueprint[x:x+xlen, z:z+zlen] = id
+        self._blueprint[begin.x:end.x, begin.y:end.y] = id
 
-        self._blueprint[x-1, z-1:z+zlen+1] = ROAD_RESERVE
-        self._blueprint[x+xlen+1, z-1:z+zlen+1] = ROAD_RESERVE
-        self._blueprint[x-1:x+xlen+1, z-1] = ROAD_RESERVE
-        self._blueprint[x-1:x+xlen+1, z+zlen+1] = ROAD_RESERVE
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            self._blueprint[x, z] = ROAD_RESERVE
 
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
             x, z = node.val // UNIT
-            self._blueprint[x, z] = -1
+            self._blueprint[x, z] = ROAD
+
+    def removeBuilding(self, id: int):
+        building = self._blueprintData[id]
+        (x, z) = building.position
+        (xlen, _, zlen) = building.maxSize
+        x = x // UNIT
+        z = z // UNIT
+        xlen = ceil(xlen / UNIT)
+        zlen = ceil(zlen / UNIT)
+
+        area = Rect((x, z), (xlen, zlen))
+        begin, end = area.begin, area.end
+
+        self._blueprintData.pop(id)
+        self._blueprint[begin.x:end.x, begin.y:end.y] = 0
+
+        area.dilate(1)
+        begin, end = area.begin, area.end
+
+        for (x, z) in area.outline:
+            for neighbor in neighbors2D((x, z), self.buildArea.toRect()):
+                if self._blueprint[neighbor.to_tuple()] != 0:
+                    continue
+            self._blueprint[x, z] = 0
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
         if heightType == "var":
