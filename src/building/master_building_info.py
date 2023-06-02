@@ -18,7 +18,7 @@ class MasterBuildingInfo:
             for k, building_parent_obj in parsed_data.items():
                 self.buildings[k] = []
                 for val in building_parent_obj["variants"]:
-                    self.buildings[k].append(BuildingInfo(val))
+                    self.buildings[k].append(BuildingInfo(k, val))
 
     def __getitem__(self, key: str) -> list[BuildingInfo]:
         """ Get building info by its key """

@@ -52,11 +52,13 @@ class BuildingInfo:
     """ Metadata class for storing building info """
 
     # Properties
+    name: str
     type: str
     max_size: ivec3
     structures: list[Structure]
 
-    def __init__(self, variant: dict):
+    def __init__(self, name: str, variant: dict):
+        self.name = name
         self.type = variant["name"]
         # load each level info out of json structure
         self.structures = []
