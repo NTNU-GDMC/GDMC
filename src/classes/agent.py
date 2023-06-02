@@ -188,14 +188,14 @@ class RoadAgent(Agent):
         end = choices(nodes, weights=weights, k=1)[0]
 
         print(
-            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...", end=" ")
+            f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
-            print("Failed.")
+            print("No path found")
             return
-        print("Done.")
+        print("Path found")
 
         print(f"Update road network...", end=" ")
         self.core.addRoadEdge(edge)
