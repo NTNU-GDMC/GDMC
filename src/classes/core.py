@@ -170,14 +170,21 @@ class Core():
             Rect((x * UNIT, z * UNIT), (xlen * UNIT, z * UNIT)))
         building.material = getChangeMaterial(biome)
 
+        ROAD_RESERVE = -2
+
         self._blueprintData[id] = building
-        self._blueprint[x:x + xlen, z:z + zlen] = id
+        self._blueprint[x:x+xlen, z:z+zlen] = id
+
+        self._blueprint[x-1, z-1:z+zlen+1] = ROAD_RESERVE
+        self._blueprint[x+xlen+1, z-1:z+zlen+1] = ROAD_RESERVE
+        self._blueprint[x-1:x+xlen+1, z-1] = ROAD_RESERVE
+        self._blueprint[x-1:x+xlen+1, z+zlen+1] = ROAD_RESERVE
 
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
             x, z = node.val // UNIT
-            self._blueprint[x:x+1, z:z+1] = -1
+            self._blueprint[x, z] = -1
 
     def getHeightMap(self, heightType: Literal["var", "mean", "sum", "squareSum", "std"], bound: Rect):
         if heightType == "var":
