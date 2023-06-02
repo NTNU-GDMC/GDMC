@@ -106,7 +106,7 @@ class RoadNetwork(Generic[T]):
 
     def hotness(self, node: RoadNode[T]) -> int:
         """Returns the hotness of a node. Hotness is the number of edges that contain the node."""
-        return self._hotness[node]
+        return self._hotness.get(node, 0)
 
     def isHotspot(self, node: RoadNode[T]) -> bool:
         """Returns whether a node is a hotspot."""
