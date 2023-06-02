@@ -1,147 +1,129 @@
-#! /usr/bin/python3
-import getBuildingEntryInfo as BEI
-import pprint
-import nbt_builder
-from nbt import nbt
-import os
-from pathfind import Location
-import pathfind
-from gdpc import geometry as GEO
-from gdpc import interface as INTF
-from gdpc import toolbox as TB
-from gdpc import worldLoader as WL
-from math import floor
-from NTNUBasicBuilding import InitialChalet
-from heightAnalysis import getSmoothChunk
+"""
+In main.py, use levelManager = LevelManager() to create a LevelManager object
+    LevelManager path is src/level/level_manager.py
+
+Use islevelup = levelManager.isLevelUp(core.level, core.resources, len(core.blueprintData))
+    to ask levelManager whether core can level up or not
+    if islevelup == True, it means that:
+        1. level is not reach the maxlevel
+        2. all resources items reach the goal in this level
+        3. number of building reach the goal in this level
+
+Call core to level up:
+    core.levelUp(levelManager.getLimitResource(core.level+1), levelManager.getLimitBuilding(core.level+1))
+    use the code above can make core level to level up and update resourceLimit and buildingLimit simultaneously
+    
+Use levelManager.getMostLackResource(...), (return value type is str)
+    to get the resource name(str) that is MOST SHORTAGE
+    this function CAN/MAYBE used to decide which resource should be gathered by agents who have nothing to do
+
+Use levelManager.isLackBuilding(...), (return value type is bool)
+    to check if building is lack, namely, existBuilding < limitBuilding(in this level)
+    this function CAN/MAYBE used to decide if agent should build building in this level or not
+
+Use core.conformToResourceLimit
+    to make the resource conform to the resource limit
+    namely, if current resource is more than resource limit, then set current resource to resource limit
+
+Use levelManager.getUnlockAgent(...), (return value type is str) (please see the name(str) in agent_limit.json)
+    to get the SPECIAL agent name(str) that can be unlocked after this level
+    if the return value is "none", it means that there is NO SPECIAL agent can be generate after this level
+    NOTICE 1: this agent can only generate ONCE, for example, you can ONLY generate one sawmill agent in whole game. 
+              (Because it is special agent, not wood/sand house agent)
+    NOTICE 2: if you want to add new action like "some SPECIFIC building can only be upgraded after ? level", 
+              you can add new name(str) in agent_limit.json, 
+              and use this function to get the name(str) while you reach the level,
+              then write YOUR OWN LOGIC to distinguish the name(str)
+"""
+
+# ! /usr/bin/python3
+import time
+from src.classes.core import Core
+from src.classes.agent import RoadAgent
+from src.classes.agent_pool import AgentPool
+from src.level.level_manager import LevelManager
+from src.level.limit import getUnlockAgents
+from src.visual.blueprint import plotBlueprint
+from src.config.config import config
+
+
 import random
-from poissionDiskSampling import poissionSample as pS
-from roadDecoration import roadDecoration, treeDecoration, lightDecoration
 
-# Here we read start and end coordinates of our build area
-# STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.requestBuildArea()
-STARTX, STARTY, STARTZ, ENDX, ENDY, ENDZ = INTF.setBuildArea(
-    0, 1, 0, 200, 255, 200)
-print("Build Area: ", *INTF.requestBuildArea())
-
-# IMPORTANT: Keep in mind that a wold slice is a 'snapshot' of the world,
-#   and any changes you make later on will not be reflected in the world slice
-WORLDSLICE = WL.WorldSlice(STARTX, STARTZ, ENDX + 1, ENDZ + 1)
-
-buildings: list[Location] = []
-roads: list[Location] = []
-
-STRUCTURE_DIR = os.path.abspath("./data/structures")
-# BUILDING_TYPE = ["chalet", "chalet_2", "modern_house"]
-BUILDING_TYPE = ["nbt_example"]
-
-
-def getBuildingDir(name: str):
-    return os.path.join(STRUCTURE_DIR, name)
-
-
-def getBuildingNBTDir(name: str):
-
-    return os.path.join(getBuildingDir(name), f"{name}.nbt")
-
-
-def getBuildingInfoDir(name: str):
-    return os.path.join(getBuildingDir(name), f"{name}.json")
-
-
-def buildBasicBuilding():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-
-    buildArea = getSmoothChunk(heights)
-    coBuildingList = pS(STARTX, STARTZ, ENDX, ENDZ, 10, 23, buildArea)
-
-    print("coBuildingList:", coBuildingList)
-
-    x, z = coBuildingList[0]
-    INTF.runCommand(f"tp @a {x} 100 {z}")
-
-    for pos in coBuildingList:
-        x, z = pos
-        x, z = floor(x), floor(z)
-
-        y = int(heights[(x, z)])
-        x = x + STARTX
-        z = z + STARTZ
-        print(x, y, z)
-
-        buildingType = random.choice(BUILDING_TYPE)
-
-        nbt_struct = nbt.NBTFile(getBuildingNBTDir(buildingType))
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z)
-
-        sizeX, sizeY, sizeZ = tmp = map(
-            lambda e: int(e.value), nbt_struct["size"])
-        print("tmp:", tmp)
-        print("size x, y, z:", sizeX, sizeY, sizeZ)
-
-        buildingInfo = BEI.BuildingInfo(getBuildingInfoDir(buildingType))
-
-        entryNames = buildingInfo.getBuildingNameList()
-        entry = buildingInfo.getEntryInfo(entryNames[0])
-
-        print("entry pos:", entry.pos)
-        dx, dy, dz = entry.pos
-        entryPos: Location = (x + dx, y + dy, z + dz)
-        print("entry pos(T):", entryPos)
-        for dx in range(sizeX):
-            for dy in range(sizeY):
-                for dz in range(sizeZ):
-                    buildingBlk: Location = (x + dx, y + dy, z + dz)
-                    if buildingBlk == entry.pos:
-                        continue
-                    buildings.append(buildingBlk)
-
-        pathfind.buildRoad(entryPos, roads, buildings)
-
-
-def buildRoadDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    data = roadDecoration(roads, 8, heights)
-    for flower in data:
-        [x, y, z, name] = flower
-        INTF.placeBlock(x, y, z, name)
-    return
-
-
-def buildTreeDecoration():
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    data = treeDecoration(roads, 12, heights)
-    nbt_struct = nbt.NBTFile(getBuildingNBTDir("tree"))
-
-    for tree in data:
-        [x, y, z] = tree
-        nbt_builder.buildFromStructureNBT(nbt_struct, x, y, z, True)
-    for road in roads:
-        [x, y, z] = road
-        INTF.placeBlock(x, y+1, z, "air")
-        INTF.placeBlock(x, y+1, z, "air")
-    return
-
-
-def placeStreetLight(x: int, y: int, z: int):
-    INTF.placeBlock(x, y, z, "cobblestone")
-    INTF.placeBlock(x, y+1, z, "cobblestone_wall")
-    INTF.placeBlock(x, y+2, z, "torch")
-
-def buildLightDecoration():
-    locs = lightDecoration(roads, 16, None)
-    for loc in locs:
-        placeStreetLight(*loc)
+ROUND = config.gameRound
+NUM_BASIC_AGENTS = config.numBasicAgents
+NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
 if __name__ == '__main__':
-    try:
-        height = WORLDSLICE.heightmaps["MOTION_BLOCKING"][(STARTX, STARTY)]
-        # INTF.runCommand(f"tp @a {STARTX} {height} {STARTZ}")
-        # print(f"/tp @a {STARTX} {height} {STARTZ}")
-        buildBasicBuilding()
-        buildRoadDecoration()
-        buildTreeDecoration()
-        buildLightDecoration()
+    startTime = time.time()
 
-        print("Done!")
-    except KeyboardInterrupt:   # useful for aborting a run-away program
-        print("Pressed Ctrl-C to kill program.")
+    print("Initing core...")
+    core = Core()
+    print("Done initing core")
+
+
+    levelManager = LevelManager()
+    agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
+    RoadAgent(core)
+
+    for agent in agentPool.agents:
+        print(agent)
+
+    # iterate rounds
+    for i in range(ROUND):
+        print(f"Round: {i}")
+        print(f"Level: {core.level}")
+        print(
+            f"Buildings: {[core.numberOfBuildings(level) for level in range(1, 4)]}")
+        print(
+            f"Max Buildings:  {[core.getBuildingLimit(level) for level in range(1, 4)]}")
+        print(f"Resources: {core.resources}")
+
+        restingAgents = 0
+
+        core.updateResource()
+
+        unlockedAgents = getUnlockAgents(core.level)
+        print("Unlocked agents: ", unlockedAgents)
+
+        for unlockedAgent in unlockedAgents:
+            agentPool.unlockSpecial(unlockedAgent)
+
+        print("Start running agents")
+
+        agents = list(agentPool.agents)
+
+        for agent in random.sample(agents, len(agents)):
+            # run agent
+            success = agent.run()
+
+            if not success:
+                # gather resource if the agent cannot do their job
+                restingAgents += 1
+                agent.rest()
+            # else:
+            #     if agent.special:
+                # remove from the pool or assigned other things to this agent
+                # pass
+
+        print(f"Resting agents: {restingAgents}")
+
+        if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
+            core.levelUp()
+
+        # clamp resource to limit
+        core.conformToResourceLimit()
+
+        print("Round Done")
+        print("=====")
+
+    print(f"Time: {time.time() - startTime}")
+
+    print("Start building in minecraft")
+
+    core.startBuildingInMinecraft()
+
+    print("Done building in minecraft")
+
+    print(f"Time: {time.time() - startTime}")
+
+    plotBlueprint(core)
