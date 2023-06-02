@@ -3,7 +3,6 @@ from gdpc.geometry import Rect
 from math import sqrt, floor
 from typing import Callable, Any
 from numpy import ndarray
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource
 
 
 def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:

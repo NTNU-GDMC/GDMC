@@ -3,16 +3,16 @@
 import numpy as np
 from dataclasses import dataclass
 from gdpc import WorldSlice
-from gdpc.vector_tools import Rect
-from ..resource.analyze_material import analyzeSettlementMaterial, analyzeOneBlockVerticalMaterial
-from collections import Counter
+from gdpc.vector_tools import Rect, addY, ivec2
 
-stoneList = ["minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
-             "minecraft:dripstone_block", "minecraft:stone", "minecraft:stone_bricks", "minecraft:granite", "minecraft:deepslate", "minecraft:deepslate_bricks", "minecraft:cobbled_deepslate", "minecraft:tuff"]
-logList = ["minecraft:oak_log", "minecraft:dark_oak_log", "minecraft:birch_log", "minecraft:spruce_log", "minecraft:jungle_log", "minecraft:acacia_log", "minecraft:stripped_oak_log",
-           "minecraft:stripped_birch_log", "minecraft:stripped_spruce_log", "minecraft:stripped_jungle_log", "minecraft:stripped_acacia_log", "minecraft:stripped_dark_oak_log", "minecraft:mangrove_log"]
-ironList = ["minecraft:iron_ore", "minecraft:raw_iron_block",
-            "minecraft:deepslate_iron_ore"]
+stoneSet = {"minecraft:andesite", "minecraft:basalt", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks", "minecraft:diorite",
+            "minecraft:dripstone_block", "minecraft:stone", "minecraft:stone_bricks", "minecraft:granite", "minecraft:deepslate", "minecraft:deepslate_bricks", "minecraft:cobbled_deepslate", "minecraft:tuff"}
+logSet = {"minecraft:oak_log", "minecraft:dark_oak_log", "minecraft:birch_log", "minecraft:spruce_log", "minecraft:jungle_log", "minecraft:acacia_log", "minecraft:stripped_oak_log",
+          "minecraft:stripped_birch_log", "minecraft:stripped_spruce_log", "minecraft:stripped_jungle_log", "minecraft:stripped_acacia_log", "minecraft:stripped_dark_oak_log", "minecraft:mangrove_log"}
+ironSet = {"minecraft:iron_ore", "minecraft:raw_iron_block",
+           "minecraft:deepslate_iron_ore"}
+
+grassSet = {"minecraft:grass_block", "minecraft:grass"}
 
 
 @dataclass
@@ -31,43 +31,45 @@ class Resource():
 
     def __lt__(self, other):
         return (
-                self.wood < other.wood or
-                self.stone < other.stone or
-                self.food < other.food or
-                self.ironOre < other.ironOre or
-                self.iron < other.iron
+            self.wood < other.wood or
+            self.stone < other.stone or
+            self.food < other.food or
+            self.ironOre < other.ironOre or
+            self.iron < other.iron
         )
 
     def __sub__(self, other):
         return Resource(
-                self.human - other.human,
-                self.wood - other.wood,
-                self.stone - other.stone,
-                self.food - other.food,
-                self.ironOre - other.ironOre,
-                self.iron - other.iron,
-                self.grass - other.grass
+            self.human - other.human,
+            self.wood - other.wood,
+            self.stone - other.stone,
+            self.food - other.food,
+            self.ironOre - other.ironOre,
+            self.iron - other.iron,
+            self.grass - other.grass
         )
 
     def __add__(self, other):
         return Resource(
-                self.human + other.human,
-                self.wood + other.wood,
-                self.stone + other.stone,
-                self.food + other.food,
-                self.ironOre + other.ironOre,
-                self.iron + other.iron,
-                self.grass + other.grass
+            self.human + other.human,
+            self.wood + other.wood,
+            self.stone + other.stone,
+            self.food + other.food,
+            self.ironOre + other.ironOre,
+            self.iron + other.iron,
+            self.grass + other.grass
         )
 
-    def __getitem__(self, key:str):
+    def __getitem__(self, key: str):
         return getattr(self, key)
 
-    def __setitem__(self, key:str, value:int):
+    def __setitem__(self, key: str, value: int):
         setattr(self, key, value)
+
 
 @dataclass
 class ResourceMap():
+    area: Rect
     human: np.ndarray
     wood: np.ndarray
     stone: np.ndarray
@@ -76,8 +78,9 @@ class ResourceMap():
     iron: np.ndarray
     grass: np.ndarray
 
-    def __init__(self, area: Rect):
-        shape = area.size.to_tuple()
+    def __init__(self, worldSlice: WorldSlice):
+        self.area = worldSlice.rect
+        shape = self.area.size.to_tuple()
         self.human = np.zeros(shape)
         self.wood = np.zeros(shape)
         self.stone = np.zeros(shape)
@@ -86,48 +89,41 @@ class ResourceMap():
         self.iron = np.zeros(shape)
         self.grass = np.zeros(shape)
 
+        def addBlock(blockName: str, pos: ivec2):
+            if blockName in logSet:
+                self.wood[pos.x, pos.y] += 1
+            elif blockName in stoneSet:
+                self.stone[pos.x, pos.y] += 1
+            elif blockName in ironSet:
+                self.ironOre[pos.x, pos.y] += 1
+            elif blockName in grassSet:
+                self.grass[pos.x, pos.y] += 1
 
-def analyzeResource(materialDict: Counter):
-    woodNum = 0
-    stoneNum = 0
-    foodNum = 0
-    ironOreNum = 0
-    # ironNum = 0
-    for idx in materialDict:
-        if idx in logList:
-            woodNum += materialDict[idx] * 4
-    for idx in materialDict:
-        if idx in stoneList:
-            stoneNum += materialDict[idx]
-    stoneNum //= 10
-    for idx in materialDict:
-        if idx in ironList:
-            ironOreNum += materialDict[idx]
-    foodNum += woodNum // 40
-    r = Resource(2, woodNum, stoneNum, foodNum, ironOreNum, 0, 10)
-    return r
+        for pos in self.area.inner:
+            heights = worldSlice.heightmaps["MOTION_BLOCKING"]
+            height = heights[pos.x, pos.y]-1
 
+            for y in range(height-1, height-17, -1):
+                blockName = worldSlice.getBlock(addY(pos, y)).id
 
-def analyzeAreaMaterialToResource(worldSlice: WorldSlice, area: Rect) -> Resource:
-    """
-    analyze area material to resource
-    """
-    materialDict = analyzeSettlementMaterial(worldSlice, area)
-    r = analyzeResource(materialDict)
-    return r
+                if blockName is None:
+                    break
 
+                addBlock(blockName, pos)
 
-def getMaterialToResourceMap(worldSlice: WorldSlice, area: Rect) -> ResourceMap:
-    rMap = ResourceMap(area)
-    for pos in area.inner:
-        materialDict = analyzeOneBlockVerticalMaterial(worldSlice, pos)
-        r = analyzeResource(Counter(materialDict))
-        rMap.human[pos.x][pos.y] = r.human
-        rMap.wood[pos.x][pos.y] = r.wood
-        rMap.stone[pos.x][pos.y] = r.stone
-        rMap.food[pos.x][pos.y] = r.food
-        rMap.ironOre[pos.x][pos.y] = r.ironOre
-        rMap.iron[pos.x][pos.y] = r.iron
-        rMap.grass[pos.x][pos.y] = r.grass
-    print(rMap)
-    return rMap
+                if not blockName.count("leaves"):
+                    break
+
+    def analyzeResource(self, area: Rect | None = None) -> Resource:
+        if area is None:
+            area = self.area
+        begin, end = area.begin, area.end
+        wood: int = self.wood[begin.x:end.x, begin.y:end.y].sum()
+        stone: int = self.stone[begin.x:end.x, begin.y:end.y].sum()
+        ironOre: int = self.ironOre[begin.x:end.x, begin.y:end.y].sum()
+        grass: int = self.grass[begin.x:end.x, begin.y:end.y].sum()
+        wood *= 4
+        food = wood // 40
+        resource = Resource(human=2, wood=wood, stone=stone,
+                            food=food, ironOre=ironOre, grass=grass)
+        return resource

@@ -5,13 +5,12 @@ from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
 from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2
-from typing import Literal, Any
+from typing import Literal, Any, Callable
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
 from ..building.building import Building
 from ..height_info import HeightInfo
-from ..resource.analyze_biome import getAllBiomeList
-from ..resource.terrain_analyzer import analyzeAreaMaterialToResource, getMaterialToResourceMap
+from ..resource.terrain_analyzer import ResourceMap
 from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
 from ..resource.biome_substitute import getChangeMaterial
@@ -57,14 +56,11 @@ class Core():
         print("Biome analyzed")
 
         print("Analyzing resource...")
-        self._resources = analyzeAreaMaterialToResource(
-            worldSlice, buildArea.toRect())
+        self._resourceMap = ResourceMap(self.worldSlice)
+        self._resources = self._resourceMap.analyzeResource()
+        print(self._resourceMap)
+        print(self._resources)
         print("Resource analyzed")
-
-        print("Analyzing resource map...")
-        self._resourceMap = getMaterialToResourceMap(
-            worldSlice, buildArea.toRect())
-        print("Resource map analyzed")
 
         # contains: height, sd, var, mean
         self._heightInfo = HeightInfo(heights)
