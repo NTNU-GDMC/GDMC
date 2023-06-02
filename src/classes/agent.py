@@ -117,6 +117,7 @@ class BuildAgent(RunableAgent):
 
         if bestLocation is None:
             print(f"No suitable location found")
+            self.remainCD += self.cooldown * 10
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
