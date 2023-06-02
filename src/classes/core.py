@@ -156,13 +156,17 @@ class Core():
             self._resources += building.building_info.structures[buildingLevel-1].production
 
     def getBlueprintBuildingData(self, id: int):
-        return self._blueprintData[id]
+        return self._blueprintData.get(id, None)
+
+    def maxBuildingID(self):
+        ids = self._blueprintData.keys()
+        return max(ids) if ids else 0
 
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position
         (xlen, _, zlen) = building.maxSize
-        id = len(self._blueprintData) + 1
+        id = self.maxBuildingID() + 1
         x = x // UNIT
         z = z // UNIT
         xlen = ceil(xlen / UNIT)
