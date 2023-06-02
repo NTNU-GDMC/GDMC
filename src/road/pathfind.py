@@ -84,7 +84,9 @@ class Pathfinder(object):
         dis = l1Norm(delta3D)
 
         hotness = self.roadNetwork.hotness(a) + self.roadNetwork.hotness(b)
-        dis /= 1+hotness
+
+        if hotness > 0:
+            dis *= 0.5
 
         return dis
 
