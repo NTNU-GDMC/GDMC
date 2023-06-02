@@ -281,6 +281,8 @@ class Core():
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
+        flushCoounter = 0
+
         for id, building in self._blueprintData.items():
             pos = building.position
             level = building.level
@@ -292,11 +294,21 @@ class Core():
             buildFromNBT(self._editor, structure.nbtFile,
                          addY(pos, y), building.material)
 
+            flushCoounter += 10
+            if flushCoounter == 100:
+                self._editor.flushBuffer()
+                flushCoounter = 0
+
         for node in self._roadNetwork.subnodes:
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
+
+            flushCoounter += 1
+            if flushCoounter == 100:
+                self._editor.flushBuffer()
+                flushCoounter = 0
 
         self.editor.flushBuffer()
