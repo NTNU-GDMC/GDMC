@@ -2,7 +2,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
-from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement
 from ..config.config import config
 
 
@@ -57,6 +57,11 @@ def newAgent(core: Core, name: str):
         total = 0
 
         if nearBound(core, area):
+            return 0
+
+        reqBaseBlock = requiredBasement(core, area)
+        # TODO: make this flexible config
+        if reqBaseBlock > area.area * 3:
             return 0
 
         flatness = isFlat(core, area)

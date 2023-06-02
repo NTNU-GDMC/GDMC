@@ -1,3 +1,5 @@
+import numpy as np
+
 from ..classes.core import Core
 from gdpc.geometry import Rect
 from math import sqrt, floor
@@ -28,6 +30,13 @@ def isFlat(core: Core, area: Rect) -> float:
     if std == 0:
         return float('inf')
     return 1 / std
+
+
+def requiredBasement(core: Core, area: Rect) -> int:
+    area.offset -= core.buildArea.toRect().offset
+    height = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
+    maxY = np.max(height)
+    return np.sum(maxY - height)
 
 
 def isLiquid(core: Core, area: Rect) -> float:
