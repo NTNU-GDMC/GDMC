@@ -87,7 +87,7 @@ class Config:
     numSpecialAgents: int = 1
     """The number of special agents"""
 
-    sampleRate: float = 0.7
+    sampleRate: float = 0.4
     """The sample rate of locations to analyze for agents"""
 
     # ================ analyzer ================
