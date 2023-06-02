@@ -28,6 +28,7 @@ class Structure:
     nbtFile: nbt.NBTFile
     level: int
     size: ivec3
+    offsets: ivec3
     entries: list[Entry]
     requirement: Resource
     production: Resource
@@ -41,6 +42,10 @@ class Structure:
             jsonDict = json.load(f)
             self.level = int(jsonDict["Level"])
             self.size = ivec3(*jsonDict["Size"])
+            if "Offsets" not in jsonDict:
+                self.offsets = ivec3(0,0,0)
+            else:
+                self.offsets = ivec3(jsonDict["Offsets"])
             self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
             self.requirement = Resource.fromDict(jsonDict["RequiredResource"])
             self.production = Resource.fromDict(jsonDict["ProduceResource"])
