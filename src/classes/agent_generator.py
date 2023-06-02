@@ -4,6 +4,7 @@ from ..classes.core import Core
 from ..classes.agent import BuildAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement
 from ..config.config import config
+from building.building_info import BuildingInfo
 
 
 # basic buildings
@@ -53,7 +54,7 @@ BUILDING_TAGS = {
 def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
-    def analyzeFunction(core: Core, area: Rect):
+    def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
         total = 0
 
         if nearBound(core, area):
