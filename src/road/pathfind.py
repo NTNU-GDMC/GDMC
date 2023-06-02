@@ -7,93 +7,149 @@ from ..config.config import config
 
 UNIT = config.unit
 
-# hash function of ivec2 for RoadNode
 
+class Pathfinder(object):
+    def __init__(self, core: Core, begin: RoadNode[ivec2], end: RoadNode[ivec2]) -> None:
+        self._core = core
+        self._begin = begin
+        self._end = end
 
-def hashfunc(o: object) -> int:
-    if isinstance(o, ivec2):
-        return o.to_tuple().__hash__()
-    raise TypeError
+    @property
+    def core(self):
+        return self._core
 
+    @property
+    def begin(self):
+        return self._begin
 
-def pathfind(
-        core: Core,
-        begin: RoadNode[ivec2],
-        end: RoadNode[ivec2],
-) -> RoadEdge[ivec2] | None:
+    @property
+    def end(self):
+        return self._end
 
-    roadNetwork = core.roadNetwork
-    boundingRect = core.buildArea.toRect()
+    @property
+    def blueprint(self):
+        return self._core.blueprint
 
-    def exists(n: RoadNode[ivec2]) -> bool:
-        return n in roadNetwork.subnodes
+    @property
+    def roadNetwork(self):
+        return self._core.roadNetwork
 
-    def height(n: RoadNode[ivec2]):
-        return round(core.getHeightMap("mean", Rect(n.val, (UNIT, UNIT))))
+    @property
+    def boundingRect(self):
+        return self._core.buildArea.toRect()
 
-    def tooFar(n: RoadNode[ivec2]) -> bool:
-        return l1Distance(n.val, begin.val) + l1Distance(n.val, end.val) > 2 * l1Distance(begin.val, end.val)
+    def height(self, n: RoadNode[ivec2]):
+        """Height of a node"""
+        return round(self._core.getHeightMap("mean", Rect(n.val, (UNIT, UNIT))))
 
-    def isRoad(n: RoadNode[ivec2]) -> bool:
-        return core.blueprint[n.val.x//UNIT, n.val.y//UNIT] == -1
+    def tooFar(self, n: RoadNode[ivec2]) -> bool:
+        """Whether the node is too far from the begin and end nodes"""
+        return l1Distance(n.val, self.begin.val) + l1Distance(n.val, self.end.val) > 2 * l1Distance(self.begin.val, self._end.val)
 
-    def isEmpty(n: RoadNode[ivec2]) -> bool:
-        return core.blueprint[n.val.x//UNIT, n.val.y//UNIT] == 0
+    def isBuilding(self, n: RoadNode[ivec2]) -> bool:
+        """Whether the node is a building"""
+        return self.blueprint[n.val.x//UNIT, n.val.y//UNIT] > 0
 
-    def neighbors(n: RoadNode[ivec2]):
-        for neighbor in neighbors2D(n.val, boundingRect=boundingRect, stride=UNIT):
-            node = roadNetwork.newNode(neighbor)
-
-            if tooFar(node):
+    def neighbors(self, n: RoadNode[ivec2]):
+        """Neighbors of a node"""
+        for neighbor in self.roadNetwork.neighbors(n):
+            if not self.isBuilding(neighbor):
                 continue
 
-            if abs(height(node) - height(n)) > 1:
+            if self.tooFar(neighbor):
                 continue
 
-            if not isEmpty(node) and not isRoad(node):
+            yield neighbor
+
+        yield from self.subNeighbors(n)
+
+    def subNeighbors(self, n: RoadNode[ivec2]):
+        """Sub neighbors of a node"""
+        for pos in neighbors2D(n.val, boundingRect=self.boundingRect, stride=UNIT):
+            neighbor = self.roadNetwork.newNode(pos)
+
+            if self.tooFar(neighbor):
                 continue
 
-            yield node
+            if abs(self.height(neighbor) - self.height(n)) > 1:
+                continue
 
-    # real distance
-    def distance(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
-        if exists(a) and exists(b):
-            return 0.0
+            if self.isBuilding(neighbor):
+                continue
+
+            yield neighbor
+
+    def distance(self, a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
+        """Real distance between two nodes"""
+        if self.roadNetwork.edge(a, b) is not None:
+            return 0
 
         delta2D = b.val - a.val
+        delta3D = addY(delta2D, (self.height(b) - self.height(a))*2)
+        dis = l1Norm(delta3D)
 
-        # weight for distance
-        delta3D = addY(delta2D, (height(b) - height(a))*2)
-
-        return l1Norm(delta3D)
-
-    # heuristic function
-    def heuristic(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
-        dis = l1Distance(a.val, b.val)
-        totalDis = l1Distance(begin.val, end.val)
-
-        if dis / totalDis < 0.25:
-            dis *= 0.8
-        else:
-            dis *= 3
-
-        if exists(a):
-            dis *= 0.5
+        hotness = self.roadNetwork.hotness(a) + self.roadNetwork.hotness(b)
+        dis /= 1+hotness
 
         return dis
 
-    def isGoal(a: RoadNode[ivec2], b: RoadNode[ivec2]) -> bool:
+    def heuristic(self, a: RoadNode[ivec2], b: RoadNode[ivec2]) -> float:
+        """Heuristic distance between two nodes"""
+        dis = l1Distance(a.val, b.val)
+        totalDis = l1Distance(self.begin.val, self.end.val)
+
+        hotness = self.roadNetwork.hotness(a)
+        dis /= 1+hotness
+
+        return dis
+
+    def isGoal(self, a: RoadNode[ivec2], b: RoadNode[ivec2]) -> bool:
+        """Check if goal is reached"""
         return a == b
+
+
+def pathfind(
+    core: Core,
+    begin: RoadNode[ivec2],
+    end: RoadNode[ivec2],
+) -> RoadEdge[ivec2] | None:
+
+    pathfinder = Pathfinder(core, begin, end)
 
     path = find_path(begin,
                      end,
-                     neighbors_fnct=neighbors,
+                     neighbors_fnct=pathfinder.neighbors,
                      reversePath=True,
-                     heuristic_cost_estimate_fnct=heuristic,
-                     distance_between_fnct=distance,
-                     is_goal_reached_fnct=isGoal)
+                     heuristic_cost_estimate_fnct=pathfinder.heuristic,
+                     distance_between_fnct=pathfinder.distance,
+                     is_goal_reached_fnct=pathfinder.isGoal)
 
     if path is None:
         return None
 
-    return RoadEdge(list(path))
+    expandedPath = list[RoadNode[ivec2]]()
+
+    def append(node: RoadNode[ivec2]):
+        if not expandedPath or expandedPath[-1] != node:
+            expandedPath.append(node)
+
+    prevNode: RoadNode[ivec2] | None = None
+    for node in path:
+        if prevNode is None:
+            append(node)
+            prevNode = node
+            continue
+
+        edge = core.roadNetwork.edge(prevNode, node)
+
+        if edge is None:
+            append(node)
+            prevNode = node
+            continue
+
+        for subNode in edge:
+            append(subNode)
+
+        prevNode = node
+
+    return RoadEdge(expandedPath)

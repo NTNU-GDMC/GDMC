@@ -14,7 +14,6 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 COOLDOWN = config.agentCooldown
-ANALYZE_THRESHOLD = config.analyzeThreshold
 SAMPLE_RATE = config.sampleRate
 
 
@@ -99,7 +98,7 @@ class BuildAgent(RunableAgent):
                 print(f"{i}/{numPossibleLocations} locations analyzed")
                 if bestLocation is not None:
                     break
-                nextCheckIndex += ceil(numPossibleLocations-i * SAMPLE_RATE)
+                nextCheckIndex += ceil((numPossibleLocations-i) * SAMPLE_RATE)
 
             location = possibleLocations[i]
 
