@@ -44,7 +44,7 @@ class Pathfinder(object):
 
     def tooFar(self, n: RoadNode[ivec2]) -> bool:
         """Whether the node is too far from the begin and end nodes"""
-        return l1Distance(n.val, self.begin.val) + l1Distance(n.val, self.end.val) > 3 * l1Distance(self.begin.val, self._end.val)
+        return l1Distance(n.val, self.begin.val) + l1Distance(n.val, self.end.val) > 2.5 * l1Distance(self.begin.val, self._end.val)
 
     def isBuilding(self, n: RoadNode[ivec2]) -> bool:
         """Whether the node is a building"""
