@@ -33,28 +33,30 @@ class BiomeMap():
         self.badlands = np.zeros(shape, dtype=bool)
         self.other = np.zeros(shape, dtype=bool)
 
-        for x, z in area.size: 
-            # height map is using relative coordinate (from 0,0)
-            y = heights[x, z]
-            biome = worldSlice.getBiome((x, y, z))
-            self.biomes[(x, z)] = biome
+        sizeX, sizeZ = area.size
+        for x in range(sizeX): 
+            for z in range(sizeZ):
+                # height map is using relative coordinate (from 0,0)
+                y = heights[x, z]
+                biome = worldSlice.getBiome((x, y, z))
+                self.biomes[(x, z)] = biome
 
-            if biome in spruceSet:
-                self.cold[x, z] = 1
-            if biome in birchSet:
-                self.forest[x, z] = 1
-            if biome in jungleSet:
-                self.jungle[x, z] = 1
-            if biome in acaciaSet:
-                self.savanna[x, z] = 1
-            if biome in darkOakSet:
-                self.darkForest[x, z] = 1
-            if biome in desertSet:
-                self.desert[x, z] = 1
-            if biome in redSandSet:
-                self.badlands[x, z] = 1
-            if biome in otherSet:
-                self.other[x, z] = 1
+                if biome in spruceSet:
+                    self.cold[x, z] = 1
+                if biome in birchSet:
+                    self.forest[x, z] = 1
+                if biome in jungleSet:
+                    self.jungle[x, z] = 1
+                if biome in acaciaSet:
+                    self.savanna[x, z] = 1
+                if biome in darkOakSet:
+                    self.darkForest[x, z] = 1
+                if biome in desertSet:
+                    self.desert[x, z] = 1
+                if biome in redSandSet:
+                    self.badlands[x, z] = 1
+                if biome in otherSet:
+                    self.other[x, z] = 1
 
     def getPrimaryBiome(self, area: Rect):
         """Get the primary biome in the area"""
