@@ -1,10 +1,12 @@
 import numpy as np
-
-from ..classes.core import Core
 from gdpc.geometry import Rect
-from math import sqrt, floor
 from typing import Callable, Any
 from numpy import ndarray
+from gdpc.vector_tools import distance2
+from ..classes.core import Core
+from ..building.building import Building
+from ..building.building_info import BuildingInfo
+from ..building.master_building_info import GLOBAL_BUILDING_INFO
 
 
 def checkEdge(map: ndarray, area: Rect, cmp: Callable[[Any], bool]) -> bool:
@@ -33,11 +35,11 @@ def isFlat(core: Core, area: Rect) -> float:
 
 
 def requiredBasement(core: Core, area: Rect) -> int:
-    area.offset -= core.buildArea.toRect().offset
-    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
+    begin, end = area.begin, area.end
+    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][
+        begin.x:end.x, begin.y:end.y]
     y = round(core.getHeightMap("mean", area))
-    heights = np.minimum(y, heights)
-    return np.sum(y - heights)
+    return np.sum(np.maximum(y - heights, 0))
 
 
 def isLiquid(core: Core, area: Rect) -> float:
@@ -81,12 +83,18 @@ def isDesert(core: Core, area: Rect) -> float:
     return sum / area.area
 
 
+def isVillage(core: Core, area: Rect) -> bool:
+    """Check if the area is in the village"""
+    begin, end = area.begin, area.end
+    return np.any(core.resourcesMap.artificial[begin.x:end.x, begin.y:end.y] > 0)
+
+
 MINIMUM_BOUND_PADDING = 10
 
 
 def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     """Check if the area is close enough to the bound"""
-    bound = core.buildArea.toRect()
+    bound = Rect((0, 0), core.buildArea.toRect().size)
 
     left = area.begin.x - bound.begin.x
     bottom = area.begin.y - bound.begin.y
@@ -94,3 +102,16 @@ def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     top = bound.last.y - area.last.y
 
     return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
+
+
+MINIMUM_BUILDING_MARGIN = 256
+
+
+def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin=MINIMUM_BUILDING_MARGIN) -> bool:
+    """Check if the area is close enough to the bound"""
+    variants = GLOBAL_BUILDING_INFO[buildingInfo.name]
+    buildings = list[Building]()
+    for variant in variants:
+        buildings += core.getBuildings(buildingType=variant.type)
+
+    return any([distance2(building.position, area.begin) < minMargin**2 for building in buildings])

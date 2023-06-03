@@ -2,8 +2,9 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
-from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
 from ..config.config import config
+from ..building.building_info import BuildingInfo
 
 
 # basic buildings
@@ -42,7 +43,7 @@ TAG_FOREST = "forest"
 BUILDING_TAGS = {
     CHALET: [TAG_LAND],
     DESERT_BUILDING: [TAG_LAND, TAG_DESERT],
-    SAWMILL: [TAG_LAND],
+    SAWMILL: [TAG_LAND, TAG_FOREST],
     FARM: [TAG_LAND],
     QUARRY: [TAG_LAND],
     FORGE: [TAG_LAND],
@@ -53,10 +54,15 @@ BUILDING_TAGS = {
 def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
-    def analyzeFunction(core: Core, area: Rect):
+    def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
+        area = area.dilated(config.analyzeBorder)
+
         total = 0
 
         if nearBound(core, area):
+            return 0
+
+        if isVillage(core, area):
             return 0
 
         reqBaseBlock = requiredBasement(core, area)
@@ -69,14 +75,26 @@ def newAgent(core: Core, name: str):
             return 0
         total += flatness
 
+        if name in SPECIAL_BUILDINGS:
+            if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
+                return 0
+
         if TAG_LAND in tags and isLiquid(core, area):
             return 0
 
         if TAG_FOREST in tags:
-            forestness = hasEnoughWood(core, area)
+            buildArea = Rect((0,0),core.buildArea.toRect().size)
+            queryArea = area.dilated(config.forestQueryMargin)
+            begin, end = queryArea.begin, queryArea.end
+            begin.x = max(begin.x, buildArea.begin.x)
+            begin.y = max(begin.y, buildArea.begin.y)
+            end.x = min(end.x, buildArea.end.x)
+            end.y = min(end.y, buildArea.end.y)
+            queryArea = Rect(begin, end-begin)
+            forestness = hasEnoughWood(core, queryArea)
             if forestness < config.forestThreshold:
                 return 0
-            total += forestness
+            total += forestness*10
 
         desertness = isDesert(core, area)
         if TAG_DESERT in tags:

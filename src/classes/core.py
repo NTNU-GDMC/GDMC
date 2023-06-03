@@ -1,10 +1,10 @@
-import random
+from random import choice, shuffle
 from math import ceil
 from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, neighbors2D
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, ivec3, neighbors2D
 from typing import Literal, Any, Callable
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
@@ -15,6 +15,7 @@ from ..config.config import config
 from ..building.nbt_builder import buildFromNBT
 from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
+from ..poisson_disk_sampling import poissonDiskSample
 
 UNIT = config.unit
 ROAD = -1
@@ -36,7 +37,7 @@ class Core():
                         bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
-        buildArea = editor.setBuildArea(buildArea)
+        buildArea = editor.getBuildArea()
         # get world slice and height maps
         print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
@@ -130,9 +131,10 @@ class Core():
     def resourceLimit(self):
         return getResourceLimit(self._level)
 
-    def getBuildings(self, buildingLevel: int, buildingType: str | None = None):
+    def getBuildings(self, buildingLevel: int| None = None, buildingType: str | None = None):
         for building in self._blueprintData.values():
-            if building.level == buildingLevel and (buildingType is None or building.building_info.type == buildingType):
+            if (buildingLevel is None or building.level == buildingLevel) and \
+                (buildingType is None or building.building_info.type == buildingType):
                 yield building
 
     def getBuildingLimit(self, buildingLevel: int):
@@ -162,6 +164,9 @@ class Core():
     def maxBuildingID(self):
         ids = self._blueprintData.keys()
         return max(ids) if ids else 0
+
+    def increaseGrass(self):
+        self._resources.grass += 10
 
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
@@ -323,23 +328,33 @@ class Core():
 
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
+
+        globalBound = self.buildArea.toRect()
+        globalOffset = globalBound.offset
+        localBound = globalBound.translated(-globalOffset)
+
+        # ====== Add building to Minecraft ======
+
         for id, building in self._blueprintData.items():
             pos = building.position
             level = building.level
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = round(self.getHeightMap("mean", area))
-            print(f"Build at {pos} with height {y}")
+            y = round(self.getHeightMap("mean", area)) - structure.offsets.y
+            print(f"Build at {pos + globalOffset} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
-                         addY(pos, y), building.material)
+                         addY(pos + globalOffset, y), building.material)
 
         self.editor.flushBuffer()
 
-        for node in set(self._roadNetwork.subnodes):
+        # ====== Add road to Minecraft ======
+
+        roadNodes = set(self._roadNetwork.subnodes)
+        for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
-            pos = addY(node.val, y)
+            pos = addY(node.val+globalOffset, y)
 
             clearBox = area.toBox(y, 2)
             for x, y, z in clearBox.inner:
@@ -352,5 +367,58 @@ class Core():
 
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
+
+        self.editor.flushBuffer()
+
+        # ====== Add light to Minecraft ======
+
+        def sampleRoadNode(point: ivec2, r: int):
+            return choice(list(roadNodes)).val
+
+        def placeLight1(point: ivec3):
+            x, y, z = point
+            self.editor.runCommand(
+                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y} {z} minecraft:oak_fence", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y+1} {z} minecraft:lantern", syncWithBuffer=True)
+
+        def placeLight2(point: ivec3):
+            x, y, z = point
+            self.editor.runCommand(
+                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y} {z} minecraft:cobblestone_wall", syncWithBuffer=True)
+            self.editor.runCommand(
+                f"setblock {x} {y+1} {z} minecraft:torch", syncWithBuffer=True)
+
+        lightPositions = poissonDiskSample(
+            bound=localBound,
+            limit=len(roadNodes)//3,
+            r=10,
+            k=50,
+            sampleFunc=sampleRoadNode,
+            initPoints=list([roadNode.val for roadNode in roadNodes])
+        )
+
+        for pos in lightPositions:
+            area = Rect(pos, (UNIT, UNIT))
+            y = round(self.getHeightMap("mean", area))
+            neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
+            shuffle(neighbors)
+            for neighbor in neighbors:
+                x, z = neighbor
+                if self.blueprint[x//UNIT, z//UNIT] == 0:
+
+                    if x-pos.x < 0:
+                        x = pos.x - 1
+                    if z-pos.y < 0:
+                        z = pos.y - 1
+
+                    print("place light at:", (x, y, z) + addY(globalOffset, 0))
+
+                    choice([placeLight1, placeLight2])((x, y, z) + addY(globalOffset, 0))
+                    break
 
         self.editor.flushBuffer()

@@ -6,7 +6,7 @@ from gdpc.vector_tools import Rect, ivec2, l1Distance, dropY
 from .core import Core
 from .event import Observer, BuildEvent
 from .baseagent import RunableAgent, withCooldown, Agent
-from ..building.master_building_info import GLOBAL_BUILDING_INFO
+from ..building.master_building_info import GLOBAL_BUILDING_INFO, BuildingInfo
 from ..building.building import Building
 from ..config.config import config
 from ..road.road_network import RoadEdge, RoadNode
@@ -18,7 +18,7 @@ SAMPLE_RATE = config.sampleRate
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
@@ -102,7 +102,7 @@ class BuildAgent(RunableAgent):
 
             location = possibleLocations[i]
 
-            value = self.analysis(self.core, location)
+            value = self.analysis(self.core, location, self.buildingInfo)
 
             if value == 0:
                 continue
@@ -191,12 +191,14 @@ class RoadAgent(Agent):
         print(
             f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
+
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
             print("No path found")
             if building.id:
-                self.core.removeBuilding(building.id)
+                pass
+                # self.core.removeBuilding(building.id)
             return
         print("Path found")
 

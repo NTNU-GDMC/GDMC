@@ -95,11 +95,18 @@ class Config:
 
     # ================ analyzer ================
 
+    analyzeBorder: int = 1
+
     flatnessThreshold: float = 0.4
 
     desertnessThreshold: float = 0.4
 
-    forestThreshold: float = 0.4
+    forestThreshold: float = 0.5/(16*16)
+    """"3 log per chunk"""
+
+    forestQueryMargin: int = 16
+
+    minimumBuildingMargin: int = 256
 
     # ================ data ================
 

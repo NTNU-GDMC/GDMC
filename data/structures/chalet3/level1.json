@@ -6,21 +6,21 @@
             "type": "mainEntry"
         }
     ],
-    "Size": [22, 10, 29],
-    "Type": 1,
-    "Level": 2,
+    "Size": [15, 11, 13],
+    "Type": 2,
+    "Level": 1,
     "RequiredResource": {
         "human": 0,
-        "wood": 1000,
-        "stone": 350,
+        "wood": 200,
+        "stone": 100,
         "food": 0,
         "ironOre": 0,
         "iron": 0,
         "grass": 0
     },
     "ProduceResource": {
-        "human": 0,
-        "wood": 1000,
+        "human": 1,
+        "wood": 0,
         "stone": 0,
         "food": 0,
         "ironOre": 0,
