@@ -206,7 +206,7 @@ spruceSet = {
 }
 
 birchSet = {
-    "minecraft:forest", "minecraft:birch_forest", "minecraft:old_growth_birch_forest", "minecraft:meadow"
+    "minecraft:birch_forest", "minecraft:old_growth_birch_forest", "minecraft:meadow"
 }
 
 jungleSet = {
