@@ -31,6 +31,9 @@ artificialSet = {
     "stripped",
     "farmland",
     "wool",
+    "composter",
+    "dirt_path"
+    "hay_block",
 }
 
 
