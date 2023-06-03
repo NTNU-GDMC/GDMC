@@ -13,9 +13,10 @@ def plotBlueprint(core: Core):
     fig, ax = plt.subplots()
 
     buildArea = core._editor.getBuildArea()
+    offset = buildArea.toRect().offset
 
     for id, building in core.blueprintData.items():
-        begin = building.position
+        begin = building.position + offset
         size = building.currentSize
         maxSize = building.maxSize
         p = mpatch.Rectangle(begin, fitToGrid(maxSize.x), fitToGrid(maxSize.z), fill=True, color="gray")
@@ -29,7 +30,7 @@ def plotBlueprint(core: Core):
                     fontsize=6, ha="center", va="center")
 
     for node in core.roadNetwork.subnodes:
-        p = mpatch.Rectangle(node.val, UNIT, UNIT, fill=True, color="red")
+        p = mpatch.Rectangle(node.val + offset, UNIT, UNIT, fill=True, color="red")
         ax.add_artist(p)
 
     ax.set_xlim(buildArea.begin.x, buildArea.end.x)

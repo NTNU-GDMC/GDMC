@@ -19,7 +19,7 @@ class BiomeMap():
     other: np.ndarray
 
     def __init__(self, worldSlice: WorldSlice) -> None:
-        area = worldSlice.rect
+        area = Rect((0, 0), worldSlice.rect.size)
         shape = area.size.to_tuple()
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
@@ -76,8 +76,8 @@ def getAllBiomeList(WORLDSLICE: WorldSlice, settlementArea: Box):
     for i in range(0, x):
         for j in range(0, z):
             #  TODO: check if settlement or not _ SubaRya
-            a, _, c = settlementArea.offset
+            # getBiome is relative, getBiomeGlobal is absolute
             biome.add(WORLDSLICE.getBiome(
-                (i + a, int(heights[(i + a, j + c)]), j + c)))
+                (i, int(heights[(i, j)]), j)))
     biome = list(biome)
     return biome
