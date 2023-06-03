@@ -95,6 +95,8 @@ class Config:
 
     # ================ analyzer ================
 
+    analyzeBorder: int = 1
+
     flatnessThreshold: float = 0.4
 
     desertnessThreshold: float = 0.4
