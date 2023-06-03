@@ -173,5 +173,19 @@
                 ]
             }
         ]
-    }
+    },
+    "farm": {
+        "variants": [
+            {
+                "name": "farm1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "farm1/level1.json",
+                        "nbt": "farm1/level1.nbt"
+                    },
+                ]
+            }
+        ]
+    },
 }
