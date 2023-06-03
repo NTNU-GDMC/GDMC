@@ -99,20 +99,22 @@ class ResourceMap():
             elif blockName in grassSet:
                 self.grass[pos.x, pos.y] += 1
 
-        for pos in self.area.inner:
-            heights = worldSlice.heightmaps["MOTION_BLOCKING"]
-            height = heights[pos.x, pos.y]-1
+        sizeX, sizeZ = self.area.size
+        for x in range(sizeX):
+            for z in range(sizeZ):
+                pos = ivec2(x,z)
+                heights = worldSlice.heightmaps["MOTION_BLOCKING"]
+                height = heights[pos.x, pos.y]-1
 
-            for y in range(height-1, height-17, -1):
-                blockName = worldSlice.getBlock(addY(pos, y)).id
+                for y in range(height-1, height-17, -1):
+                    blockName = worldSlice.getBlock(addY(pos, y)).id
+                    if blockName is None:
+                        break
 
-                if blockName is None:
-                    break
+                    addBlock(blockName, pos)
 
-                addBlock(blockName, pos)
-
-                if not blockName.count("leaves"):
-                    break
+                    if not blockName.count("leaves"):
+                        break
 
     def analyzeResource(self, area: Rect | None = None) -> Resource:
         if area is None:
