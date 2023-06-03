@@ -43,7 +43,7 @@ TAG_FOREST = "forest"
 BUILDING_TAGS = {
     CHALET: [TAG_LAND],
     DESERT_BUILDING: [TAG_LAND, TAG_DESERT],
-    SAWMILL: [TAG_LAND],
+    SAWMILL: [TAG_LAND, TAG_FOREST],
     FARM: [TAG_LAND],
     QUARRY: [TAG_LAND],
     FORGE: [TAG_LAND],
@@ -78,10 +78,18 @@ def newAgent(core: Core, name: str):
             return 0
 
         if TAG_FOREST in tags:
-            forestness = hasEnoughWood(core, area)
+            buildArea = core.buildArea.toRect()
+            queryArea = area.dilated(config.forestQueryMargin)
+            begin, end = queryArea.begin, queryArea.end
+            begin.x = max(begin.x, buildArea.begin.x)
+            begin.y = max(begin.y, buildArea.begin.y)
+            end.x = min(end.x, buildArea.end.x)
+            end.y = min(end.y, buildArea.end.y)
+            queryArea = Rect(begin, end-begin)
+            forestness = hasEnoughWood(core, queryArea)
             if forestness < config.forestThreshold:
                 return 0
-            total += forestness
+            total += forestness*10
 
         desertness = isDesert(core, area)
         if TAG_DESERT in tags:
