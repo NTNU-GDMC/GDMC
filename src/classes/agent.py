@@ -170,7 +170,8 @@ class RoadAgent(Agent):
 
         roadNetwork = self.core.roadNetwork
 
-        begin = roadNetwork.newNode(entryPos)
+        boundOffset = self.core.buildArea.toRect().offset
+        begin = roadNetwork.newNode(entryPos + boundOffset)
 
         nodes = list(roadNetwork.nodes)
 
@@ -191,9 +192,8 @@ class RoadAgent(Agent):
         print(
             f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
-        boundOffset = self.core.buildArea.toRect().offset
 
-        edge = pathfind(self.core, begin + boundOffset, end + boundOffset)
+        edge = pathfind(self.core, begin, end)
 
         if edge is None:
             print("No path found")
