@@ -326,8 +326,9 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
 
-        bound = self.buildArea.toRect()
-        globalOffset = bound.offset
+        globalBound = self.buildArea.toRect()
+        globalOffset = globalBound.offset
+        localBound = globalBound.translated(-globalOffset)
 
         # ====== Add building to Minecraft ======
 
@@ -348,9 +349,9 @@ class Core():
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
-            area = Rect(node.val + globalOffset, (UNIT, UNIT))
+            area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
-            pos = addY(node.val, y)
+            pos = addY(node.val+globalOffset, y)
 
             clearBox = area.toBox(y, 2)
             for x, y, z in clearBox.inner:
@@ -390,7 +391,7 @@ class Core():
                 f"setblock {x} {y+1} {z} minecraft:torch", syncWithBuffer=True)
 
         lightPositions = poissonDiskSample(
-            bound=bound,
+            bound=localBound,
             limit=len(roadNodes)//3,
             r=10,
             k=50,
@@ -399,9 +400,9 @@ class Core():
         )
 
         for pos in lightPositions:
-            area = Rect(pos + globalOffset, (UNIT, UNIT))
+            area = Rect(pos, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
-            neighbors = list(neighbors2D(pos, bound, stride=UNIT))
+            neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:
                 x, z = neighbor
@@ -412,7 +413,9 @@ class Core():
                     if z-pos.y < 0:
                         z = pos.y - 1
 
-                    choice([placeLight1, placeLight2])((x, y, z))
+                    print("place light at:", (x, y, z) + addY(globalOffset, 0))
+
+                    choice([placeLight1, placeLight2])((x, y, z) + addY(globalOffset, 0))
                     break
 
         self.editor.flushBuffer()

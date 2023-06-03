@@ -170,8 +170,7 @@ class RoadAgent(Agent):
 
         roadNetwork = self.core.roadNetwork
 
-        boundOffset = self.core.buildArea.toRect().offset
-        begin = roadNetwork.newNode(entryPos + boundOffset)
+        begin = roadNetwork.newNode(entryPos)
 
         nodes = list(roadNetwork.nodes)
 
@@ -198,7 +197,8 @@ class RoadAgent(Agent):
         if edge is None:
             print("No path found")
             if building.id:
-                self.core.removeBuilding(building.id)
+                pass
+                # self.core.removeBuilding(building.id)
             return
         print("Path found")
 

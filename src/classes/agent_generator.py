@@ -56,12 +56,10 @@ def newAgent(core: Core, name: str):
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
         area = area.dilated(config.analyzeBorder)
-        realArea = Rect(area.offset + core.buildArea.toRect().offset, area.size)
-        
 
         total = 0
 
-        if nearBound(core, realArea):
+        if nearBound(core, area):
             return 0
 
         if isVillage(core, area):
