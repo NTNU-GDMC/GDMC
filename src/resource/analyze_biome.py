@@ -33,7 +33,8 @@ class BiomeMap():
         self.badlands = np.zeros(shape, dtype=bool)
         self.other = np.zeros(shape, dtype=bool)
 
-        for x, z in area.inner:
+        for x, z in area.size: 
+            # height map is using relative coordinate (from 0,0)
             y = heights[x, z]
             biome = worldSlice.getBiome((x, y, z))
             self.biomes[(x, z)] = biome
@@ -76,8 +77,8 @@ def getAllBiomeList(WORLDSLICE: WorldSlice, settlementArea: Box):
     for i in range(0, x):
         for j in range(0, z):
             #  TODO: check if settlement or not _ SubaRya
-            a, _, c = settlementArea.offset
+            # getBiome is relative, getBiomeGlobal is absolute
             biome.add(WORLDSLICE.getBiome(
-                (i + a, int(heights[(i + a, j + c)]), j + c)))
+                (i, int(heights[(i, j)]), j)))
     biome = list(biome)
     return biome
