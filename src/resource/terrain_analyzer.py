@@ -99,7 +99,7 @@ class ResourceMap():
             elif blockName in grassSet:
                 self.grass[pos.x, pos.y] += 1
 
-        sizeX, sizeZ = self.area.size
+        sizeX, sizeZ = self.area.offset
         for x in range(sizeX):
             for z in range(sizeZ):
                 pos = ivec2(x,z)
