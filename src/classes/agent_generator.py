@@ -55,31 +55,32 @@ def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
+        realArea = Rect(area.offset + core.buildArea.offset, area.size)
         total = 0
 
-        if nearBound(core, area):
+        if nearBound(core, realArea):
             return 0
 
-        reqBaseBlock = requiredBasement(core, area)
+        reqBaseBlock = requiredBasement(core, realArea)
         # TODO: make this flexible config
-        if reqBaseBlock > area.area * 3:
+        if reqBaseBlock > realArea.area * 3:
             return 0
 
-        flatness = isFlat(core, area)
+        flatness = isFlat(core, realArea)
         if flatness < config.flatnessThreshold:
             return 0
         total += flatness
 
         if name in SPECIAL_BUILDINGS:
-            if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
+            if nearBuilding(core, realArea, buildingInfo, config.minimumBuildingMargin):
                 return 0
 
-        if TAG_LAND in tags and isLiquid(core, area):
+        if TAG_LAND in tags and isLiquid(core, realArea):
             return 0
 
         if TAG_FOREST in tags:
             buildArea = core.buildArea.toRect()
-            queryArea = area.dilated(config.forestQueryMargin)
+            queryArea = realArea.dilated(config.forestQueryMargin)
             begin, end = queryArea.begin, queryArea.end
             begin.x = max(begin.x, buildArea.begin.x)
             begin.y = max(begin.y, buildArea.begin.y)
@@ -91,7 +92,7 @@ def newAgent(core: Core, name: str):
                 return 0
             total += forestness*10
 
-        desertness = isDesert(core, area)
+        desertness = isDesert(core, realArea)
         if TAG_DESERT in tags:
             if desertness <= config.desertnessThreshold:
                 return 0
