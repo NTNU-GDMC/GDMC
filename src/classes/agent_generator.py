@@ -2,7 +2,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
-from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
 from ..config.config import config
 from ..building.building_info import BuildingInfo
 
@@ -55,9 +55,14 @@ def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
+        area = area.dilated(config.analyzeBorder)
+
         total = 0
 
         if nearBound(core, area):
+            return 0
+
+        if isVillage(core, area):
             return 0
 
         reqBaseBlock = requiredBasement(core, area)

@@ -36,7 +36,8 @@ def isFlat(core: Core, area: Rect) -> float:
 
 def requiredBasement(core: Core, area: Rect) -> int:
     area.offset -= core.buildArea.toRect().offset
-    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][area.begin.x:area.end.x, area.begin.y:area.end.y]
+    heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][
+        area.begin.x:area.end.x, area.begin.y:area.end.y]
     y = round(core.getHeightMap("mean", area))
     heights = np.minimum(y, heights)
     return np.sum(y - heights)
@@ -83,6 +84,12 @@ def isDesert(core: Core, area: Rect) -> float:
     return sum / area.area
 
 
+def isVillage(core: Core, area: Rect) -> bool:
+    """Check if the area is in the village"""
+    begin, end = area.begin, area.end
+    return np.any(core.resourcesMap.artificial[begin.x:end.x, begin.y:end.y] > 0)
+
+
 MINIMUM_BOUND_PADDING = 10
 
 
@@ -97,7 +104,9 @@ def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
 
     return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
 
+
 MINIMUM_BUILDING_MARGIN = 256
+
 
 def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin=MINIMUM_BUILDING_MARGIN) -> bool:
     """Check if the area is close enough to the bound"""
