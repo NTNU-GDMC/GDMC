@@ -11,8 +11,8 @@
     "Level": 3,
     "RequiredResource": {
         "human": 0,
-        "wood": 750,
-        "stone": 250,
+        "wood": 1000,
+        "stone": 600,
         "food": 0,
         "ironOre": 0,
         "iron": 0,
