@@ -102,7 +102,7 @@ class Config:
     forestThreshold: float = 0.5/(16*16)
     """"3 log per chunk"""
 
-    forestQueryMargin: int = 32
+    forestQueryMargin: int = 16
 
     minimumBuildingMargin: int = 256
 
