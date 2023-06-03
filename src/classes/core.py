@@ -37,7 +37,7 @@ class Core():
                         bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
-        buildArea = editor.setBuildArea(buildArea)
+        buildArea = editor.getBuildArea()
         # get world slice and height maps
         print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
