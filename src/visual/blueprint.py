@@ -13,9 +13,10 @@ def plotBlueprint(core: Core):
     fig, ax = plt.subplots()
 
     buildArea = core._editor.getBuildArea()
+    offset = buildArea.toRect().offset
 
     for id, building in core.blueprintData.items():
-        begin = building.position
+        begin = building.position + offset
         size = building.currentSize
         maxSize = building.maxSize
         p = mpatch.Rectangle(begin, fitToGrid(maxSize.x), fitToGrid(maxSize.z), fill=True, color="gray")

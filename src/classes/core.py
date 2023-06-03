@@ -331,7 +331,7 @@ class Core():
         # ====== Add building to Minecraft ======
 
         for id, building in self._blueprintData.items():
-            pos = building.position
+            pos = building.position + self.buildArea.toRect().offset
             level = building.level
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
