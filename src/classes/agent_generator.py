@@ -55,6 +55,8 @@ def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
+        area = area.dilated(config.analyzeBorder)
+
         total = 0
 
         if nearBound(core, area):
