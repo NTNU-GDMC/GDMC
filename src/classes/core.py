@@ -332,15 +332,15 @@ class Core():
         # ====== Add building to Minecraft ======
 
         for id, building in self._blueprintData.items():
-            pos = building.position + globalOffset
+            pos = building.position
             level = building.level
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area)) - structure.offsets.y
-            print(f"Build at {pos} with height {y}")
+            print(f"Build at {pos + globalOffset} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
-                         addY(pos, y), building.material)
+                         addY(pos + globalOffset, y), building.material)
 
         self.editor.flushBuffer()
 
