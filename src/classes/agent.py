@@ -191,12 +191,14 @@ class RoadAgent(Agent):
         print(
             f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
+
         edge = pathfind(self.core, begin, end)
 
         if edge is None:
             print("No path found")
             if building.id:
-                self.core.removeBuilding(building.id)
+                pass
+                # self.core.removeBuilding(building.id)
             return
         print("Path found")
 

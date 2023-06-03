@@ -107,7 +107,7 @@ class ResourceMap():
     artificial: np.ndarray
 
     def __init__(self, worldSlice: WorldSlice):
-        self.area = worldSlice.rect
+        self.area = Rect((0, 0), worldSlice.rect.size)
         shape = self.area.size.to_tuple()
         self.human = np.zeros(shape)
         self.wood = np.zeros(shape)

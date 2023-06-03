@@ -37,7 +37,7 @@ class Core():
                         bufferLimit=config.bufferLimit,
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
-        buildArea = editor.setBuildArea(buildArea)
+        buildArea = editor.getBuildArea()
         # get world slice and height maps
         print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
@@ -329,7 +329,9 @@ class Core():
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
 
-        bound = self.buildArea.toRect()
+        globalBound = self.buildArea.toRect()
+        globalOffset = globalBound.offset
+        localBound = globalBound.translated(-globalOffset)
 
         # ====== Add building to Minecraft ======
 
@@ -340,9 +342,9 @@ class Core():
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area)) - structure.offsets.y
-            print(f"Build at {pos} with height {y}")
+            print(f"Build at {pos + globalOffset} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
-                         addY(pos, y), building.material)
+                         addY(pos + globalOffset, y), building.material)
 
         self.editor.flushBuffer()
 
@@ -352,7 +354,7 @@ class Core():
         for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
-            pos = addY(node.val, y)
+            pos = addY(node.val+globalOffset, y)
 
             clearBox = area.toBox(y, 2)
             for x, y, z in clearBox.inner:
@@ -392,7 +394,7 @@ class Core():
                 f"setblock {x} {y+1} {z} minecraft:torch", syncWithBuffer=True)
 
         lightPositions = poissonDiskSample(
-            bound=bound,
+            bound=localBound,
             limit=len(roadNodes)//3,
             r=10,
             k=50,
@@ -403,7 +405,7 @@ class Core():
         for pos in lightPositions:
             area = Rect(pos, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
-            neighbors = list(neighbors2D(pos, bound, stride=UNIT))
+            neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:
                 x, z = neighbor
@@ -414,7 +416,9 @@ class Core():
                     if z-pos.y < 0:
                         z = pos.y - 1
 
-                    choice([placeLight1, placeLight2])((x, y, z))
+                    print("place light at:", (x, y, z) + addY(globalOffset, 0))
+
+                    choice([placeLight1, placeLight2])((x, y, z) + addY(globalOffset, 0))
                     break
 
         self.editor.flushBuffer()

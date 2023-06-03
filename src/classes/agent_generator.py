@@ -83,7 +83,7 @@ def newAgent(core: Core, name: str):
             return 0
 
         if TAG_FOREST in tags:
-            buildArea = core.buildArea.toRect()
+            buildArea = Rect((0,0),core.buildArea.toRect().size)
             queryArea = area.dilated(config.forestQueryMargin)
             begin, end = queryArea.begin, queryArea.end
             begin.x = max(begin.x, buildArea.begin.x)

@@ -35,12 +35,11 @@ def isFlat(core: Core, area: Rect) -> float:
 
 
 def requiredBasement(core: Core, area: Rect) -> int:
-    area.offset -= core.buildArea.toRect().offset
+    begin, end = area.begin, area.end
     heights = core.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"][
-        area.begin.x:area.end.x, area.begin.y:area.end.y]
+        begin.x:end.x, begin.y:end.y]
     y = round(core.getHeightMap("mean", area))
-    heights = np.minimum(y, heights)
-    return np.sum(y - heights)
+    return np.sum(np.maximum(y - heights, 0))
 
 
 def isLiquid(core: Core, area: Rect) -> float:
@@ -95,7 +94,7 @@ MINIMUM_BOUND_PADDING = 10
 
 def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     """Check if the area is close enough to the bound"""
-    bound = core.buildArea.toRect()
+    bound = Rect((0, 0), core.buildArea.toRect().size)
 
     left = area.begin.x - bound.begin.x
     bottom = area.begin.y - bound.begin.y
