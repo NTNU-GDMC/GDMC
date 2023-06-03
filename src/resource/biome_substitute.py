@@ -202,7 +202,7 @@ According to Java edition.
 spruceSet = {
     "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga",
     "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:windswept_hills", "minecraft:windswept_forest",
-    "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks"
+    "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks", "minecraft:snowy_beach"
 }
 
 birchSet = {
@@ -227,7 +227,7 @@ otherSet = {
 }
 
 desertSet = {
-    "minecraft:desert", "minecraft:beach", "minecraft:snowy_beach"
+    "minecraft:desert", "minecraft:beach"
 }
 
 redSandSet = {

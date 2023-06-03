@@ -93,6 +93,11 @@
                         "nbt": "sawmill1/level1.nbt"
                     },
                     {
+                        "level": 2,
+                        "info": "sawmill1/level2.json",
+                        "nbt": "sawmill1/level2.nbt"
+                    },
+                    {
                         "level": 3,
                         "info": "sawmill1/level3.json",
                         "nbt": "sawmill1/level3.nbt"
