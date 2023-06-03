@@ -55,7 +55,7 @@ def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
-        realArea = Rect(area.offset + core.buildArea.offset, area.size)
+        realArea = Rect(area.offset + core.buildArea.toRect().offset, area.size)
         total = 0
 
         if nearBound(core, realArea):
