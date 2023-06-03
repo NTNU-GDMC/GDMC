@@ -2,7 +2,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
-from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding
+from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
 from ..config.config import config
 from ..building.building_info import BuildingInfo
 
@@ -55,32 +55,38 @@ def newAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
+        area = area.dilated(config.analyzeBorder)
         realArea = Rect(area.offset + core.buildArea.toRect().offset, area.size)
+        
+
         total = 0
 
         if nearBound(core, realArea):
             return 0
 
-        reqBaseBlock = requiredBasement(core, realArea)
-        # TODO: make this flexible config
-        if reqBaseBlock > realArea.area * 3:
+        if isVillage(core, area):
             return 0
 
-        flatness = isFlat(core, realArea)
+        reqBaseBlock = requiredBasement(core, area)
+        # TODO: make this flexible config
+        if reqBaseBlock > area.area * 3:
+            return 0
+
+        flatness = isFlat(core, area)
         if flatness < config.flatnessThreshold:
             return 0
         total += flatness
 
         if name in SPECIAL_BUILDINGS:
-            if nearBuilding(core, realArea, buildingInfo, config.minimumBuildingMargin):
+            if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
                 return 0
 
-        if TAG_LAND in tags and isLiquid(core, realArea):
+        if TAG_LAND in tags and isLiquid(core, area):
             return 0
 
         if TAG_FOREST in tags:
-            buildArea = core.buildArea.toRect()
-            queryArea = realArea.dilated(config.forestQueryMargin)
+            buildArea = Rect((0,0),core.buildArea.toRect().size)
+            queryArea = area.dilated(config.forestQueryMargin)
             begin, end = queryArea.begin, queryArea.end
             begin.x = max(begin.x, buildArea.begin.x)
             begin.y = max(begin.y, buildArea.begin.y)
@@ -92,7 +98,7 @@ def newAgent(core: Core, name: str):
                 return 0
             total += forestness*10
 
-        desertness = isDesert(core, realArea)
+        desertness = isDesert(core, area)
         if TAG_DESERT in tags:
             if desertness <= config.desertnessThreshold:
                 return 0

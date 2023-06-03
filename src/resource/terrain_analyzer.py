@@ -1,5 +1,6 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
+import re
 import numpy as np
 from dataclasses import dataclass
 from gdpc import WorldSlice
@@ -13,6 +14,32 @@ ironSet = {"minecraft:iron_ore", "minecraft:raw_iron_block",
            "minecraft:deepslate_iron_ore"}
 
 grassSet = {"minecraft:grass_block", "minecraft:grass"}
+
+
+artificialSet = {
+    "wall",
+    "stairs",
+    "planks",
+    "ladder",
+    "slab",
+    "fence",
+    "fence_gate",
+    "door",
+    "trapdoor",
+    "torch",
+    "lantern",
+    "stripped",
+    "farmland",
+    "wool",
+    "composter",
+    "dirt_path"
+    "hay_block",
+}
+
+
+def isArtificial(block: str) -> bool:
+    pattern = re.compile(r"minecraft:.*(" + "|".join(artificialSet) + r").*")
+    return pattern.match(block) is not None
 
 
 @dataclass
@@ -77,9 +104,10 @@ class ResourceMap():
     ironOre: np.ndarray
     iron: np.ndarray
     grass: np.ndarray
+    artificial: np.ndarray
 
     def __init__(self, worldSlice: WorldSlice):
-        self.area = worldSlice.rect
+        self.area = Rect((0, 0), worldSlice.rect.size)
         shape = self.area.size.to_tuple()
         self.human = np.zeros(shape)
         self.wood = np.zeros(shape)
@@ -88,9 +116,10 @@ class ResourceMap():
         self.ironOre = np.zeros(shape)
         self.iron = np.zeros(shape)
         self.grass = np.zeros(shape)
+        self.artificial = np.zeros(shape)
 
         def addBlock(blockName: str, pos: ivec2):
-            if blockName in logSet:
+            if blockName.count("leaves"):
                 self.wood[pos.x, pos.y] += 1
             elif blockName in stoneSet:
                 self.stone[pos.x, pos.y] += 1
@@ -98,23 +127,18 @@ class ResourceMap():
                 self.ironOre[pos.x, pos.y] += 1
             elif blockName in grassSet:
                 self.grass[pos.x, pos.y] += 1
+            elif isArtificial(blockName):
+                self.artificial[pos.x, pos.y] += 1
 
-        sizeX, sizeZ = self.area.offset
-        for x in range(sizeX):
-            for z in range(sizeZ):
-                pos = ivec2(x,z)
-                heights = worldSlice.heightmaps["MOTION_BLOCKING"]
-                height = heights[pos.x, pos.y]-1
+        for pos in self.area.inner:
+            heights = worldSlice.heightmaps["MOTION_BLOCKING"]
+            y = heights[pos.x, pos.y]-1
 
-                for y in range(height-1, height-17, -1):
-                    blockName = worldSlice.getBlock(addY(pos, y)).id
-                    if blockName is None:
-                        break
+            blockName = worldSlice.getBlock(addY(pos, y)).id
+            if blockName is None:
+                break
 
-                    addBlock(blockName, pos)
-
-                    if not blockName.count("leaves"):
-                        break
+            addBlock(blockName, pos)
 
     def analyzeResource(self, area: Rect | None = None) -> Resource:
         if area is None:
