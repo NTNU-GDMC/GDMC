@@ -165,6 +165,9 @@ class Core():
         ids = self._blueprintData.keys()
         return max(ids) if ids else 0
 
+    def increaseGrass(self):
+        self._resources.grass += 10
+
     def addBuilding(self, building: Building):
         """Append a building on to the blueprint. We trust our agent, if there's any overlap, it's agent's fault."""
         (x, z) = building.position

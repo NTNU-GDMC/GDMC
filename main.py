@@ -105,6 +105,8 @@ if __name__ == '__main__':
                 # remove from the pool or assigned other things to this agent
                 # pass
 
+        core.increaseGrass()
+
         print(f"Resting agents: {restingAgents}")
 
         if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
