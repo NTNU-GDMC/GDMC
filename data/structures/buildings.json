@@ -112,6 +112,16 @@
                         "nbt": "quarry1/level1.nbt"
                     }
                 ]
+            },
+            {
+                "name": "quarry2",
+                "level_info": [
+                    {
+                        "level": 2,
+                        "info": "quarry1/level2.json",
+                        "nbt": "quarry1/level2.nbt"
+                    }
+                ]
             }
         ]
     },
