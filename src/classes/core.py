@@ -327,11 +327,12 @@ class Core():
         """Send the blueprint to Minecraft"""
 
         bound = self.buildArea.toRect()
+        globalOffset = bound.offset
 
         # ====== Add building to Minecraft ======
 
         for id, building in self._blueprintData.items():
-            pos = building.position + self.buildArea.toRect().offset
+            pos = building.position + globalOffset
             level = building.level
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
@@ -347,7 +348,7 @@ class Core():
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
-            area = Rect(node.val, (UNIT, UNIT))
+            area = Rect(node.val + globalOffset, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             pos = addY(node.val, y)
 
@@ -398,7 +399,7 @@ class Core():
         )
 
         for pos in lightPositions:
-            area = Rect(pos, (UNIT, UNIT))
+            area = Rect(pos + globalOffset, (UNIT, UNIT))
             y = round(self.getHeightMap("mean", area))
             neighbors = list(neighbors2D(pos, bound, stride=UNIT))
             shuffle(neighbors)
