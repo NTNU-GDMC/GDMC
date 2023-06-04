@@ -34,7 +34,7 @@ class BuildAgent(RunableAgent):
 
     @withCooldown
     def run(self) -> bool:
-        maxLevel = len(self.buildingInfo.structures)
+        maxLevel = self.buildingInfo.maxLevel
         levels = [level for level in range(1, maxLevel+1)]
 
         def calcWeight(level: int):
