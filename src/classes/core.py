@@ -16,6 +16,7 @@ from ..building.nbt_builder import buildFromNBT
 from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 from ..poisson_disk_sampling import poissonDiskSample
+from ..road.road_network import RoadNode
 
 UNIT = config.unit
 ROAD = -1
@@ -333,7 +334,7 @@ class Core():
         globalOffset = globalBound.offset
         localBound = globalBound.translated(-globalOffset)
 
-        sureRoadHeights = dict[ivec2, int]()
+        sureRoadHeights = dict[RoadNode[ivec2], int]()
 
         # ====== Add building to Minecraft ======
 
@@ -349,9 +350,9 @@ class Core():
                          addY(pos + globalOffset, y) + structure.offsets, building.material)
 
             if building.entryPos is not None:
-                x, z = pos + building.entryPos
-                x, z = ceil(x/UNIT)*UNIT, ceil(z/UNIT)*UNIT
-                sureRoadHeights[ivec2(x, z)] = y
+                x, z = building.entryPos
+                x, z = (x//UNIT)*UNIT, (z//UNIT)*UNIT
+                sureRoadHeights[self.roadNetwork.newNode(ivec2(x, z))] = y
 
         self.editor.flushBuffer()
 
@@ -370,29 +371,36 @@ class Core():
                 delta = y - lastY
                 if abs(delta) > 1:
                     delta = delta // abs(delta)
-                    lastY += delta
-                    y = lastY
+
+                    print(f"Fix road height at {node.val}: {y:3d} -> {lastY + delta:3d}")
+
+                    y = lastY + delta
                 else:
                     break
-                sureRoadHeights[node.val] = y
+                sureRoadHeights[node] = y
+                lastY = y
+
+        print(sureRoadHeights)
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
 
-            if node.val in sureRoadHeights:
-                y = sureRoadHeights[node.val]
+            if node in sureRoadHeights:
+                y = sureRoadHeights[node]
             else:
                 y = round(self.getHeightMap("mean", area))
 
-            sureRoadHeights[node.val] = y
+            sureRoadHeights[node] = y
             pos = addY(node.val+globalOffset, y)
 
             clearBox = area.toBox(y, 2)
             for x, y, z in clearBox.inner:
                 block = self.worldSlice.getBlock((x, y, z))
                 if block.id != "minecraft:air":
-                    begin, last = clearBox.begin + addY(globalOffset, 0), clearBox.last + addY(globalOffset, 0)
+                    begin, last = clearBox.begin + \
+                        addY(globalOffset, 0), clearBox.last + \
+                        addY(globalOffset, 0)
                     self.editor.runCommand(
                         f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
                     break
@@ -435,7 +443,8 @@ class Core():
         )
 
         for pos in lightPositions:
-            y = sureRoadHeights[pos]
+            node = self.roadNetwork.newNode(pos)
+            y = sureRoadHeights[node]
             neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:
@@ -446,8 +455,6 @@ class Core():
                         x = pos.x - 1
                     if z-pos.y < 0:
                         z = pos.y - 1
-
-                    print("place light at:", (x, y, z) + addY(globalOffset, 0))
 
                     choice([placeLight1, placeLight2])(
                         (x, y, z) + addY(globalOffset, 0))
