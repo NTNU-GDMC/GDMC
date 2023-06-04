@@ -1,5 +1,5 @@
 from .agent import RunableAgent
-from .agent_generator import BASIC_BUILDINGS, SPECIAL_BUILDINGS, newAgent
+from .agent_generator import BASIC_BUILDINGS, SPECIAL_BUILDINGS, newBuildAgent
 from ..classes.core import Core
 
 
@@ -40,7 +40,7 @@ class AgentPool(object):
         for _ in range(num):
             try:
                 self._basic.setdefault(name, []).append(
-                    newAgent(self.core, name))
+                    newBuildAgent(self.core, name))
             except KeyError:
                 break
 
@@ -51,6 +51,6 @@ class AgentPool(object):
         for _ in range(num):
             try:
                 self._special.setdefault(name, []).append(
-                    newAgent(self.core, name))
+                    newBuildAgent(self.core, name))
             except KeyError:
                 break

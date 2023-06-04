@@ -56,7 +56,7 @@ BUILDING_TAGS = {
 }
 
 
-def newAgent(core: Core, name: str):
+def newBuildAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
