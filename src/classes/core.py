@@ -349,8 +349,9 @@ class Core():
                          addY(pos + globalOffset, y) + structure.offsets, building.material)
 
             if building.entryPos is not None:
-                entryPos = ceil((pos + building.entryPos)/UNIT)*UNIT
-                sureRoadHeights[entryPos] = y
+                x, z = pos + building.entryPos
+                x, z = ceil(x/UNIT)*UNIT, ceil(z/UNIT)*UNIT
+                sureRoadHeights[ivec2(x, z)] = y
 
         self.editor.flushBuffer()
 
@@ -372,7 +373,7 @@ class Core():
                     y = lastY
                 else:
                     break
-                sureRoadHeights[node] = y
+                sureRoadHeights[node.val] = y
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
