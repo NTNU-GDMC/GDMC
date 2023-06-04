@@ -43,7 +43,7 @@ class Structure:
             self.level = int(jsonDict["Level"])
             self.size = ivec3(*jsonDict["Size"])
             if "Offsets" not in jsonDict:
-                self.offsets = ivec3(0,0,0)
+                self.offsets = ivec3(0, 0, 0)
             else:
                 self.offsets = ivec3(jsonDict["Offsets"])
             self.entries = list(map(Entry.fromDict, jsonDict["Entries"]))
@@ -92,4 +92,6 @@ class BuildingInfo:
     def __repr__(self) -> str:
         return self.__str__()
 
-    # TODO: 提供一支 get 的 api 給 building class 升級時使用
+    @property
+    def maxLevel(self) -> int:
+        return len(self.structures)

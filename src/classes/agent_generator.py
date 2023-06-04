@@ -2,7 +2,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from enum import Enum, auto
 from ..classes.core import Core
-from ..classes.agent import BuildAgent
+from ..classes.agent import BuildAgent, RoadAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
 from ..config.config import config
 from ..building.building_info import BuildingInfo
@@ -56,7 +56,7 @@ BUILDING_TAGS = {
 }
 
 
-def newAgent(core: Core, name: str):
+def newBuildAgent(core: Core, name: str):
     tags = BUILDING_TAGS[name]
 
     def analyzeFunction(core: Core, area: Rect, buildingInfo: BuildingInfo):
@@ -101,16 +101,21 @@ def newAgent(core: Core, name: str):
                 return 0
             total += forestness*10
 
-        desertness = isDesert(core, area)
-        if BuildingTag.DESERT in tags:
-            if desertness <= config.desertnessThreshold:
-                return 0
-            total += desertness
-        if BuildingTag.NON_DESERT in tags:
-            if desertness >= config.desertnessThreshold:
-                return 0
-            total += 1-desertness
+        if BuildingTag.DESERT in tags or BuildingTag.NON_DESERT in tags:
+            desertness = isDesert(core, area)
+            if BuildingTag.DESERT in tags:
+                if desertness <= config.desertnessThreshold:
+                    return 0
+                total += desertness
+            if BuildingTag.NON_DESERT in tags:
+                if desertness >= config.desertnessThreshold:
+                    return 0
+                total += 1-desertness
 
         return total
 
-    return BuildAgent(core, analyzeFunction, name)
+    return BuildAgent(core, analyzeFunction, name, cooldown=config.buildAgentCooldown)
+
+
+def newRoadAgent(core: Core):
+    return RoadAgent(core, cooldown=config.roadAgentCooldown)

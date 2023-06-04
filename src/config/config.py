@@ -81,8 +81,11 @@ class Config:
 
     # ================ agent ================
 
-    agentCooldown: int = 2
-    """The cooldown of the agent"""
+    buildAgentCooldown: int = 2
+    """The cooldown of the build agent"""
+
+    roadAgentCooldown: int = 0
+    """The cooldown of the road agent"""
 
     numBasicAgents: int = 3
     """The number of basic agents"""
@@ -90,8 +93,11 @@ class Config:
     numSpecialAgents: int = 1
     """The number of special agents"""
 
-    sampleRate: float = 0.4
+    sampleRate: float = 0.25
     """The sample rate of locations to analyze for agents"""
+
+    noSuitableLocationPenalty: int = 100
+    """The penalty of no suitable location"""
 
     # ================ analyzer ================
 

@@ -3,7 +3,7 @@
         {
             "facing": "north",
             "roadStartPosition": [5, 0, -1],
-            "type": "mainEntry" 
+            "type": "mainEntry"
         }
     ],
     "Size": [12, 5, 12],

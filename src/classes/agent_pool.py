@@ -1,5 +1,5 @@
 from .agent import RunableAgent
-from .agent_generator import BASIC_BUILDINGS, SPECIAL_BUILDINGS, newAgent
+from .agent_generator import BASIC_BUILDINGS, SPECIAL_BUILDINGS, newBuildAgent, newRoadAgent
 from ..classes.core import Core
 
 
@@ -7,6 +7,7 @@ class AgentPool(object):
     core: Core
     _basic: dict[str, list[RunableAgent]]
     _special: dict[str, list[RunableAgent]]
+    _road: list[RunableAgent]
     numBasic: int
     numSpecial: int
 
@@ -14,6 +15,7 @@ class AgentPool(object):
         self.core = core
         self._basic = {}
         self._special = {}
+        self._road = {}
         self.numBasic = numBasic
         self.numSpecial = numSpecial
 
@@ -40,7 +42,7 @@ class AgentPool(object):
         for _ in range(num):
             try:
                 self._basic.setdefault(name, []).append(
-                    newAgent(self.core, name))
+                    newBuildAgent(self.core, name))
             except KeyError:
                 break
 
@@ -51,6 +53,13 @@ class AgentPool(object):
         for _ in range(num):
             try:
                 self._special.setdefault(name, []).append(
-                    newAgent(self.core, name))
+                    newBuildAgent(self.core, name))
+            except KeyError:
+                break
+
+    def addRoad(self, num: int):
+        for _ in range(num):
+            try:
+                self._road.append(newRoadAgent(self.core))
             except KeyError:
                 break

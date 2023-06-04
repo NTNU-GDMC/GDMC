@@ -7,7 +7,7 @@
         }
     ],
     "Size": [15, 11, 13],
-    "Type": 2,
+    "Type": 3,
     "Level": 1,
     "RequiredResource": {
         "human": 0,

@@ -13,12 +13,12 @@ from ..road.road_network import RoadEdge, RoadNode
 from ..road.pathfind import pathfind
 
 UNIT = config.unit
-COOLDOWN = config.agentCooldown
 SAMPLE_RATE = config.sampleRate
+NO_SUITABLE_LOCATION_PENALTY = config.noSuitableLocationPenalty
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = 0) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
@@ -26,7 +26,6 @@ class BuildAgent(RunableAgent):
         self.buildingName = buildingName
         # FIXME: this is a temporary solution for the building info
         self.buildingInfo = choice(GLOBAL_BUILDING_INFO[buildingName])
-        self.speical = special
 
     def __str__(self) -> str:
         return f"BuildAgent({self.buildingInfo.type})"
@@ -36,7 +35,7 @@ class BuildAgent(RunableAgent):
 
     @withCooldown
     def run(self) -> bool:
-        maxLevel = len(self.buildingInfo.structures)
+        maxLevel = self.buildingInfo.maxLevel
         levels = [level for level in range(1, maxLevel+1)]
 
         def calcWeight(level: int):
@@ -117,7 +116,7 @@ class BuildAgent(RunableAgent):
 
         if bestLocation is None:
             print(f"No suitable location found")
-            self.remainCD += self.cooldown * 10
+            self.remainCD += self.cooldown * NO_SUITABLE_LOCATION_PENALTY
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
@@ -147,61 +146,105 @@ class BuildAgent(RunableAgent):
             self.core.resourceLimit[resourceType] * 0.05)
 
 
-class RoadAgent(Agent):
-    def __init__(self, core: Core) -> None:
-        Agent.__init__(self, core)
+class RoadAgent(RunableAgent):
+    def __init__(self, core: Core, cooldown: int = 0) -> None:
+        super().__init__(core, cooldown)
         self.buildObserver = Observer[BuildEvent](self, self.onBuild)
         self.core.buildSubject.attach(self.buildObserver)
 
     def __del__(self) -> None:
         self.core.buildSubject.detach(self.buildObserver)
 
-    def onBuild(self, event: BuildEvent) -> None:
-        self.connectRoadTo(event.building)
+    @withCooldown
+    def run(self) -> bool:
+        components = self.core.roadNetwork.components
 
-    def connectRoadTo(self, building: Building):
-        """Connect the building to the road network"""
-        entryPos = building.entryPos
+        if len(components) < 2:
+            return False
+
+        def calcWeight(component: set[RoadNode[ivec2]]):
+            return 1/len(component)
+
+        weights = map(calcWeight, components)
+
+        beginCompoent = choices(
+            components, weights=weights, k=1)[0]
+        begin = choice(list(beginCompoent))
+
+        otherComponents: list[set[RoadNode[ivec2]]] = filter(
+            lambda component: component != beginCompoent, components)
+        endComponent = choices(otherComponents, weights=self._calcWeights(
+            begin, map(choice, otherComponents)), k=1)[0]
+        end = choice(list(endComponent))
+        return self.connectRoad(begin, end)
+
+    def rest(self) -> bool:
+        resourceType = self.core.getMostLackResource(
+            self.core.resources, self.core.resourceLimit)
+        if resourceType != "none":
+            self.gatherResource(resourceType)
+            return True
+        return False
+
+    def _calcWeights(self, begin: RoadNode[ivec2], nodes: list[RoadNode[ivec2]]) -> list[float]:
+        def calcWeight(node: RoadNode[ivec2]):
+            dis = max(l1Distance(node.val, begin.val), 1)
+            return 1/dis
+
+        weights = list(map(calcWeight, nodes))
+        return weights
+
+    def onBuild(self, event: BuildEvent) -> None:
+        """When a building is built, connect it to the road network"""
+
+        roadNetwork = self.core.roadNetwork
+        entryPos = event.building.entryPos
         if entryPos is None:
             return
 
         # align the entryPos to the grid
         entryPos = (entryPos // UNIT) * UNIT
 
+        begin = roadNetwork.newNode(entryPos)
+        roadNetwork.addNode(begin)
+        self.connectRoadToNear(begin)
+
+    def connectRoadToNear(self, begin: RoadNode[ivec2]) -> bool:
+        """Connect the building to the road network"""
         roadNetwork = self.core.roadNetwork
 
-        begin = roadNetwork.newNode(entryPos)
+        others = list(filter(lambda node: node != begin, roadNetwork.nodes))
 
-        nodes = list(roadNetwork.nodes)
-
-        # if there is no node in the network, just add the node
-        if len(nodes) == 0:
-            roadNetwork.addNode(begin)
-            x, y = entryPos//UNIT
-            self.core.blueprint[x, y] = -1
+        if len(others) == 0:
             return
 
-        def calcWeight(node: RoadNode[ivec2]):
-            dis = l1Distance(node.val, begin.val)
-            return 1/dis if dis != 0 else 10
+        weights = self._calcWeights(begin, others)
+        end = choices(others, weights=weights, k=1)[0]
 
-        weights = list(map(calcWeight, nodes))
-        end = choices(nodes, weights=weights, k=1)[0]
+        return self.connectRoad(begin, end)
+
+    def connectRoad(self, begin: RoadNode[ivec2], end: RoadNode[ivec2]) -> bool:
+        """Connect two nodes in the road network"""
+
+        if begin == end:
+            return False
 
         print(
             f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
-
         edge = pathfind(self.core, begin, end)
-
         if edge is None:
             print("No path found")
-            if building.id:
-                pass
-                # self.core.removeBuilding(building.id)
-            return
+            return False
         print("Path found")
 
         print(f"Update road network...", end=" ")
         self.core.addRoadEdge(edge)
         print("Done.")
+
+        return True
+
+    def gatherResource(self, resourceType: str):
+        # gain 5% of the limit
+        self.core.resources[resourceType] += ceil(
+            self.core.resourceLimit[resourceType] * 0.05)
