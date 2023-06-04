@@ -1,2 +1,3 @@
 git+https://github.com/avdstaaij/gdpc.git
 astar==0.94
+disjoint-set="0.7.4"
