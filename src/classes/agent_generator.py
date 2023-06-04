@@ -101,15 +101,16 @@ def newBuildAgent(core: Core, name: str):
                 return 0
             total += forestness*10
 
-        desertness = isDesert(core, area)
-        if BuildingTag.DESERT in tags:
-            if desertness <= config.desertnessThreshold:
-                return 0
-            total += desertness
-        if BuildingTag.NON_DESERT in tags:
-            if desertness >= config.desertnessThreshold:
-                return 0
-            total += 1-desertness
+        if BuildingTag.DESERT in tags or BuildingTag.NON_DESERT in tags:
+            desertness = isDesert(core, area)
+            if BuildingTag.DESERT in tags:
+                if desertness <= config.desertnessThreshold:
+                    return 0
+                total += desertness
+            if BuildingTag.NON_DESERT in tags:
+                if desertness >= config.desertnessThreshold:
+                    return 0
+                total += 1-desertness
 
         return total
 
