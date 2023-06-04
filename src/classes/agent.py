@@ -13,12 +13,11 @@ from ..road.road_network import RoadEdge, RoadNode
 from ..road.pathfind import pathfind
 
 UNIT = config.unit
-COOLDOWN = config.buildAgentCooldown
 SAMPLE_RATE = config.sampleRate
 
 
 class BuildAgent(RunableAgent):
-    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = COOLDOWN, special: bool = False) -> None:
+    def __init__(self, core: Core, analyzeFunction: Callable[[Core, Rect, BuildingInfo], float], buildingName: str, cooldown: int = 0) -> None:
         """Assume one agent one build one building for now"""
         super().__init__(core, cooldown)
         # the larger value analyzeFunction returns, the better
@@ -26,7 +25,6 @@ class BuildAgent(RunableAgent):
         self.buildingName = buildingName
         # FIXME: this is a temporary solution for the building info
         self.buildingInfo = choice(GLOBAL_BUILDING_INFO[buildingName])
-        self.speical = special
 
     def __str__(self) -> str:
         return f"BuildAgent({self.buildingInfo.type})"
@@ -148,7 +146,7 @@ class BuildAgent(RunableAgent):
 
 
 class RoadAgent(RunableAgent):
-    def __init__(self, core: Core, cooldown: int = COOLDOWN) -> None:
+    def __init__(self, core: Core, cooldown: int = 0) -> None:
         super().__init__(core, cooldown)
         self.buildObserver = Observer[BuildEvent](self, self.onBuild)
         self.core.buildSubject.attach(self.buildObserver)

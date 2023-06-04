@@ -113,8 +113,8 @@ def newBuildAgent(core: Core, name: str):
 
         return total
 
-    return BuildAgent(core, analyzeFunction, name)
+    return BuildAgent(core, analyzeFunction, name, cooldown=config.buildAgentCooldown)
 
 
 def newRoadAgent(core: Core):
-    return RoadAgent(core)
+    return RoadAgent(core, cooldown=config.roadAgentCooldown)
