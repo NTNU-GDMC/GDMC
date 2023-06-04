@@ -248,12 +248,12 @@ def getChangeMaterial(biome: str) -> str:
         return "acacia"
     if biome in darkOakSet:
         return "dark_oak"
-    if biome in otherSet:
-        return "oak"
     if biome in desertSet:
         return "sand"
     if biome in redSandSet:
         return "red_sand"
+    if biome in otherSet:
+        return "oak"
 
     return "oak"
 

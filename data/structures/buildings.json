@@ -40,6 +40,46 @@
                         "nbt": "chalet2/level3.nbt"
                     }
                 ]
+            },
+            {
+                "name": "chalet3",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "chalet3/level1.json",
+                        "nbt": "chalet3/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "chalet3/level2.json",
+                        "nbt": "chalet3/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "chalet3/level3.json",
+                        "nbt": "chalet3/level3.nbt"
+                    }
+                ]
+            },
+            {
+                "name": "chalet4",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "chalet4/level1.json",
+                        "nbt": "chalet4/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "chalet4/level2.json",
+                        "nbt": "chalet4/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "chalet4/level3.json",
+                        "nbt": "chalet4/level3.nbt"
+                    }
+                ]
             }
         ]
     },
@@ -133,5 +173,19 @@
                 ]
             }
         ]
-    }
+    },
+    "farm": {
+        "variants": [
+            {
+                "name": "farm1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "farm1/level1.json",
+                        "nbt": "farm1/level1.nbt"
+                    },
+                ]
+            }
+        ]
+    },
 }
