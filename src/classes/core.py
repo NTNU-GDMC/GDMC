@@ -360,7 +360,7 @@ class Core():
             for x, y, z in clearBox.inner:
                 block = self.worldSlice.getBlock((x, y, z))
                 if block.id != "minecraft:air":
-                    begin, last = clearBox.begin, clearBox.last
+                    begin, last = clearBox.begin + globalOffset, clearBox.last + globalOffset
                     self.editor.runCommand(
                         f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
                     break
