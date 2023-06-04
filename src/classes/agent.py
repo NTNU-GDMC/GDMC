@@ -14,6 +14,7 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 SAMPLE_RATE = config.sampleRate
+NO_SUITABLE_LOCATION_PENALTY = config.noSuitableLocationPenalty
 
 
 class BuildAgent(RunableAgent):
@@ -115,7 +116,7 @@ class BuildAgent(RunableAgent):
 
         if bestLocation is None:
             print(f"No suitable location found")
-            self.remainCD += self.cooldown * 10
+            self.remainCD += self.cooldown * NO_SUITABLE_LOCATION_PENALTY
             return False
 
         building = Building(self.buildingInfo, bestLocation.begin)
