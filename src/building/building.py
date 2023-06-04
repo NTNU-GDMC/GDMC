@@ -48,10 +48,11 @@ class Building:
 
     @property
     def entryPos(self) -> ivec2 | None:
+        offset = self.building_info.structures[self.level-1].offsets
         entries = self.building_info.structures[self.level-1].entries
         if len(entries) == 0:
             return None
-        pos = entries[0].pos
+        pos = entries[0].pos + offset
         return self.position + dropY(pos)
 
     @property
