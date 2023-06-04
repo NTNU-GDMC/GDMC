@@ -187,5 +187,19 @@
                 ]
             }
         ]
+    },
+    "church": {
+        "variants": [
+            {
+                "name": "church1",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "church1/level1.json",
+                        "nbt": "church1/level1.nbt"
+                    }
+                ]
+            }
+        ]
     }
 }
