@@ -84,7 +84,7 @@ class Config:
     buildAgentCooldown: int = 2
     """The cooldown of the build agent"""
 
-    roadAgentCooldown: int = 1
+    roadAgentCooldown: int = 0
     """The cooldown of the road agent"""
 
     numBasicAgents: int = 3
