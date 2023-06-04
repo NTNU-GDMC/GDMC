@@ -358,6 +358,8 @@ class Core():
 
         # ====== Add road to Minecraft ======
 
+        ## Fix the road height
+
         for edge in self._roadNetwork.edges:
             lastY = None
             for node in edge:
@@ -371,16 +373,13 @@ class Core():
                 delta = y - lastY
                 if abs(delta) > 1:
                     delta = delta // abs(delta)
-
-                    print(f"Fix road height at {node.val}: {y:3d} -> {lastY + delta:3d}")
-
                     y = lastY + delta
                 else:
                     break
                 sureRoadHeights[node] = y
                 lastY = y
 
-        print(sureRoadHeights)
+        ## Build the road
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
