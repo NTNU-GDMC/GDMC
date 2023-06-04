@@ -1,5 +1,6 @@
 from typing import Callable
 from gdpc.vector_tools import Rect
+from enum import Enum, auto
 from ..classes.core import Core
 from ..classes.agent import BuildAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
@@ -35,19 +36,23 @@ SPECIAL_BUILDINGS = {
 
 # Building tags
 
-TAG_LAND = "land"
-TAG_DESERT = "desert"
-TAG_CITY = "city"
-TAG_FOREST = "forest"
+
+class BuildingTag(Enum):
+    LAND = auto()
+    DESERT = auto()
+    NON_DESERT = auto()
+    CITY = auto()
+    FOREST = auto()
+
 
 BUILDING_TAGS = {
-    CHALET: [TAG_LAND],
-    DESERT_BUILDING: [TAG_LAND, TAG_DESERT],
-    SAWMILL: [TAG_LAND, TAG_FOREST],
-    FARM: [TAG_LAND],
-    QUARRY: [TAG_LAND],
-    FORGE: [TAG_LAND],
-    CHURCH: [TAG_LAND, TAG_CITY]
+    CHALET:          [BuildingTag.LAND, BuildingTag.NON_DESERT],
+    DESERT_BUILDING: [BuildingTag.LAND, BuildingTag.DESERT],
+    SAWMILL:         [BuildingTag.LAND, BuildingTag.NON_DESERT, BuildingTag.FOREST],
+    FARM:            [BuildingTag.LAND],
+    QUARRY:          [BuildingTag.LAND],
+    FORGE:           [BuildingTag.LAND],
+    CHURCH:          [BuildingTag.LAND, BuildingTag.CITY]
 }
 
 
@@ -79,11 +84,11 @@ def newAgent(core: Core, name: str):
             if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
                 return 0
 
-        if TAG_LAND in tags and isLiquid(core, area):
+        if BuildingTag.LAND in tags and isLiquid(core, area):
             return 0
 
-        if TAG_FOREST in tags:
-            buildArea = Rect((0,0),core.buildArea.toRect().size)
+        if BuildingTag.FOREST in tags:
+            buildArea = Rect((0, 0), core.buildArea.toRect().size)
             queryArea = area.dilated(config.forestQueryMargin)
             begin, end = queryArea.begin, queryArea.end
             begin.x = max(begin.x, buildArea.begin.x)
@@ -97,11 +102,11 @@ def newAgent(core: Core, name: str):
             total += forestness*10
 
         desertness = isDesert(core, area)
-        if TAG_DESERT in tags:
+        if BuildingTag.DESERT in tags:
             if desertness <= config.desertnessThreshold:
                 return 0
             total += desertness
-        if TAG_DESERT not in tags:
+        if BuildingTag.NON_DESERT in tags:
             if desertness >= config.desertnessThreshold:
                 return 0
             total += 1-desertness
