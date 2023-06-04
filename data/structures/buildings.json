@@ -183,9 +183,9 @@
                         "level": 1,
                         "info": "farm1/level1.json",
                         "nbt": "farm1/level1.nbt"
-                    },
+                    }
                 ]
             }
         ]
-    },
+    }
 }
