@@ -2,7 +2,7 @@ from typing import Callable
 from gdpc.vector_tools import Rect
 from enum import Enum, auto
 from ..classes.core import Core
-from ..classes.agent import BuildAgent
+from ..classes.agent import BuildAgent, RoadAgent
 from ..analyze_util.basic import isFlat, hasEnoughWood, closeEnoughToRoad, isLiquid, isDesert, nearBound, requiredBasement, nearBuilding, isVillage
 from ..config.config import config
 from ..building.building_info import BuildingInfo
@@ -114,3 +114,7 @@ def newBuildAgent(core: Core, name: str):
         return total
 
     return BuildAgent(core, analyzeFunction, name)
+
+
+def newRoadAgent(core: Core):
+    return RoadAgent(core)

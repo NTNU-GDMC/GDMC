@@ -101,12 +101,12 @@ class RoadNetwork(Generic[T]):
         return self._adj.keys()
 
     @property
-    def components(self):
+    def components(self) -> list[set[RoadNode[T]]]:
         """Returns an iterator over all components in the graph."""
         components = dict[RoadNode[T], set[RoadNode[T]]]()
         for node in self.nodes:
             components.setdefault(self._dsu.find(node), set()).add(node)
-        return components
+        return components.values()
 
     @property
     def edges(self):
