@@ -365,6 +365,7 @@ class Core():
                     continue
                 if lastY is None:
                     break
+                area = Rect(node.val, (UNIT, UNIT))
                 y = round(self.getHeightMap("mean", area))
                 delta = y - lastY
                 if abs(delta) > 1:
