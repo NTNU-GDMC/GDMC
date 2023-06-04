@@ -341,7 +341,7 @@ class Core():
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = round(self.getHeightMap("mean", area)) - structure.offsets.y
+            y = round(self.getHeightMap("mean", area)) + structure.offsets.y
             print(f"Build at {pos + globalOffset} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
                          addY(pos + globalOffset, y), building.material)
