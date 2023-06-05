@@ -265,14 +265,14 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
         2. pure sand
         3. wood and sand
     """
-    retList = set()
+    materials = set[str]()
     for biome in biomeList:
         material = getChangeMaterial(biome)
-        retList.add(material)
+        materials.add(material)
     """and ("sand" not in retList) and ("red_sand" not in retList)"""
-    if (("spruce" not in retList) and ("dark_oak" not in retList)):
-        retList.add("oak")
-    return list[str](retList)
+    if (("spruce" not in materials) and ("dark_oak" not in materials)):
+        materials.add("oak")
+    return list(materials)
 
 
 def changeBlock(material: str, blockName: str):
