@@ -1,5 +1,5 @@
 # fix: all list need to be fixed - SubaRya
-import re
+from re import compile, Match
 
 """
 Material Replace Table based on nbt building default material
@@ -140,7 +140,7 @@ Material Replace function
 """
 
 
-def spruceRepl(m):
+def spruceRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
@@ -149,7 +149,7 @@ def spruceRepl(m):
     return ":" + parseX
 
 
-def birchRepl(m):
+def birchRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
@@ -158,7 +158,7 @@ def birchRepl(m):
     return ":" + parseX
 
 
-def jungleRepl(m):
+def jungleRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
@@ -167,7 +167,7 @@ def jungleRepl(m):
     return ":" + parseX
 
 
-def acaciaRepl(m):
+def acaciaRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
@@ -176,7 +176,7 @@ def acaciaRepl(m):
     return ":" + parseX
 
 
-def darkOakRepl(m):
+def darkOakRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
@@ -185,7 +185,7 @@ def darkOakRepl(m):
     return ":" + parseX
 
 
-def redSandRepl(m):
+def redSandRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("sand") or parseX.startswith("sandstone") or parseX.startswith("smooth_sandstone") or parseX.startswith("cut_sandstone") or parseX.startswith("chiseled_sandstone"):
@@ -277,7 +277,7 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
 
 def changeBlock(material: str, blockName: str):
     # This function will change block definitely via building_info material
-    pattern = re.compile(r":[\w_]*\b")
+    pattern = compile(r":[\w_]*\b")
     if material == "spruce":
         blockName = pattern.sub(spruceRepl, blockName)
     elif material == "birch":
