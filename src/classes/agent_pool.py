@@ -15,7 +15,7 @@ class AgentPool(object):
         self.core = core
         self._basic = {}
         self._special = {}
-        self._road = {}
+        self._road = []
         self.numBasic = numBasic
         self.numSpecial = numSpecial
 
@@ -28,6 +28,7 @@ class AgentPool(object):
             yield from agents
         for agents in self._special.values():
             yield from agents
+        yield from self._road
 
     def unlockSpecial(self, name: str):
         if name in self._special:

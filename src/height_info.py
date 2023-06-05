@@ -1,28 +1,30 @@
 import numpy as np
-import math
 from gdpc.vector_tools import Rect, Vec2iLike
 
 
 class HeightInfo():
     def __init__(self, heights: np.ndarray):
-        # accumulate 2D array
-        def acc2D(a) -> np.ndarray: return np.cumsum(
-            np.cumsum(a, axis=0, dtype=int), axis=1, dtype=int)
+        def acc2D(a) -> np.ndarray:
+            """accumulate 2D array"""
+            return np.cumsum(
+                np.cumsum(a, axis=0, dtype=np.int64), axis=1, dtype=np.int64)
 
-        self.area = Rect((0, 0), heights.shape)
-        self.heights = heights.copy()
-        self.squareHeights = np.square(self.heights)
+        self.area = Rect(size=heights.shape)
+        self.heights = np.copy(np.int64(heights))
+        self.squareHeights = np.square(self.heights, dtype=np.int64)
         self.accHeights = acc2D(self.heights)
         self.accSquareHeights = acc2D(self.squareHeights)
 
     def __sumFromAcc__(self, acc: np.ndarray, area: Rect) -> int:
-        # get sum of area from accumulated 2D array
+        maxX, maxZ = self.area.last
+
         def get(pos: Vec2iLike) -> int:
+            """get sum of area from accumulated 2D array"""
             x, z = pos
-            maxX, maxZ = self.area.last
-            x, z = min(x, maxX), min(z, maxZ)
-            val = acc[x, z] if self.area.contains((x, z)) else 0
-            return val
+            if x < 0 or z < 0:
+                return 0
+
+            return acc[min(x, maxX), min(z, maxZ)]
         x1, z1 = area.begin
         x2, z2 = area.last
         return get((x2, z2)) - (get((x1 - 1, z2)) + get((x2, z1 - 1))) + get((x1 - 1, z1 - 1))
@@ -40,7 +42,7 @@ class HeightInfo():
         return self.squareSum(area) / area.area - self.mean(area) ** 2
 
     def std(self, area: Rect) -> float:
-        return math.sqrt(self.var(area))
+        return np.sqrt(self.var(area))
 
 
 if __name__ == "__main__":

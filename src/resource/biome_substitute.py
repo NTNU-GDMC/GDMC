@@ -1,11 +1,11 @@
 # fix: all list need to be fixed - SubaRya
-import re
+from re import compile, Match
 
 """
 Material Replace Table based on nbt building default material
 """
 
-originToSpruceList = {
+originToSpruceDict = {
     "oak_planks": "spruce_planks",
     "oak_door": "spruce_door",
     "oak_log": "spruce_log",
@@ -28,7 +28,7 @@ originToSpruceList = {
     "potted_oak_sapling": "potted_spruce_sapling",
 }
 
-originToBirchList = {
+originToBirchDict = {
     "oak_planks": "birch_planks",
     "oak_door": "birch_door",
     "oak_log": "birch_log",
@@ -51,7 +51,7 @@ originToBirchList = {
     "potted_oak_sapling": "potted_birch_sapling",
 }
 
-originToJungleList = {
+originToJungleDict = {
     "oak_planks": "jungle_planks",
     "oak_door": "jungle_door",
     "oak_log": "jungle_log",
@@ -74,7 +74,7 @@ originToJungleList = {
     "potted_oak_sapling": "potted_jungle_sapling",
 }
 
-originToAcaciaList = {
+originToAcaciaDict = {
     "oak_planks": "acacia_planks",
     "oak_door": "acacia_door",
     "oak_log": "acacia_log",
@@ -97,7 +97,7 @@ originToAcaciaList = {
     "potted_oak_sapling": "potted_acacia_sapling",
 }
 
-originToDarkOakList = {
+originToDarkOakDict = {
     "oak_planks": "dark_oak_planks",
     "oak_door": "dark_oak_door",
     "oak_log": "dark_oak_log",
@@ -120,7 +120,7 @@ originToDarkOakList = {
     "potted_oak_sapling": "potted_dark_oak_sapling",
 }
 
-originToRedSandList = {
+originToRedSandDict = {
     "sand": "red_sand",
     "sandstone": "red_sandstone",
     "sandstone_slab": "red_sandstone_slab",
@@ -140,57 +140,57 @@ Material Replace function
 """
 
 
-def spruceRepl(m):
+def spruceRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToSpruceList[parseX])
+        parseX = parseX.replace(parseX, originToSpruceDict[parseX])
     return ":" + parseX
 
 
-def birchRepl(m):
+def birchRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToBirchList[parseX])
+        parseX = parseX.replace(parseX, originToBirchDict[parseX])
     return ":" + parseX
 
 
-def jungleRepl(m):
+def jungleRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToJungleList[parseX])
+        parseX = parseX.replace(parseX, originToJungleDict[parseX])
     return ":" + parseX
 
 
-def acaciaRepl(m):
+def acaciaRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToAcaciaList[parseX])
+        parseX = parseX.replace(parseX, originToAcaciaDict[parseX])
     return ":" + parseX
 
 
-def darkOakRepl(m):
+def darkOakRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToDarkOakList[parseX])
+        parseX = parseX.replace(parseX, originToDarkOakDict[parseX])
     return ":" + parseX
 
 
-def redSandRepl(m):
+def redSandRepl(m: Match[str]):
     x = m.group()
     parseX = str(x[1:])
     if parseX.startswith("sand") or parseX.startswith("sandstone") or parseX.startswith("smooth_sandstone") or parseX.startswith("cut_sandstone") or parseX.startswith("chiseled_sandstone"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToRedSandList[parseX])
+        parseX = parseX.replace(parseX, originToRedSandDict[parseX])
     return ":" + parseX
 
 
@@ -265,28 +265,29 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
         2. pure sand
         3. wood and sand
     """
-    retList = set()
+    materials = set[str]()
     for biome in biomeList:
         material = getChangeMaterial(biome)
-        retList.add(material)
+        materials.add(material)
     """and ("sand" not in retList) and ("red_sand" not in retList)"""
-    if (("spruce" not in retList) and ("dark_oak" not in retList)):
-        retList.add("oak")
-    return list[str](retList)
+    if (("spruce" not in materials) and ("dark_oak" not in materials)):
+        materials.add("oak")
+    return list(materials)
 
 
 def changeBlock(material: str, blockName: str):
     # This function will change block definitely via building_info material
+    pattern = compile(r":[\w_]*\b")
     if material == "spruce":
-        blockName = re.sub(r":[\w_]*\b", spruceRepl, blockName)
+        blockName = pattern.sub(spruceRepl, blockName)
     elif material == "birch":
-        blockName = re.sub(r":[\w_]*\b", birchRepl, blockName)
+        blockName = pattern.sub(birchRepl, blockName)
     elif material == "jungle":
-        blockName = re.sub(r":[\w_]*\b", jungleRepl, blockName)
+        blockName = pattern.sub(jungleRepl, blockName)
     elif material == "acacia":
-        blockName = re.sub(r":[\w_]*\b", acaciaRepl, blockName)
+        blockName = pattern.sub(acaciaRepl, blockName)
     elif material == "dark_oak":
-        blockName = re.sub(r":[\w_]*\b", darkOakRepl, blockName)
+        blockName = pattern.sub(darkOakRepl, blockName)
     elif material == "red_sand":
-        blockName = re.sub(r":[\w_]*\b", redSandRepl, blockName)
+        blockName = pattern.sub(redSandRepl, blockName)
     return blockName
