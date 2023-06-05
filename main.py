@@ -117,7 +117,7 @@ if __name__ == '__main__':
         print("=====")
 
         # Time limiter
-        if time() - startTime > 450:
+        if time() - startTime > 465:
             print("Round had run over 7min 30sec. Force enter minecraft building phase.")
             break
 
