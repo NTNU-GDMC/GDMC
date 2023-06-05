@@ -34,6 +34,12 @@ artificialSet = {
     "composter",
     "dirt_path"
     "hay_block",
+    "bricks",
+    "daylight_detector",
+    "glass",
+    "smooth",
+    "chiseled",
+    "cut"
 }
 
 
