@@ -5,7 +5,7 @@ import re
 Material Replace Table based on nbt building default material
 """
 
-originToSpruceList = {
+originToSpruceDict = {
     "oak_planks": "spruce_planks",
     "oak_door": "spruce_door",
     "oak_log": "spruce_log",
@@ -28,7 +28,7 @@ originToSpruceList = {
     "potted_oak_sapling": "potted_spruce_sapling",
 }
 
-originToBirchList = {
+originToBirchDict = {
     "oak_planks": "birch_planks",
     "oak_door": "birch_door",
     "oak_log": "birch_log",
@@ -51,7 +51,7 @@ originToBirchList = {
     "potted_oak_sapling": "potted_birch_sapling",
 }
 
-originToJungleList = {
+originToJungleDict = {
     "oak_planks": "jungle_planks",
     "oak_door": "jungle_door",
     "oak_log": "jungle_log",
@@ -74,7 +74,7 @@ originToJungleList = {
     "potted_oak_sapling": "potted_jungle_sapling",
 }
 
-originToAcaciaList = {
+originToAcaciaDict = {
     "oak_planks": "acacia_planks",
     "oak_door": "acacia_door",
     "oak_log": "acacia_log",
@@ -97,7 +97,7 @@ originToAcaciaList = {
     "potted_oak_sapling": "potted_acacia_sapling",
 }
 
-originToDarkOakList = {
+originToDarkOakDict = {
     "oak_planks": "dark_oak_planks",
     "oak_door": "dark_oak_door",
     "oak_log": "dark_oak_log",
@@ -120,7 +120,7 @@ originToDarkOakList = {
     "potted_oak_sapling": "potted_dark_oak_sapling",
 }
 
-originToRedSandList = {
+originToRedSandDict = {
     "sand": "red_sand",
     "sandstone": "red_sandstone",
     "sandstone_slab": "red_sandstone_slab",
@@ -145,7 +145,7 @@ def spruceRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToSpruceList[parseX])
+        parseX = parseX.replace(parseX, originToSpruceDict[parseX])
     return ":" + parseX
 
 
@@ -154,7 +154,7 @@ def birchRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToBirchList[parseX])
+        parseX = parseX.replace(parseX, originToBirchDict[parseX])
     return ":" + parseX
 
 
@@ -163,7 +163,7 @@ def jungleRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToJungleList[parseX])
+        parseX = parseX.replace(parseX, originToJungleDict[parseX])
     return ":" + parseX
 
 
@@ -172,7 +172,7 @@ def acaciaRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToAcaciaList[parseX])
+        parseX = parseX.replace(parseX, originToAcaciaDict[parseX])
     return ":" + parseX
 
 
@@ -181,7 +181,7 @@ def darkOakRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("oak") or parseX.startswith("stripped_oak") or parseX.startswith("potted_oak"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToDarkOakList[parseX])
+        parseX = parseX.replace(parseX, originToDarkOakDict[parseX])
     return ":" + parseX
 
 
@@ -190,7 +190,7 @@ def redSandRepl(m):
     parseX = str(x[1:])
     if parseX.startswith("sand") or parseX.startswith("sandstone") or parseX.startswith("smooth_sandstone") or parseX.startswith("cut_sandstone") or parseX.startswith("chiseled_sandstone"):
         # print("x= ", parseX)
-        parseX = parseX.replace(parseX, originToRedSandList[parseX])
+        parseX = parseX.replace(parseX, originToRedSandDict[parseX])
     return ":" + parseX
 
 
