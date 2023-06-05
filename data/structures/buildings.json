@@ -80,6 +80,26 @@
                         "nbt": "chalet4/level3.nbt"
                     }
                 ]
+            },
+            {
+                "name": "chalet5",
+                "level_info": [
+                    {
+                        "level": 1,
+                        "info": "chalet5/level1.json",
+                        "nbt": "chalet5/level1.nbt"
+                    },
+                    {
+                        "level": 2,
+                        "info": "chalet5/level2.json",
+                        "nbt": "chalet5/level2.nbt"
+                    },
+                    {
+                        "level": 3,
+                        "info": "chalet5/level3.json",
+                        "nbt": "chalet5/level3.nbt"
+                    }
+                ]
             }
         ]
     },
