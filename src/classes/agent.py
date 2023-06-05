@@ -35,12 +35,13 @@ class BuildAgent(RunableAgent):
 
     @withCooldown
     def run(self) -> bool:
+        core = self.core
         maxLevel = self.buildingInfo.maxLevel
         levels = [level for level in range(1, maxLevel+1)]
 
         def calcWeight(level: int):
-            num = self.core.numberOfBuildings(level)
-            limit = self.core.getBuildingLimit(level)
+            num = core.numberOfBuildings(level)
+            limit = core.getBuildingLimit(level)
 
             if limit == 0:
                 return 0
@@ -54,7 +55,7 @@ class BuildAgent(RunableAgent):
 
         level = choices(levels, weights=weights, k=1)[0]
 
-        if not self.core.canBuildOrUpgradeTo(level):
+        if not core.canBuildOrUpgradeTo(level):
             return False
 
         if level == 1:
@@ -75,12 +76,15 @@ class BuildAgent(RunableAgent):
 
         print(f"{self}: Start analysis and build")
 
-        if self.core.resources < self.buildingInfo.structures[0].requirement:
+        core = self.core
+        buildingInfo = self.buildingInfo
+
+        if core.resources < buildingInfo.structures[0].requirement:
             print(f"No enough resources to build")
             return False
 
-        size = self.buildingInfo.max_size
-        possibleLocations = self.core.getEmptyArea(dropY(size))
+        size = buildingInfo.max_size
+        possibleLocations = core.getEmptyArea(dropY(size))
         numPossibleLocations = len(possibleLocations)
 
         bestLocation = None
@@ -101,7 +105,7 @@ class BuildAgent(RunableAgent):
 
             location = possibleLocations[i]
 
-            value = self.analysis(self.core, location, self.buildingInfo)
+            value = self.analysis(core, location, buildingInfo)
 
             if value == 0:
                 continue
@@ -115,21 +119,23 @@ class BuildAgent(RunableAgent):
         print(f"Analysis done, Time used: {time.time() - timeStart:.2f}s")
 
         if bestLocation is None:
-            print(f"No suitable location found")
+            print("No suitable location found")
             self.remainCD += self.cooldown * NO_SUITABLE_LOCATION_PENALTY
             return False
 
-        building = Building(self.buildingInfo, bestLocation.begin)
+        building = Building(buildingInfo, bestLocation.begin)
         print(
-            f"Build {self.buildingInfo.type} at position: {building.position.to_tuple()}")
+            f"Build {buildingInfo.type} at position: {building.position.to_tuple()}")
 
-        self.core.addBuilding(building)
-        self.core.buildSubject.notify(BuildEvent(building))
+        core.addBuilding(building)
+        core.buildSubject.notify(BuildEvent(building))
 
         return True
 
-    def upgrade(self, buildingLevel) -> bool:
-        buildings = list(self.core.getBuildings(
+    def upgrade(self, buildingLevel: int) -> bool:
+        core = self.core
+
+        buildings = list(core.getBuildings(
             buildingLevel=buildingLevel-1, buildingType=self.buildingInfo.type))
 
         if len(buildings) == 0:
@@ -216,7 +222,7 @@ class RoadAgent(RunableAgent):
         others = list(filter(lambda node: node != begin, roadNetwork.nodes))
 
         if len(others) == 0:
-            return
+            return False
 
         weights = self._calcWeights(begin, others)
         end = choices(others, weights=weights, k=1)[0]
@@ -229,18 +235,20 @@ class RoadAgent(RunableAgent):
         if begin == end:
             return False
 
+        core = self.core
+
         print(
             f"Connecting road: {begin.val.to_tuple()} -> {end.val.to_tuple()}...")
 
-        edge = pathfind(self.core, begin, end)
+        edge = pathfind(core, begin, end)
         if edge is None:
-            print("No path found")
+            print("Connecting road failed")
             return False
-        print("Path found")
+        print("Connecting road done")
 
-        print(f"Update road network...", end=" ")
-        self.core.addRoadEdge(edge)
-        print("Done.")
+        print("Update road network...")
+        core.addRoadEdge(edge)
+        print("Update road network done")
 
         return True
 
