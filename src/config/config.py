@@ -135,6 +135,6 @@ class Config:
     """The material of the road"""
 
     # ================ main ================
-    gameRound: int = 100
+    gameRound: int = 150
 
 config = Config.load()
