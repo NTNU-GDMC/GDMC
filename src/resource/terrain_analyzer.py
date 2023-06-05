@@ -1,6 +1,6 @@
 # for stone, log, food, iron "no amount of human"
 # fix: add human transform - SubaRya
-import re
+from re import compile
 import numpy as np
 from dataclasses import dataclass
 from gdpc import WorldSlice
@@ -38,7 +38,7 @@ artificialSet = {
 
 
 def isArtificial(block: str) -> bool:
-    pattern = re.compile(r"minecraft:.*(" + "|".join(artificialSet) + r").*")
+    pattern = compile(r"minecraft:.*(" + "|".join(artificialSet) + r").*")
     return pattern.match(block) is not None
 
 
@@ -56,7 +56,9 @@ class Resource():
     def fromDict(d: dict[str, int]) -> "Resource":
         return Resource(d["human"], d["wood"], d["stone"], d["food"], d["ironOre"], d["iron"], d["grass"])
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Resource"):
+        if not isinstance(other, Resource):
+            raise TypeError("Cannot compare Resource with non-Resource")
         return (
             self.wood < other.wood or
             self.stone < other.stone or
@@ -66,6 +68,8 @@ class Resource():
         )
 
     def __sub__(self, other):
+        if not isinstance(other, Resource):
+            raise TypeError("Cannot subtract Resource with non-Resource")
         return Resource(
             self.human - other.human,
             self.wood - other.wood,
@@ -77,6 +81,8 @@ class Resource():
         )
 
     def __add__(self, other):
+        if not isinstance(other, Resource):
+            raise TypeError("Cannot add Resource with non-Resource")
         return Resource(
             self.human + other.human,
             self.wood + other.wood,
