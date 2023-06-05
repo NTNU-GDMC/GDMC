@@ -4,9 +4,10 @@ from gdpc.vector_tools import Rect, Vec2iLike
 
 class HeightInfo():
     def __init__(self, heights: np.ndarray):
-        # accumulate 2D array
-        def acc2D(a) -> np.ndarray: return np.cumsum(
-            np.cumsum(a, axis=0, dtype=np.int64), axis=1, dtype=np.int64)
+        def acc2D(a) -> np.ndarray:
+            """accumulate 2D array"""
+            return np.cumsum(
+                np.cumsum(a, axis=0, dtype=np.int64), axis=1, dtype=np.int64)
 
         self.area = Rect(size=heights.shape)
         self.heights = np.copy(np.int64(heights))
@@ -14,31 +15,33 @@ class HeightInfo():
         self.accHeights = acc2D(self.heights)
         self.accSquareHeights = acc2D(self.squareHeights)
 
-    def __sumFromAcc__(self, acc: np.ndarray, area: Rect) -> np.int64:
-        # get sum of area from accumulated 2D array
-        def get(pos: Vec2iLike)-> np.int64:
+    def __sumFromAcc__(self, acc: np.ndarray, area: Rect) -> int:
+        maxX, maxZ = self.area.last
+
+        def get(pos: Vec2iLike) -> int:
+            """get sum of area from accumulated 2D array"""
             x, z = pos
-            maxX, maxZ = self.area.last
-            x, z = min(x, maxX), min(z, maxZ)
-            val = acc[x, z] if self.area.contains((x, z)) else 0
-            return val
+            if x < 0 or z < 0:
+                return 0
+
+            return acc[min(x, maxX), min(z, maxZ)]
         x1, z1 = area.begin
         x2, z2 = area.last
         return get((x2, z2)) - (get((x1 - 1, z2)) + get((x2, z1 - 1))) + get((x1 - 1, z1 - 1))
 
-    def sum(self, area: Rect) -> np.int64:
+    def sum(self, area: Rect) -> int:
         return self.__sumFromAcc__(self.accHeights, area)
 
-    def squareSum(self, area: Rect) -> np.int64:
+    def squareSum(self, area: Rect) -> int:
         return self.__sumFromAcc__(self.accSquareHeights, area)
 
-    def mean(self, area: Rect) -> np.float64:
+    def mean(self, area: Rect) -> float:
         return self.sum(area) / area.area
 
-    def var(self, area: Rect) -> np.float64:
+    def var(self, area: Rect) -> float:
         return self.squareSum(area) / area.area - self.mean(area) ** 2
 
-    def std(self, area: Rect) -> np.float64:
+    def std(self, area: Rect) -> float:
         return np.sqrt(self.var(area))
 
 
