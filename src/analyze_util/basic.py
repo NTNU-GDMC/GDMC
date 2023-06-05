@@ -86,10 +86,7 @@ def isVillage(core: Core, area: Rect) -> bool:
     return np.any(core.resourcesMap.artificial[begin.x:end.x, begin.y:end.y] > 0)
 
 
-MINIMUM_BOUND_PADDING = 10
-
-
-def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
+def nearBound(core: Core, area: Rect, minPadding: int) -> bool:
     """Check if the area is close enough to the bound"""
     bound = Rect((0, 0), core.buildArea.toRect().size)
 
@@ -101,10 +98,7 @@ def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     return any((left < minPadding, right < minPadding, top < minPadding, bottom < minPadding))
 
 
-MINIMUM_BUILDING_MARGIN = 256
-
-
-def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin=MINIMUM_BUILDING_MARGIN) -> bool:
+def nearBuilding(core: Core, area: Rect, buildingInfo: BuildingInfo, minMargin: int) -> bool:
     """Check if the area is close enough to the bound"""
     variants = GLOBAL_BUILDING_INFO[buildingInfo.name]
     buildings = list[Building]()

@@ -63,7 +63,7 @@ def newBuildAgent(core: Core, name: str):
 
         total = 0
 
-        if nearBound(core, area):
+        if nearBound(core, area, config.minimumBoundPadding):
             return 0
 
         if isVillage(core, area):

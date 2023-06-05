@@ -114,6 +114,8 @@ class Config:
 
     minimumBuildingMargin: int = 256
 
+    minimumBoundPadding = 10
+
     # ================ data ================
 
     structuresPath: Path = Path("data/structures")
