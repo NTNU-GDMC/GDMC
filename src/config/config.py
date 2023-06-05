@@ -81,8 +81,11 @@ class Config:
 
     # ================ agent ================
 
-    agentCooldown: int = 2
-    """The cooldown of the agent"""
+    buildAgentCooldown: int = 2
+    """The cooldown of the build agent"""
+
+    roadAgentCooldown: int = 0
+    """The cooldown of the road agent"""
 
     numBasicAgents: int = 3
     """The number of basic agents"""
@@ -90,8 +93,11 @@ class Config:
     numSpecialAgents: int = 1
     """The number of special agents"""
 
-    sampleRate: float = 0.4
+    sampleRate: float = 0.25
     """The sample rate of locations to analyze for agents"""
+
+    noSuitableLocationPenalty: int = 100
+    """The penalty of no suitable location"""
 
     # ================ analyzer ================
 
@@ -101,12 +107,19 @@ class Config:
 
     desertnessThreshold: float = 0.4
 
-    forestThreshold: float = 0.5/(16*16)
-    """"3 log per chunk"""
+    forestThreshold: float = 4/(16*16)
+    """"4 leaves per chunk"""
 
     forestQueryMargin: int = 16
 
+    rockThreshold: float = 1/(16*16)
+    """"4 rock per chunk"""
+
+    rockQueryMargin: int = 16
+
     minimumBuildingMargin: int = 256
+
+    minimumBoundPadding = 10
 
     # ================ data ================
 

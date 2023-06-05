@@ -37,7 +37,8 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 """
 
 # ! /usr/bin/python3
-import time
+from time import time
+from random import sample
 from src.classes.core import Core
 from src.classes.agent import RoadAgent
 from src.classes.agent_pool import AgentPool
@@ -46,20 +47,16 @@ from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 from src.config.config import config
 
-
-import random
-
-ROUND = config.gameRound
-NUM_BASIC_AGENTS = config.numBasicAgents
-NUM_SPECIAL_AGENTS = config.numSpecialAgents
-
 if __name__ == '__main__':
-    startTime = time.time()
+    startTime = time()
+
+    ROUND = config.gameRound
+    NUM_BASIC_AGENTS = config.numBasicAgents
+    NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
     print("Initing core...")
     core = Core()
     print("Done initing core")
-
 
     levelManager = LevelManager()
     agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
@@ -70,15 +67,18 @@ if __name__ == '__main__':
 
     # iterate rounds
     for i in range(ROUND):
+        numbersOfBuildings = [
+            core.numberOfBuildings(level) for level in (1, 2, 3)
+        ]
+        limitsOfBuildings = [
+            core.getBuildingLimit(level) for level in (1, 2, 3)
+        ]
+
         print(f"Round: {i}")
         print(f"Level: {core.level}")
-        print(
-            f"Buildings: {[core.numberOfBuildings(level) for level in range(1, 4)]}")
-        print(
-            f"Max Buildings:  {[core.getBuildingLimit(level) for level in range(1, 4)]}")
+        print(f"Buildings: {numbersOfBuildings}")
+        print(f"Max Buildings:  {limitsOfBuildings}")
         print(f"Resources: {core.resources}")
-
-        restingAgents = 0
 
         core.updateResource()
 
@@ -90,9 +90,10 @@ if __name__ == '__main__':
 
         print("Start running agents")
 
-        agents = list(agentPool.agents)
+        restingAgents = 0
 
-        for agent in random.sample(agents, len(agents)):
+        agents = list(agentPool.agents)
+        for agent in sample(agents, len(agents)):
             # run agent
             success = agent.run()
 
@@ -100,16 +101,13 @@ if __name__ == '__main__':
                 # gather resource if the agent cannot do their job
                 restingAgents += 1
                 agent.rest()
-            # else:
-            #     if agent.special:
-                # remove from the pool or assigned other things to this agent
-                # pass
 
         core.increaseGrass()
 
         print(f"Resting agents: {restingAgents}")
 
-        if levelManager.canLevelUp(core.level, core.resources, core.numberOfBuildings()):
+        if levelManager.canLevelUp(core.level, core.resources,
+                                   core.numberOfBuildings()):
             core.levelUp()
 
         # clamp resource to limit
@@ -118,7 +116,7 @@ if __name__ == '__main__':
         print("Round Done")
         print("=====")
 
-    print(f"Time: {time.time() - startTime}")
+    print(f"Time: {time() - startTime}")
 
     print("Start building in minecraft")
 
@@ -126,6 +124,6 @@ if __name__ == '__main__':
 
     print("Done building in minecraft")
 
-    print(f"Time: {time.time() - startTime}")
+    print(f"Time: {time() - startTime}")
 
     plotBlueprint(core)

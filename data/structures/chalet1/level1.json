@@ -7,6 +7,7 @@
         }
     ],
     "Size": [11, 10, 11],
+    "Offsets": [9, 0, 0],
     "Type": 1,
     "Level": 1,
     "RequiredResource": {

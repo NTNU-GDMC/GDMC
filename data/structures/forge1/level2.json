@@ -2,11 +2,12 @@
     "Entries": [
         {
             "facing": "north",
-            "roadStartPosition": [7, -1, 0],
+            "roadStartPosition": [7, -1, -1],
             "type": "mainEntry"
         }
     ],
     "Size": [16, 14, 15],
+    "Offsets": [4, 0, 0],
     "Type": 1,
     "Level": 2,
     "RequiredResource": {

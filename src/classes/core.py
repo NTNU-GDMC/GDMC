@@ -16,6 +16,7 @@ from ..building.nbt_builder import buildFromNBT
 from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 from ..poisson_disk_sampling import poissonDiskSample
+from ..road.road_network import RoadNode
 
 UNIT = config.unit
 ROAD = -1
@@ -79,6 +80,8 @@ class Core():
         self.buildSubject = Subject[BuildEvent]()
         self.upgradeSubject = Subject[UpgradeEvent]()
 
+        self.emptyAreaPrefix = np.zeros_like(self.blueprint)
+
     @property
     def buildArea(self):
         return self._buildArea
@@ -131,10 +134,10 @@ class Core():
     def resourceLimit(self):
         return getResourceLimit(self._level)
 
-    def getBuildings(self, buildingLevel: int| None = None, buildingType: str | None = None):
+    def getBuildings(self, buildingLevel: int | None = None, buildingType: str | None = None):
         for building in self._blueprintData.values():
             if (buildingLevel is None or building.level == buildingLevel) and \
-                (buildingType is None or building.building_info.type == buildingType):
+                    (buildingType is None or building.building_info.type == buildingType):
                 yield building
 
     def getBuildingLimit(self, buildingLevel: int):
@@ -196,6 +199,8 @@ class Core():
         for (x, z) in area.outline:
             self._blueprint[x, z] = ROAD_RESERVE
 
+        self.updateEmptyArea()
+
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
@@ -239,11 +244,7 @@ class Core():
             return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
-    def getEmptyArea(self, size: ivec2) -> list[Rect]:
-        height, width = size
-        height = ceil(height / UNIT)
-        width = ceil(width / UNIT)
-
+    def updateEmptyArea(self):
         def isEmpty(val: Any):
             if val == 0:
                 return 0
@@ -265,23 +266,33 @@ class Core():
             for j in range(1, w):
                 prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
                     prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
-        result: list[Rect] = []
+        
+        self.emptyAreaPrefix = prefix
+        pass
 
-        for i in range(h - height):
-            for j in range(w - width):
+    def getEmptyArea(self, size: ivec2) -> list[Rect]:
+        height, width = size
+        height = ceil(height / UNIT)
+        width = ceil(width / UNIT)
+        blueprintHeight, blueprintWidth = self.emptyAreaPrefix.shape[:2]
+
+        result : list[Rect] = []
+
+        for i in range(blueprintHeight - height):
+            for j in range(blueprintWidth - width):
                 lh = i + height
                 lw = j + width
                 left = 0
                 top = 0
                 leftTop = 0
                 if i > 0:
-                    top = prefix[i - 1][lw]
+                    top = self.emptyAreaPrefix[i - 1][lw]
                 if j > 0:
-                    left = prefix[lh][j - 1]
+                    left = self.emptyAreaPrefix[lh][j - 1]
                 if i > 0 and j > 0:
-                    leftTop = prefix[i - 1][j - 1]
+                    leftTop = self.emptyAreaPrefix[i - 1][j - 1]
 
-                used = prefix[lh][lw] - top - left + leftTop
+                used = self.emptyAreaPrefix[lh][lw] - top - left + leftTop
                 if used == 0:
                     result.append(Rect((i * UNIT, j * UNIT),
                                   (height * UNIT, height * UNIT)))
@@ -333,6 +344,8 @@ class Core():
         globalOffset = globalBound.offset
         localBound = globalBound.translated(-globalOffset)
 
+        sureRoadHeights = dict[RoadNode[ivec2], int]()
+
         # ====== Add building to Minecraft ======
 
         for id, building in self._blueprintData.items():
@@ -341,26 +354,62 @@ class Core():
             structure = building.building_info.structures[level-1]
             size = building.building_info.max_size
             area = Rect(pos, dropY(size))
-            y = round(self.getHeightMap("mean", area)) - structure.offsets.y
+            y = round(self.getHeightMap("mean", area))
             print(f"Build at {pos + globalOffset} with height {y}")
             buildFromNBT(self._editor, structure.nbtFile,
-                         addY(pos + globalOffset, y), building.material)
+                         addY(pos + globalOffset, y) + structure.offsets, building.material)
+
+            if building.entryPos is not None:
+                x, z = building.entryPos
+                x, z = (x//UNIT)*UNIT, (z//UNIT)*UNIT
+                sureRoadHeights[self.roadNetwork.newNode(ivec2(x, z))] = y
 
         self.editor.flushBuffer()
 
         # ====== Add road to Minecraft ======
 
+        ## Fix the road height
+
+        for edge in self._roadNetwork.edges:
+            lastY = None
+            for node in edge:
+                if node in sureRoadHeights:
+                    lastY = sureRoadHeights[node]
+                    continue
+                if lastY is None:
+                    break
+                area = Rect(node.val, (UNIT, UNIT))
+                y = round(self.getHeightMap("mean", area))
+                delta = y - lastY
+                if abs(delta) > 1:
+                    delta = delta // abs(delta)
+                    y = lastY + delta
+                else:
+                    break
+                sureRoadHeights[node] = y
+                lastY = y
+
+        ## Build the road
+
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
-            y = round(self.getHeightMap("mean", area))
+
+            if node in sureRoadHeights:
+                y = sureRoadHeights[node]
+            else:
+                y = round(self.getHeightMap("mean", area))
+
+            sureRoadHeights[node] = y
             pos = addY(node.val+globalOffset, y)
 
             clearBox = area.toBox(y, 2)
             for x, y, z in clearBox.inner:
                 block = self.worldSlice.getBlock((x, y, z))
                 if block.id != "minecraft:air":
-                    begin, last = clearBox.begin, clearBox.last
+                    begin, last = clearBox.begin + \
+                        addY(globalOffset, 0), clearBox.last + \
+                        addY(globalOffset, 0)
                     self.editor.runCommand(
                         f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
                     break
@@ -403,8 +452,8 @@ class Core():
         )
 
         for pos in lightPositions:
-            area = Rect(pos, (UNIT, UNIT))
-            y = round(self.getHeightMap("mean", area))
+            node = self.roadNetwork.newNode(pos)
+            y = sureRoadHeights[node]
             neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:
@@ -416,9 +465,8 @@ class Core():
                     if z-pos.y < 0:
                         z = pos.y - 1
 
-                    print("place light at:", (x, y, z) + addY(globalOffset, 0))
-
-                    choice([placeLight1, placeLight2])((x, y, z) + addY(globalOffset, 0))
+                    choice([placeLight1, placeLight2])(
+                        (x, y, z) + addY(globalOffset, 0))
                     break
 
         self.editor.flushBuffer()

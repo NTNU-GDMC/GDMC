@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from collections import Counter
 from gdpc import WorldSlice
-from gdpc.vector_tools import Box, Rect
+from gdpc.vector_tools import Rect
 from .biome_substitute import spruceSet, birchSet, jungleSet, acaciaSet, darkOakSet, desertSet, redSandSet, otherSet
 
 
@@ -19,7 +19,7 @@ class BiomeMap():
     other: np.ndarray
 
     def __init__(self, worldSlice: WorldSlice) -> None:
-        area = Rect((0, 0), worldSlice.rect.size)
+        area = Rect(size=worldSlice.rect.size)
         shape = area.size.to_tuple()
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 
@@ -39,23 +39,23 @@ class BiomeMap():
             self.biomes[(x, z)] = biome
 
             if biome in spruceSet:
-                self.cold[x, z] = 1
+                self.cold[x, z] += 1
             if biome in birchSet:
-                self.forest[x, z] = 1
+                self.forest[x, z] += 1
             if biome in jungleSet:
-                self.jungle[x, z] = 1
+                self.jungle[x, z] += 1
             if biome in acaciaSet:
-                self.savanna[x, z] = 1
+                self.savanna[x, z] += 1
             if biome in darkOakSet:
-                self.darkForest[x, z] = 1
+                self.darkForest[x, z] += 1
             if biome in desertSet:
-                self.desert[x, z] = 1
+                self.desert[x, z] += 1
             if biome in redSandSet:
-                self.badlands[x, z] = 1
+                self.badlands[x, z] += 1
             if biome in otherSet:
-                self.other[x, z] = 1
+                self.other[x, z] += 1
 
-    def getPrimaryBiome(self, area: Rect):
+    def getPrimaryBiome(self, area: Rect) -> str:
         """Get the primary biome in the area"""
 
         biomesCount: Counter[str] = Counter()
@@ -67,17 +67,13 @@ class BiomeMap():
         # get 1 most, get index at 0, get key at 0
         return biomesCount.most_common(1)[0][0]
 
+    def getAllBiome(self, area: Rect) -> set[str]:
+        """Get all the biome in the area"""
 
-def getAllBiomeList(WORLDSLICE: WorldSlice, settlementArea: Box):
-    heights = WORLDSLICE.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-    biome = set()
-    x, _, z = settlementArea.size
-    # 01 Map to coord of (x, z)
-    for i in range(0, x):
-        for j in range(0, z):
-            #  TODO: check if settlement or not _ SubaRya
-            # getBiome is relative, getBiomeGlobal is absolute
-            biome.add(WORLDSLICE.getBiome(
-                (i, int(heights[(i, j)]), j)))
-    biome = list(biome)
-    return biome
+        biomesSet = set[str]()
+
+        for x, z in area.inner:
+            if (x, z) in self.biomes:
+                biomesSet.add(self.biomes[(x, z)])
+
+        return biomesSet

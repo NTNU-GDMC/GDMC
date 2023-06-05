@@ -62,7 +62,7 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: s
         editor.runCommand(clearCmd, syncWithBuffer=True)
 
     rect = Rect(dropY(offset), dropY(size))
-    worldSlice = editor.loadWorldSlice(rect, cache=True)
+    worldSlice = editor.worldSlice
     height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     for x, z in rect.inner:
         floory = height[x - offset.x, z - offset.z]

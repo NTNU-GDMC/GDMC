@@ -1,4 +1,5 @@
 from typing import Generic, TypeVar, Callable
+from disjoint_set import DisjointSet
 
 T = TypeVar('T')
 
@@ -81,6 +82,7 @@ class RoadNetwork(Generic[T]):
         self._adj = dict[RoadNode[T], set[RoadEdge[T]]]()
         self._hotness = dict[RoadNode[T], int]()
         self._hashfunc = hashfunc
+        self._dsu = DisjointSet()
 
     def __str__(self) -> str:
         return str(self._adj)
@@ -97,6 +99,14 @@ class RoadNetwork(Generic[T]):
     def nodes(self):
         """Returns an iterator over all main nodes in the graph."""
         return self._adj.keys()
+
+    @property
+    def components(self) -> list[set[RoadNode[T]]]:
+        """Returns an iterator over all components in the graph."""
+        components = dict[RoadNode[T], set[RoadNode[T]]]()
+        for node in self.nodes:
+            components.setdefault(self._dsu.find(node), set()).add(node)
+        return components.values()
 
     @property
     def edges(self):
@@ -120,12 +130,12 @@ class RoadNetwork(Generic[T]):
         """Adds an edge to the graph."""
         self._adj.setdefault(edge.node1, set()).add(edge)
         self._adj.setdefault(edge.node2, set()).add(edge.reverse())
+        self._dsu.union(edge.node1, edge.node2)
 
         for node in edge.path:
             # update hotness
             self._hotness.setdefault(node, 0)
             self._hotness[node] += 1
-
 
     def removeNode(self, node: RoadNode[T]):
         """Removes a node from the graph."""
@@ -136,7 +146,6 @@ class RoadNetwork(Generic[T]):
             self.removeEdge(edge)
 
         del self._adj[node]
-
 
     def removeEdge(self, edge: RoadEdge[T]):
         """Removes an edge from the graph."""
@@ -152,7 +161,6 @@ class RoadNetwork(Generic[T]):
 
             if self._hotness[node] == 0:
                 del self._hotness[node]
-
 
     def neighbors(self, node: RoadNode[T]):
         """Returns an iterator over all neighbors of a node."""
@@ -170,3 +178,7 @@ class RoadNetwork(Generic[T]):
             if edge.node2 == node2:
                 return edge
         return None
+
+    def isSameTree(self, node1: RoadNode[T], node2: RoadNode[T]) -> bool:
+        """Returns whether two nodes are in the same tree."""
+        return self._dsu.connected(node1, node2)

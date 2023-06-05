@@ -48,7 +48,7 @@ class Building:
 
     @property
     def entryPos(self) -> ivec2 | None:
-        entries = self.building_info.structures[self.level-1].entries
+        entries = self.building_info.structures[self.building_info.maxLevel-1].entries
         if len(entries) == 0:
             return None
         pos = entries[0].pos
