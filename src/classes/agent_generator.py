@@ -83,15 +83,15 @@ def newBuildAgent(core: Core, name: str):
         if BuildingTag.LAND in tags and isLiquid(core, area):
             return 0
 
-        reqBaseBlock = requiredBasement(core, area)
-        # TODO: make this flexible config
-        if reqBaseBlock > area.area * 3:
-            return 0
-
         flatness = isFlat(core, area)
         if flatness < config.flatnessThreshold:
             return 0
         total += flatness
+
+        reqBaseBlock = requiredBasement(core, area)
+        # TODO: make this flexible config
+        if reqBaseBlock > area.area * 3:
+            return 0
 
         if name in SPECIAL_BUILDINGS:
             if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
