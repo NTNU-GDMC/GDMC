@@ -101,7 +101,7 @@ class Config:
 
     # ================ analyzer ================
 
-    analyzeBorder: int = 1
+    analyzeBorder: int = 2
 
     flatnessThreshold: float = 0.4
 
