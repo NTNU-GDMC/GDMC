@@ -37,7 +37,9 @@ artificialSet = {
     "bricks",
     "daylight_detector",
     "glass",
-    "smooth"
+    "smooth",
+    "chiseled",
+    "cut"
 }
 
 
