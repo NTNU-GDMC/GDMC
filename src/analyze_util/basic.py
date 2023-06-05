@@ -49,9 +49,14 @@ def isLiquid(core: Core, area: Rect) -> float:
 
 def hasEnoughWood(core: Core, area: Rect) -> float:
     """Choose if the wood in this area is above the threshold"""
-    # TODO: change the resource to a new method to get the resources in the area only
     begin, end = area.begin, area.end
     return average(core.resourcesMap.wood[begin.x:end.x, begin.y:end.y])
+
+
+def hasEnoughStone(core: Core, area: Rect) -> float:
+    """Choose if the stone in this area is above the threshold"""
+    begin, end = area.begin, area.end
+    return average(core.resourcesMap.stone[begin.x:end.x, begin.y:end.y])
 
 
 MAXIMUM_ROAD_DISTANCE = 30
@@ -83,7 +88,7 @@ def isDesert(core: Core, area: Rect) -> float:
 def isVillage(core: Core, area: Rect) -> bool:
     """Check if the area is in the village"""
     begin, end = area.begin, area.end
-    return np.any(core.resourcesMap.artificial[begin.x:end.x, begin.y:end.y] > 0)
+    return np.sum(core.resourcesMap.artificial[begin.x:end.x, begin.y:end.y]) > 0
 
 
 def nearBound(core: Core, area: Rect, minPadding: int) -> bool:

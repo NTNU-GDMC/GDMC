@@ -107,10 +107,15 @@ class Config:
 
     desertnessThreshold: float = 0.4
 
-    forestThreshold: float = 0.5/(16*16)
-    """"3 log per chunk"""
+    forestThreshold: float = 4/(16*16)
+    """"4 leaves per chunk"""
 
     forestQueryMargin: int = 16
+
+    rockThreshold: float = 1/(16*16)
+    """"4 rock per chunk"""
+
+    rockQueryMargin: int = 16
 
     minimumBuildingMargin: int = 256
 
