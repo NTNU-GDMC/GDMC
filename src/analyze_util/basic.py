@@ -1,7 +1,7 @@
 import numpy as np
 from gdpc.geometry import Rect
 from typing import Callable, Any
-from numpy import ndarray
+from numpy import ndarray, average
 from gdpc.vector_tools import distance2
 from ..classes.core import Core
 from ..building.building import Building
@@ -44,16 +44,14 @@ def requiredBasement(core: Core, area: Rect) -> int:
 
 def isLiquid(core: Core, area: Rect) -> float:
     begin, end = area.begin, area.end
-    sum = core.liquidMap[begin.x:end.x, begin.y:end.y].sum()
-    return sum / area.area
+    return average(core.liquidMap[begin.x:end.x, begin.y:end.y])
 
 
 def hasEnoughWood(core: Core, area: Rect) -> float:
     """Choose if the wood in this area is above the threshold"""
     # TODO: change the resource to a new method to get the resources in the area only
     begin, end = area.begin, area.end
-    sum = core.resourcesMap.wood[begin.x:end.x, begin.y:end.y].sum()
-    return sum/area.area
+    return average(core.resourcesMap.wood[begin.x:end.x, begin.y:end.y])
 
 
 MAXIMUM_ROAD_DISTANCE = 30
@@ -78,9 +76,8 @@ def closeEnoughToLiquid(core: Core, area: Rect) -> bool:
 def isDesert(core: Core, area: Rect) -> float:
     """Check if the area is in the desert"""
     begin, end = area.begin, area.end
-    sum = core.biomeMap.desert[begin.x:end.x, begin.y:end.y].sum() + \
-        core.biomeMap.badlands[begin.x:end.x, begin.y:end.y].sum()
-    return sum / area.area
+    return average(core.biomeMap.desert[begin.x:end.x, begin.y:end.y]) + \
+        average(core.biomeMap.badlands[begin.x:end.x, begin.y:end.y])
 
 
 def isVillage(core: Core, area: Rect) -> bool:
@@ -101,7 +98,7 @@ def nearBound(core: Core, area: Rect, minPadding=MINIMUM_BOUND_PADDING) -> bool:
     right = bound.last.x - area.last.x
     top = bound.last.y - area.last.y
 
-    return any([left < minPadding, right < minPadding, top < minPadding, bottom < minPadding])
+    return any((left < minPadding, right < minPadding, top < minPadding, bottom < minPadding))
 
 
 MINIMUM_BUILDING_MARGIN = 256
