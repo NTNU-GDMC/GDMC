@@ -7,10 +7,8 @@ function levelUp:
     else true
 """
 
-import json
 from dataclasses import dataclass
 from .limit import levelLimit
-from ..config.config import config
 from ..resource.terrain_analyzer import Resource
 
 
