@@ -19,7 +19,7 @@ class BiomeMap():
     other: np.ndarray
 
     def __init__(self, worldSlice: WorldSlice) -> None:
-        area = Rect((0, 0), worldSlice.rect.size)
+        area = Rect(size=worldSlice.rect.size)
         shape = area.size.to_tuple()
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
 

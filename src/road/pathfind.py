@@ -36,7 +36,7 @@ class Pathfinder(object):
 
     @property
     def boundingRect(self):
-        return Rect((0, 0), self._core.buildArea.toRect().eroded(UNIT).size)
+        return Rect(size=self._core.buildArea.toRect().eroded(UNIT).size)
 
     def height(self, n: RoadNode[ivec2]):
         """Height of a node"""

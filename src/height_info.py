@@ -8,7 +8,7 @@ class HeightInfo():
         def acc2D(a) -> np.ndarray: return np.cumsum(
             np.cumsum(a, axis=0, dtype=np.int64), axis=1, dtype=np.int64)
 
-        self.area = Rect((0, 0), heights.shape)
+        self.area = Rect(size=heights.shape)
         self.heights = np.copy(np.int64(heights))
         self.squareHeights = np.square(self.heights, dtype=np.int64)
         self.accHeights = acc2D(self.heights)

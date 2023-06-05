@@ -88,7 +88,7 @@ def isVillage(core: Core, area: Rect) -> bool:
 
 def nearBound(core: Core, area: Rect, minPadding: int) -> bool:
     """Check if the area is close enough to the bound"""
-    bound = Rect((0, 0), core.buildArea.toRect().size)
+    bound = Rect(size=core.buildArea.toRect().size)
 
     left = area.begin.x - bound.begin.x
     bottom = area.begin.y - bound.begin.y
