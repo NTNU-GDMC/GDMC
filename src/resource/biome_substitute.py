@@ -277,16 +277,17 @@ def getChangeMaterialList(biomeList: list[str]) -> list[str]:
 
 def changeBlock(material: str, blockName: str):
     # This function will change block definitely via building_info material
+    pattern = re.compile(r":[\w_]*\b")
     if material == "spruce":
-        blockName = re.sub(r":[\w_]*\b", spruceRepl, blockName)
+        blockName = pattern.sub(spruceRepl, blockName)
     elif material == "birch":
-        blockName = re.sub(r":[\w_]*\b", birchRepl, blockName)
+        blockName = pattern.sub(birchRepl, blockName)
     elif material == "jungle":
-        blockName = re.sub(r":[\w_]*\b", jungleRepl, blockName)
+        blockName = pattern.sub(jungleRepl, blockName)
     elif material == "acacia":
-        blockName = re.sub(r":[\w_]*\b", acaciaRepl, blockName)
+        blockName = pattern.sub(acaciaRepl, blockName)
     elif material == "dark_oak":
-        blockName = re.sub(r":[\w_]*\b", darkOakRepl, blockName)
+        blockName = pattern.sub(darkOakRepl, blockName)
     elif material == "red_sand":
-        blockName = re.sub(r":[\w_]*\b", redSandRepl, blockName)
+        blockName = pattern.sub(redSandRepl, blockName)
     return blockName
