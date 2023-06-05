@@ -1,4 +1,3 @@
-from typing import Callable
 from gdpc.vector_tools import Rect
 from enum import Enum, auto
 from ..classes.core import Core
@@ -70,6 +69,9 @@ def newBuildAgent(core: Core, name: str):
         if isVillage(core, area):
             return 0
 
+        if BuildingTag.LAND in tags and isLiquid(core, area):
+            return 0
+
         reqBaseBlock = requiredBasement(core, area)
         # TODO: make this flexible config
         if reqBaseBlock > area.area * 3:
@@ -84,18 +86,15 @@ def newBuildAgent(core: Core, name: str):
             if nearBuilding(core, area, buildingInfo, config.minimumBuildingMargin):
                 return 0
 
-        if BuildingTag.LAND in tags and isLiquid(core, area):
-            return 0
-
         if BuildingTag.FOREST in tags:
-            buildArea = Rect((0, 0), core.buildArea.toRect().size)
+            buildArea = Rect(size=core.buildArea.toRect().size)
             queryArea = area.dilated(config.forestQueryMargin)
-            begin, end = queryArea.begin, queryArea.end
+            begin, last = queryArea.begin, queryArea.last
             begin.x = max(begin.x, buildArea.begin.x)
             begin.y = max(begin.y, buildArea.begin.y)
-            end.x = min(end.x, buildArea.end.x)
-            end.y = min(end.y, buildArea.end.y)
-            queryArea = Rect(begin, end-begin)
+            last.x = min(last.x, buildArea.last.x)
+            last.y = min(last.y, buildArea.last.y)
+            queryArea = Rect.between(begin, last)
             forestness = hasEnoughWood(core, queryArea)
             if forestness < config.forestThreshold:
                 return 0
