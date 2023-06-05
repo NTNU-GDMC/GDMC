@@ -80,6 +80,8 @@ class Core():
         self.buildSubject = Subject[BuildEvent]()
         self.upgradeSubject = Subject[UpgradeEvent]()
 
+        self.emptyAreaPrefix = np.zeros_like(self.blueprint)
+
     @property
     def buildArea(self):
         return self._buildArea
@@ -197,6 +199,8 @@ class Core():
         for (x, z) in area.outline:
             self._blueprint[x, z] = ROAD_RESERVE
 
+        self.updateEmptyArea()
+
     def addRoadEdge(self, edge: RoadEdge[ivec2]):
         self._roadNetwork.addEdge(edge)
         for node in edge.path:
@@ -240,11 +244,7 @@ class Core():
             return self._heightInfo.std(bound)
         raise Exception("This type does not exist on heightType")
 
-    def getEmptyArea(self, size: ivec2) -> list[Rect]:
-        height, width = size
-        height = ceil(height / UNIT)
-        width = ceil(width / UNIT)
-
+    def updateEmptyArea(self):
         def isEmpty(val: Any):
             if val == 0:
                 return 0
@@ -266,23 +266,33 @@ class Core():
             for j in range(1, w):
                 prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
                     prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
-        result: list[Rect] = []
+        
+        self.emptyAreaPrefix = prefix
+        pass
 
-        for i in range(h - height):
-            for j in range(w - width):
+    def getEmptyArea(self, size: ivec2) -> list[Rect]:
+        height, width = size
+        height = ceil(height / UNIT)
+        width = ceil(width / UNIT)
+        blueprintHeight, blueprintWidth = self.emptyAreaPrefix.shape[:2]
+
+        result : list[Rect] = []
+
+        for i in range(blueprintHeight - height):
+            for j in range(blueprintWidth - width):
                 lh = i + height
                 lw = j + width
                 left = 0
                 top = 0
                 leftTop = 0
                 if i > 0:
-                    top = prefix[i - 1][lw]
+                    top = self.emptyAreaPrefix[i - 1][lw]
                 if j > 0:
-                    left = prefix[lh][j - 1]
+                    left = self.emptyAreaPrefix[lh][j - 1]
                 if i > 0 and j > 0:
-                    leftTop = prefix[i - 1][j - 1]
+                    leftTop = self.emptyAreaPrefix[i - 1][j - 1]
 
-                used = prefix[lh][lw] - top - left + leftTop
+                used = self.emptyAreaPrefix[lh][lw] - top - left + leftTop
                 if used == 0:
                     result.append(Rect((i * UNIT, j * UNIT),
                                   (height * UNIT, height * UNIT)))
