@@ -112,8 +112,8 @@ class Config:
 
     forestQueryMargin: int = 16
 
-    rockThreshold: float = 1/(16*16)
-    """"4 rock per chunk"""
+    rockThreshold: float = 0.1/(16*16)
+    """"0.1 rock per chunk"""
 
     rockQueryMargin: int = 16
 
