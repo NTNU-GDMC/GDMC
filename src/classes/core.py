@@ -391,7 +391,8 @@ class Core():
         roadHeight = meanAggregate(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
         # Set fixed height point
         for n, y in sureRoadHeights.items():
-            roadHeight[n.val.x // UNIT, n.val.y // UNIT] = y
+            opArea = Rect(n.val//UNIT - ivec2(1, 1), (2, 2))
+            roadHeight[opArea.begin.x:opArea.end.x, opArea.begin.y:opArea.end.y] = y
         # Apply Gaussian filter
         roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=1, radius=3)
 
