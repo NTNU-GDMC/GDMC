@@ -52,17 +52,17 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalCoordinate: ivec3, m
         raise Exception("Error while building structure: worldSlice is None")
 
     option = "keep" if keep else "replace"
+    size = getStructureSizeNBT(struct)
+    bound = Box(globalCoordinate, size)
 
     if not keep:
-        size = getStructureSizeNBT(struct)
-        bound = Box(globalCoordinate, size)
         begin = bound.begin
         last = bound.last
         clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
         editor.runCommand(clearCmd, syncWithBuffer=True)
 
     # Fill basement
-    rect = Rect(dropY(globalCoordinate), dropY(size))
+    rect = bound.toRect()
     worldSlice = editor.worldSlice
     height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     for x, z in rect.inner:
