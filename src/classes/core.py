@@ -1,4 +1,8 @@
+import copy
+import math
 from random import choice, shuffle
+
+import scipy
 from math import ceil
 from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
@@ -22,6 +26,20 @@ UNIT = config.unit
 ROAD = -1
 ROAD_RESERVE = -2
 
+
+def saturateRect(target: Rect, bound: Rect):
+    target.begin = ivec2(max(bound.begin.x, min(target.begin.x, bound.end.x)),
+                         max(bound.begin.y, min(target.begin.y, bound.end.y)))
+    target.end = ivec2(max(bound.begin.x, min(target.end.x, bound.end.x)),
+                         max(bound.begin.y, min(target.end.y, bound.end.y)))
+
+
+def meanAggregate(target: np.array):
+    # Reshape the array into a suitable shape for averaging
+    reshaped_arr = target.reshape((target.shape[0] // 2, 2, target.shape[1] // 2, 2))
+    # Calculate the mean along the specified axes
+    mean_arr = reshaped_arr.mean(axis=(1, 3))
+    return mean_arr
 
 def hashfunc(o: object) -> int:
     return o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__()
@@ -368,29 +386,16 @@ class Core():
 
         # ====== Add road to Minecraft ======
 
-        ## Fix the road height
-
-        for edge in self._roadNetwork.edges:
-            lastY = None
-            for node in edge:
-                if node in sureRoadHeights:
-                    lastY = sureRoadHeights[node]
-                    continue
-                if lastY is None:
-                    break
-                area = Rect(node.val, (UNIT, UNIT))
-                y = round(self.getHeightMap("mean", area))
-                delta = y - lastY
-                if abs(delta) > 1:
-                    delta = delta // abs(delta)
-                    y = lastY + delta
-                else:
-                    break
-                sureRoadHeights[node] = y
-                lastY = y
+        """Elevate terrain"""
+        # Initial road height starts from mean height map with each element is one unit (not a block)
+        roadHeight = meanAggregate(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
+        # Set fixed height point
+        for n, y in sureRoadHeights.items():
+            roadHeight[n.val.x // UNIT, n.val.y // UNIT] = y
+        # Apply Gaussian filter
+        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=1, radius=3)
 
         ## Build the road
-
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
@@ -398,7 +403,7 @@ class Core():
             if node in sureRoadHeights:
                 y = sureRoadHeights[node]
             else:
-                y = round(self.getHeightMap("mean", area))
+                y = round(roadHeight[node.val.x // UNIT, node.val.y // UNIT])
 
             sureRoadHeights[node] = y
             pos = addY(node.val+globalOffset, y)
