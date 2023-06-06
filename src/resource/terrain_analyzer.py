@@ -39,7 +39,8 @@ artificialSet = {
     "glass",
     "smooth",
     "chiseled",
-    "cut"
+    "cut",
+    "farmland",
 }
 
 

@@ -54,6 +54,10 @@ class Pathfinder(object):
         """Whether the node is liquid"""
         return np.sum(self.core.liquidMap[n.val.x:n.val.x+UNIT, n.val.y:n.val.y+UNIT]) > 2
 
+    def isArtificial(self, n: RoadNode[ivec2]) -> bool:
+        """Whether the node is artificial"""
+        return np.sum(self.core.resourcesMap.artificial[n.val.x:n.val.x+UNIT, n.val.y:n.val.y+UNIT]) > 0
+
     def neighbors(self, n: RoadNode[ivec2]):
         """Neighbors of a node"""
         yield from self.mainNeighbors(n)
@@ -73,7 +77,7 @@ class Pathfinder(object):
             if abs(self.height(neighbor) - self.height(n)) > 1:
                 continue
 
-            if self.isBuilding(neighbor):
+            if self.isBuilding(neighbor) or self.isArtificial(neighbor):
                 continue
 
             yield neighbor
