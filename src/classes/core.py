@@ -295,7 +295,7 @@ class Core():
                 used = self.emptyAreaPrefix[lh][lw] - top - left + leftTop
                 if used == 0:
                     result.append(Rect((i * UNIT, j * UNIT),
-                                  (height * UNIT, height * UNIT)))
+                                  (height * UNIT, width * UNIT)))
 
         return result
 
