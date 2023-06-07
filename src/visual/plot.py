@@ -10,7 +10,8 @@ def plotContour(heights: np.ndarray, spacing=8):
     cset = plt.contour(Y, levels=levels, linewidths=1, cmap=cm.Dark2)
     plt.colorbar(im)
     plt.clabel(cset, inline=True, fmt='%d', fontsize=10)
-    plt.show()
+    # plt.show()
+    plt.savefig("blueprint.png")
 
 
 if __name__ == "__main__":
