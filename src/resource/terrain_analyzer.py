@@ -140,7 +140,8 @@ class ResourceMap():
                 self.ironOre[pos.x, pos.y] += 1
             elif blockName in grassSet:
                 self.grass[pos.x, pos.y] += 1
-            elif isArtificial(blockName):
+
+            if isArtificial(blockName):
                 self.artificial[pos.x, pos.y] += 1
 
         for pos in self.area.inner:
@@ -149,7 +150,7 @@ class ResourceMap():
 
             blockName = worldSlice.getBlock(addY(pos, y)).id
             if blockName is None:
-                break
+                continue
 
             addBlock(blockName, pos)
 
