@@ -123,6 +123,11 @@ if __name__ == '__main__':
 
     print(f"Time: {time() - startTime}")
 
+    plotBlueprint(core)
+
+    input("Press Enter to continue...")
+
+    startTime = time()
     print("Start building in minecraft")
 
     core.startBuildingInMinecraft()
@@ -131,4 +136,3 @@ if __name__ == '__main__':
 
     print(f"Time: {time() - startTime}")
 
-    plotBlueprint(core)
