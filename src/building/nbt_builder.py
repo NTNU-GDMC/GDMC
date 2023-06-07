@@ -47,30 +47,28 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
         yield pos + offset, block
 
 
-def buildFromNBT(editor: Editor, struct: nbt.NBTFile, offset: ivec3, material: str = "oak", keep=False):
+def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalCoordinate: ivec3, material: str = "oak", keep=False):
     if editor.worldSlice is None:
         raise Exception("Error while building structure: worldSlice is None")
 
     option = "keep" if keep else "replace"
+    size = getStructureSizeNBT(struct)
+    bound = Box(globalCoordinate, size)
 
     if not keep:
-        size = getStructureSizeNBT(struct)
-        bound = Box(offset, size)
         begin = bound.begin
         last = bound.last
         clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
         editor.runCommand(clearCmd, syncWithBuffer=True)
 
-    rect = Rect(dropY(offset), dropY(size))
+    # Fill basement
+    rect = bound.toRect()
     worldSlice = editor.worldSlice
     height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     for x, z in rect.inner:
-        floory = height[x - offset.x, z - offset.z]
-        for y in range(floory, offset.y):
-            cmd = f"setblock {x} {y} {z} minecraft:cobblestone replace"
-            editor.runCommand(cmd, syncWithBuffer=True)
-
-    for pos, block in NBT2Blocks(struct, offset):
+        floory = height[x - editor.getBuildArea().offset.x, z - editor.getBuildArea().offset.z]
+        editor.runCommand(f"fill {x} {floory} {z} {x} {globalCoordinate.y} {z} minecraft:cobblestone replace", syncWithBuffer=True)
+    for pos, block in NBT2Blocks(struct, globalCoordinate):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
             blkString = changeBlock(material, block.id)
