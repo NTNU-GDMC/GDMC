@@ -43,7 +43,11 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
     for blk in struct["blocks"]:
         pos = ivec3(*map(lambda p: int(p.value), blk["pos"]))
         stateTag = palatte[blk["state"].value]
-        block = Block.fromBlockStateTag(stateTag)
+        if 'nbt' in blk:
+            nbt = blk["nbt"]
+        else:
+            nbt = None
+        block = Block.fromBlockStateTag(stateTag, nbt)
         yield pos + offset, block
 
 
@@ -72,9 +76,7 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalCoordinate: ivec3, m
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
             blkString = changeBlock(material, block.id)
-            state = copy.deepcopy(block.states)
-            data = copy.deepcopy(block.data)
-            block = Block(blkString, state, data)
+            block = Block(blkString, block.states, block.data)
 
         cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
 
