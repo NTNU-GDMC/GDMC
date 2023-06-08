@@ -103,7 +103,7 @@ class Config:
 
     analyzeBorder: int = 2
 
-    flatnessThreshold: float = 0.4
+    flatnessThreshold: float = 0.8
 
     desertnessThreshold: float = 0.4
 

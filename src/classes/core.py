@@ -21,17 +21,11 @@ from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 from ..poisson_disk_sampling import poissonDiskSample
 from ..road.road_network import RoadNode
+from ..visual.plot import plotContour
 
 UNIT = config.unit
 ROAD = -1
 ROAD_RESERVE = -2
-
-
-def saturateRect(target: Rect, bound: Rect):
-    target.begin = ivec2(max(bound.begin.x, min(target.begin.x, bound.end.x)),
-                         max(bound.begin.y, min(target.begin.y, bound.end.y)))
-    target.end = ivec2(max(bound.begin.x, min(target.end.x, bound.end.x)),
-                         max(bound.begin.y, min(target.end.y, bound.end.y)))
 
 
 def meanAggregate(target: np.array):
@@ -385,43 +379,63 @@ class Core():
         self.editor.flushBuffer()
 
         # ====== Add road to Minecraft ======
-        """Elevate terrain"""
-        # Initial road height starts from mean height map with each element is one unit (not a block)
-        roadHeight = meanAggregate(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
-        # Set fixed height point
-        for n, y in sureRoadHeights.items():
-            opArea = Rect(n.val//UNIT - ivec2(1, 1), (2, 2))
-            roadHeight[opArea.begin.x:opArea.end.x, opArea.begin.y:opArea.end.y] = y
-        # Apply Gaussian filter
-        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=1, radius=3)
+        """Road height signal process"""
+        nodeSet = set(self.roadNetwork.subnodes)
+        height = self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+        roadHeight = np.copy(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
+        roadHeight = scipy.ndimage.median_filter(roadHeight, size=3)
+
+        for edge in self._roadNetwork.edges:
+            lastY = None
+            for node in edge:
+                if node in sureRoadHeights:
+                    lastY = sureRoadHeights[node]
+                    continue
+                if lastY is None:
+                    break
+                area = Rect(node.val, (UNIT, UNIT))
+                y = np.mean(height[area.begin.x:area.end.x, area.begin.y:area.end.y])
+                delta = y - lastY
+                if abs(delta) > 1:
+                    delta = delta // abs(delta)
+                    y = lastY + delta
+                else:
+                    break
+                sureRoadHeights[node] = y
+                lastY = y
+        for edge in self._roadNetwork.edges:
+            for node in edge:
+                roadHeight[node.val.x, node.val.y] = sureRoadHeights.get(node, height[node.val.x, node.val.y])
+        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=1, radius=1)
+
+        # Remove high frequency signal
+        # roadFreq = np.fft.fft2(roadHeight)
+        # roadFShift = np.fft.fftshift(roadFreq)
+        # rows = np.size(roadHeight, 0)  # taking the size of the image
+        # cols = np.size(roadHeight, 1)
+        # crow, ccol = rows // 2, cols // 2
+        # roadFShift_orig = np.copy(roadFShift)
+        # roadFShift[crow - 7:crow + 7, ccol - 7:ccol + 7] = 0
+        # f_ishift = np.fft.ifftshift(roadFShift_orig - roadFShift)
+        # roadHeight = np.round(np.real(np.fft.ifft2(f_ishift)))  ## shift for centering 0.0 (x,y)
+        plotContour(roadHeight)
 
         ## Build the road
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
             area = Rect(node.val, (UNIT, UNIT))
-
-            if node in sureRoadHeights:
-                y = sureRoadHeights[node]
-            else:
-                y = round(roadHeight[node.val.x // UNIT, node.val.y // UNIT])
-
-            sureRoadHeights[node] = y
-            pos = addY(node.val+globalOffset, y)
-
-            clearBox = area.toBox(y, 2)
-            for x, y, z in clearBox.inner:
-                block = self.worldSlice.getBlock((x, y, z))
-                if block.id != "minecraft:air":
-                    begin, last = clearBox.begin + \
-                        addY(globalOffset, 0), clearBox.last + \
-                        addY(globalOffset, 0)
-                    self.editor.runCommand(
-                        f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
-                    break
-
-            self.editor.runCommand(
-                f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
-
+            for pos in area.inner:
+                x, z = pos
+                # if node in sureRoadHeights:
+                #     y = sureRoadHeights[node]
+                # else:
+                y = roadHeight[x, z]
+                y = int(y)
+                sureRoadHeights[node] = y
+                h = height[x, z]
+                offx, offz = (pos + globalOffset).to_tuple()
+                self.editor.runCommand(f"fill {offx} {y} {offz} {offx} {h} {offz} minecraft:air replace", syncWithBuffer=True)
+                self.editor.runCommand(f"setblock {offx} {y-1} {offz} {config.roadMaterial} replace", syncWithBuffer=True)
         self.editor.flushBuffer()
 
         # ====== Add light to Minecraft ======
