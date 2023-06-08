@@ -48,98 +48,115 @@ from src.level.level_manager import LevelManager
 from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 from src.config.config import config
-
+from gdpc import Editor
+from gdpc.vector_tools import Box
+import random
 if __name__ == '__main__':
-    startTime = time()
+    sx:int = 0
+    sz:int = 0
+    ex:int = 0
+    ez:int = 0
+    while(1):
+        ranNum = random.choice([100,200,300,400,500,600])
+        print("sx", sx)
+        print("sz", sz)
+        print("ex", ranNum+sx-1)
+        print("ez", ranNum+sz-1)
+        editor = Editor(buffering=config.buffering,
+                        bufferLimit=config.bufferLimit,
+                        caching=config.caching, host=config.host)
+        editor.setBuildArea(Box((sx, 0, sz), (ranNum-1, 255, ranNum-1)))
+        startTime = time()
 
-    ROUND = config.gameRound
-    NUM_BASIC_AGENTS = config.numBasicAgents
-    NUM_SPECIAL_AGENTS = config.numSpecialAgents
+        ROUND = config.gameRound
+        NUM_BASIC_AGENTS = config.numBasicAgents
+        NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
-    print("Initing core...")
-    core = Core()
-    print("Done initing core")
+        print("Initing core...")
+        core = Core()
+        print("Done initing core")
 
-    levelManager = LevelManager()
-    agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
-    RoadAgent(core)
+        levelManager = LevelManager()
+        agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
+        RoadAgent(core)
 
-    for agent in agentPool.agents:
-        print(agent)
+        for agent in agentPool.agents:
+            print(agent)
 
-    # iterate rounds
-    for i in range(ROUND):
-        numbersOfBuildings = [
-            core.numberOfBuildings(level) for level in (1, 2, 3)
-        ]
-        limitsOfBuildings = [
-            core.getBuildingLimit(level) for level in (1, 2, 3)
-        ]
+        # iterate rounds
+        for i in range(ROUND):
+            numbersOfBuildings = [
+                core.numberOfBuildings(level) for level in (1, 2, 3)
+            ]
+            limitsOfBuildings = [
+                core.getBuildingLimit(level) for level in (1, 2, 3)
+            ]
 
-        print(f"Round: {i}")
-        print(f"Level: {core.level}")
-        print(f"Buildings: {numbersOfBuildings}")
-        print(f"Max Buildings:  {limitsOfBuildings}")
-        print(f"Resources: {core.resources}")
+            print(f"Round: {i}")
+            print(f"Level: {core.level}")
+            print(f"Buildings: {numbersOfBuildings}")
+            print(f"Max Buildings:  {limitsOfBuildings}")
+            print(f"Resources: {core.resources}")
 
-        core.updateResource()
+            core.updateResource()
 
-        unlockedAgents = getUnlockAgents(core.level)
-        print("Unlocked agents: ", unlockedAgents)
+            unlockedAgents = getUnlockAgents(core.level)
+            print("Unlocked agents: ", unlockedAgents)
 
-        for unlockedAgent in unlockedAgents:
-            agentPool.unlockSpecial(unlockedAgent)
+            for unlockedAgent in unlockedAgents:
+                agentPool.unlockSpecial(unlockedAgent)
 
-        print("Start running agents")
+            print("Start running agents")
 
-        restingAgents = 0
+            restingAgents = 0
 
-        agents = list(agentPool.agents)
-        for agent in sample(agents, len(agents)):
-            # run agent
-            success = agent.run()
+            agents = list(agentPool.agents)
+            for agent in sample(agents, len(agents)):
+                # run agent
+                success = agent.run()
 
-            if not success:
-                # gather resource if the agent cannot do their job
-                restingAgents += 1
-                agent.rest()
+                if not success:
+                    # gather resource if the agent cannot do their job
+                    restingAgents += 1
+                    agent.rest()
 
-        core.increaseGrass()
+            core.increaseGrass()
 
-        print(f"Resting agents: {restingAgents}")
+            print(f"Resting agents: {restingAgents}")
 
-        if levelManager.canLevelUp(core.level, core.resources,
-                                   core.numberOfBuildings()):
-            core.levelUp()
+            if levelManager.canLevelUp(core.level, core.resources,
+                                    core.numberOfBuildings()):
+                core.levelUp()
 
-        # clamp resource to limit
-        core.conformToResourceLimit()
+            # clamp resource to limit
+            core.conformToResourceLimit()
 
-        print("Round Done")
-        print("=====")
+            print("Round Done")
+            print("=====")
 
-        # Time limiter
-        if time() - startTime > 465:
-            print("Round had run over 7min 30sec. Force enter minecraft building phase.")
-            break
-    current_time = datetime.datetime.now()
-    time_stamp = current_time.timestamp()
-    date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
-    generate_blueprint_time = time() - startTime
-    with open(f"log/{date_time}", "a") as f:
-        f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
-        f.write("round: " + str(i) + "\n")
-        f.write("level: " + str(core.level) + "\n")
-        f.write("Generate Blueprint Time: " + str(generate_blueprint_time) + "\n")
-        
-    print("Start building in minecraft")
+            # Time limiter
+            if time() - startTime > 465:
+                print("Round had run over 7min 30sec. Force enter minecraft building phase.")
+                break
+        current_time = datetime.datetime.now()
+        time_stamp = current_time.timestamp()
+        date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
+        generate_blueprint_time = time() - startTime
+        with open(f"log/{date_time}", "a") as f:
+            f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
+            f.write("round: " + str(i) + "\n")
+            f.write("level: " + str(core.level) + "\n")
+            f.write("Generate Blueprint Time: " + str(generate_blueprint_time) + "\n")
+            
+        # print("Start building in minecraft")
 
-    core.startBuildingInMinecraft()
+        # core.startBuildingInMinecraft()
 
-    print("Done building in minecraft")
+        # print("Done building in minecraft")
 
-    print(f"Time: {time() - startTime}")
-    with open(f"log/{date_time}", "a") as f:
-        f.write("Building Time: " + str(time() - startTime - generate_blueprint_time) + "\n")
-        f.write("Total Time: " + str(time() - startTime) + "\n")
-    plotBlueprint(core)
+        # print(f"Time: {time() - startTime}")
+        # with open(f"log/{date_time}", "a") as f:
+            # f.write("Building Time: " + str(time() - startTime - generate_blueprint_time) + "\n")
+            # f.write("Total Time: " + str(time() - startTime) + "\n")
+        sx, sz = core.buildArea.toRect().end
+    # plotBlueprint(core)
