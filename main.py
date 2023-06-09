@@ -50,12 +50,16 @@ from src.visual.blueprint import plotBlueprint
 from src.config.config import config
 from gdpc import Editor
 from gdpc.vector_tools import Box
+from pathlib import Path
 import random
 if __name__ == '__main__':
     sx:int = 0
     sz:int = 0
     ex:int = 0
     ez:int = 0
+    logPath = Path("./log/")
+    if not logPath.exists():
+        logPath.mkdir(parents=True)
     while(1):
         ranNum = random.choice([100,200,300,400,500,600])
         print("sx", sx)
@@ -142,7 +146,7 @@ if __name__ == '__main__':
         time_stamp = current_time.timestamp()
         date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
         generate_blueprint_time = time() - startTime
-        with open(f"log/{date_time}", "a") as f:
+        with (logPath/date_time).open("a") as f:
             f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
             f.write("round: " + str(i) + "\n")
             f.write("level: " + str(core.level) + "\n")
