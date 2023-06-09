@@ -19,14 +19,13 @@ from ..resource.biome_substitute import getChangeMaterial
 from ..resource.analyze_biome import BiomeMap
 from ..poisson_disk_sampling import poissonDiskSample
 from ..road.road_network import RoadNode
-from ..visual.plot import plotContour
 
 UNIT = config.unit
 ROAD = -1
 ROAD_RESERVE = -2
 
 
-def meanAggregate(target: np.array):
+def meanAggregate(target: np.array) -> np.array:
     # Reshape the array into a suitable shape for averaging
     reshaped_arr = target.reshape((target.shape[0] // 2, 2, target.shape[1] // 2, 2))
     # Calculate the mean along the specified axes
@@ -38,6 +37,13 @@ def percentileCompression(a: np.ndarray, lowPercentile: float, highPercentile: f
     lparr = scipy.ndimage.percentile_filter(a, lowPercentile, size=size)
     hparr = scipy.ndimage.percentile_filter(a, highPercentile, size=size)
     np.clip(a, lparr, hparr)
+
+
+def sharpen(arr: np.ndarray, sigma: float, radius: int, threshold: float):
+    blurred = scipy.ndimage.gaussian_filter(arr, sigma, radius=radius)
+    diff = arr - blurred
+    condition = np.greater_equal(np.abs(diff), threshold)
+    return blurred + np.where(condition, diff, 0)
 
 
 def hashfunc(o: object) -> int:
@@ -62,6 +68,7 @@ class Core():
         print("World slice loaded")
 
         heights = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
+
 
         # get top left and bottom right coordnidate
         x, _, z = buildArea.size
@@ -98,6 +105,7 @@ class Core():
         self.upgradeSubject = Subject[UpgradeEvent]()
 
         self.emptyAreaPrefix = np.zeros_like(self.blueprint)
+        self.roadHeight = self.roadHeightCalc(heights)
 
     @property
     def buildArea(self):
@@ -354,6 +362,16 @@ class Core():
         self.resources.iron = min(
             self.resourceLimit.iron, self._resources.iron)
 
+
+    def roadHeightCalc(self, height: np.ndarray):
+        roadHeight = np.copy(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
+        roadHeight = meanAggregate(roadHeight)
+        roadHeight = scipy.ndimage.median_filter(roadHeight, size=4)
+        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, 1)
+        roadHeight = sharpen(roadHeight, 2, 1, 4)
+        return np.round(roadHeight)
+
+
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
 
@@ -384,70 +402,46 @@ class Core():
         self.editor.flushBuffer()
 
         # ====== Add road to Minecraft ======
-        """Road height signal process"""
-        nodeSet = set(self.roadNetwork.subnodes)
+        """Road height enforcement"""
         height = self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
-        roadHeight = np.copy(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
-        roadHeight = scipy.ndimage.median_filter(roadHeight, size=3)
-        bluredRoad = scipy.ndimage.gaussian_filter(roadHeight, 5, radius=2)
-        filterBlurredRoad = scipy.ndimage.gaussian_filter(bluredRoad, 1, radius=2)
-        roadHeight = roadHeight + (bluredRoad - filterBlurredRoad)
-
+        backupHeight = np.copy(self.roadHeight)
+        # Force set road height in front of building entry
+        for node in set(self.roadNetwork.subnodes):
+            backupHeight[node.val.x // UNIT, node.val.y // UNIT] = sureRoadHeights.get(node, backupHeight[node.val.x // UNIT, node.val.y // UNIT])
+        backupHeightConvKern = np.array([
+            [0, 1, 0],
+            [1, 5, 1],
+            [0, 1, 0],
+        ]) / 9
+        processedBackupHeight = scipy.ndimage.convolve(backupHeight, backupHeightConvKern)
+        diffBackupHeight = backupHeight - processedBackupHeight
+        condition = np.greater_equal(np.abs(diffBackupHeight), 1.3)
+        backupHeight += np.where(condition, diffBackupHeight, 0)
         for edge in self._roadNetwork.edges:
             lastY = None
             for node in edge:
                 if node in sureRoadHeights:
-                    lastY = sureRoadHeights[node]
+                    lastY = self.roadHeight[node.val.x // UNIT, node.val.y // UNIT]
                     continue
                 if lastY is None:
                     break
-                area = Rect(node.val, (UNIT, UNIT))
-                y = np.mean(height[area.begin.x:area.end.x, area.begin.y:area.end.y])
+                y = int(round(self.roadHeight[node.val.x // UNIT, node.val.y // UNIT]))
                 delta = y - lastY
-                if abs(delta) > 1:
-                    delta = delta // abs(delta)  # sign(delta)
-                    y = lastY + delta
-                else:
+                if abs(delta) <= 1:
                     break
+                y = int(round(backupHeight[node.val.x // UNIT, node.val.y // UNIT]))
                 lastY = y
-        for edge in self._roadNetwork.edges:
-            for node in edge:
-                roadHeight[node.val.x, node.val.y] = sureRoadHeights.get(node, height[node.val.x, node.val.y])
-        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=2, radius=1)
-
-        for edge in self._roadNetwork.edges:
-            lastY = None
-            for node in edge:
-                if node in sureRoadHeights:
-                    lastY = sureRoadHeights[node]
-                    continue
-                if lastY is None:
-                    break
-                area = Rect(node.val, (UNIT, UNIT))
-                y = round(float(np.mean(height[area.begin.x:area.end.x, area.begin.y:area.end.y])))
-                delta = y - lastY
-                if abs(delta) > 1:
-                    delta = delta // abs(delta)
-                    y = lastY + delta
-                else:
-                    break
-                lastY = y
-                roadHeight[area.begin.x:area.end.x, area.begin.y:area.end.y] = y
-                print(f"{area.begin} {area.end} = {y}")
-        plotContour(roadHeight)
+                self.roadHeight[node.val.x // UNIT, node.val.y // UNIT] = y
 
         ## Build the road
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:
-            area = Rect(node.val, (UNIT, UNIT))
-            for pos in area.inner:
-                x, z = pos
-                y = roadHeight[x, z]
-                y = int(y)
-                sureRoadHeights[node] = y
-                offx, offz = (pos + globalOffset).to_tuple()
-                self.editor.runCommand(f"fill {offx} {y} {offz} {offx} {y+4} {offz} minecraft:air replace", syncWithBuffer=True)
-                self.editor.runCommand(f"setblock {offx} {y-1} {offz} {config.roadMaterial} replace", syncWithBuffer=True)
+            y = int(round(self.roadHeight[node.val.x // UNIT, node.val.y // UNIT]))
+            sureRoadHeights[node] = y
+            offx, offz = node.val + globalOffset
+            self.editor.runCommand(f"fill {offx} {y} {offz} {offx + UNIT - 1} {max(y+4, height[node.val.x, node.val.y])} {offz + UNIT - 1} minecraft:air replace", syncWithBuffer=True)
+            self.editor.runCommand(f"fill {offx} {y-1} {offz} {offx + UNIT - 1} {y-1} {offz + UNIT - 1} {config.roadMaterial} replace", syncWithBuffer=True)
+            print(f"fill {offx} {y-1} {offz} {offx + UNIT - 1} {y-1} {offz + UNIT - 1} {config.roadMaterial} replace")
         self.editor.flushBuffer()
 
         # ====== Add light to Minecraft ======
@@ -484,7 +478,7 @@ class Core():
 
         for pos in lightPositions:
             node = self.roadNetwork.newNode(pos)
-            y = sureRoadHeights[node]
+            y = self.roadHeight[node.val.x // UNIT, node.val.y // UNIT]
             neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:

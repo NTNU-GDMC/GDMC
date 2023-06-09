@@ -40,7 +40,7 @@ class Pathfinder(object):
 
     def height(self, n: RoadNode[ivec2]):
         """Height of a node"""
-        return round(self._core.getHeightMap("mean", Rect(n.val, (UNIT, UNIT))))
+        return round(float(self.core.roadHeight[n.val.x // UNIT, n.val.y // UNIT]))
 
     def tooFar(self, n: RoadNode[ivec2]) -> bool:
         """Whether the node is too far from the begin and end nodes"""
