@@ -1,5 +1,3 @@
-import copy
-import math
 from random import choice, shuffle
 
 import scipy
@@ -9,7 +7,7 @@ from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
 from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, ivec3, neighbors2D
-from typing import Literal, Any, Callable
+from typing import Literal, Any
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
 from ..building.building import Building
@@ -34,6 +32,13 @@ def meanAggregate(target: np.array):
     # Calculate the mean along the specified axes
     mean_arr = reshaped_arr.mean(axis=(1, 3))
     return mean_arr
+
+
+def percentileCompression(a: np.ndarray, lowPercentile: float, highPercentile: float, size: int):
+    lparr = scipy.ndimage.percentile_filter(a, lowPercentile, size=size)
+    hparr = scipy.ndimage.percentile_filter(a, highPercentile, size=size)
+    np.clip(a, lparr, hparr)
+
 
 def hashfunc(o: object) -> int:
     return o.to_tuple().__hash__() if isinstance(o, ivec2) else o.__hash__()
@@ -384,6 +389,9 @@ class Core():
         height = self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
         roadHeight = np.copy(self.editor.worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"])
         roadHeight = scipy.ndimage.median_filter(roadHeight, size=3)
+        bluredRoad = scipy.ndimage.gaussian_filter(roadHeight, 5, radius=2)
+        filterBlurredRoad = scipy.ndimage.gaussian_filter(bluredRoad, 1, radius=2)
+        roadHeight = roadHeight + (bluredRoad - filterBlurredRoad)
 
         for edge in self._roadNetwork.edges:
             lastY = None
@@ -397,27 +405,35 @@ class Core():
                 y = np.mean(height[area.begin.x:area.end.x, area.begin.y:area.end.y])
                 delta = y - lastY
                 if abs(delta) > 1:
-                    delta = delta // abs(delta)
+                    delta = delta // abs(delta)  # sign(delta)
                     y = lastY + delta
                 else:
                     break
-                sureRoadHeights[node] = y
                 lastY = y
         for edge in self._roadNetwork.edges:
             for node in edge:
                 roadHeight[node.val.x, node.val.y] = sureRoadHeights.get(node, height[node.val.x, node.val.y])
-        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=1, radius=1)
+        roadHeight = scipy.ndimage.gaussian_filter(roadHeight, sigma=2, radius=1)
 
-        # Remove high frequency signal
-        # roadFreq = np.fft.fft2(roadHeight)
-        # roadFShift = np.fft.fftshift(roadFreq)
-        # rows = np.size(roadHeight, 0)  # taking the size of the image
-        # cols = np.size(roadHeight, 1)
-        # crow, ccol = rows // 2, cols // 2
-        # roadFShift_orig = np.copy(roadFShift)
-        # roadFShift[crow - 7:crow + 7, ccol - 7:ccol + 7] = 0
-        # f_ishift = np.fft.ifftshift(roadFShift_orig - roadFShift)
-        # roadHeight = np.round(np.real(np.fft.ifft2(f_ishift)))  ## shift for centering 0.0 (x,y)
+        for edge in self._roadNetwork.edges:
+            lastY = None
+            for node in edge:
+                if node in sureRoadHeights:
+                    lastY = sureRoadHeights[node]
+                    continue
+                if lastY is None:
+                    break
+                area = Rect(node.val, (UNIT, UNIT))
+                y = round(float(np.mean(height[area.begin.x:area.end.x, area.begin.y:area.end.y])))
+                delta = y - lastY
+                if abs(delta) > 1:
+                    delta = delta // abs(delta)
+                    y = lastY + delta
+                else:
+                    break
+                lastY = y
+                roadHeight[area.begin.x:area.end.x, area.begin.y:area.end.y] = y
+                print(f"{area.begin} {area.end} = {y}")
         plotContour(roadHeight)
 
         ## Build the road
@@ -426,15 +442,11 @@ class Core():
             area = Rect(node.val, (UNIT, UNIT))
             for pos in area.inner:
                 x, z = pos
-                # if node in sureRoadHeights:
-                #     y = sureRoadHeights[node]
-                # else:
                 y = roadHeight[x, z]
                 y = int(y)
                 sureRoadHeights[node] = y
-                h = height[x, z]
                 offx, offz = (pos + globalOffset).to_tuple()
-                self.editor.runCommand(f"fill {offx} {y} {offz} {offx} {h} {offz} minecraft:air replace", syncWithBuffer=True)
+                self.editor.runCommand(f"fill {offx} {y} {offz} {offx} {y+4} {offz} minecraft:air replace", syncWithBuffer=True)
                 self.editor.runCommand(f"setblock {offx} {y-1} {offz} {config.roadMaterial} replace", syncWithBuffer=True)
         self.editor.flushBuffer()
 
