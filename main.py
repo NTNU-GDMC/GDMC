@@ -53,15 +53,15 @@ from gdpc.vector_tools import Box
 from pathlib import Path
 import random
 if __name__ == '__main__':
-    sx:int = 0
-    sz:int = 0
-    ex:int = 0
-    ez:int = 0
+    sx: int = 0
+    sz: int = 0
+    ex: int = 0
+    ez: int = 0
     logPath = Path("./log/")
     if not logPath.exists():
         logPath.mkdir(parents=True)
-    while(1):
-        ranNum = random.choice([100,200,300,400,500,600])
+    while True:
+        ranNum = random.choice([100, 200, 300, 400, 500, 600])
         print("sx", sx)
         print("sz", sz)
         print("ex", ranNum+sx-1)
@@ -129,7 +129,7 @@ if __name__ == '__main__':
             print(f"Resting agents: {restingAgents}")
 
             if levelManager.canLevelUp(core.level, core.resources,
-                                    core.numberOfBuildings()):
+                                       core.numberOfBuildings()):
                 core.levelUp()
 
             # clamp resource to limit
@@ -140,18 +140,21 @@ if __name__ == '__main__':
 
             # Time limiter
             if time() - startTime > 465:
-                print("Round had run over 7min 30sec. Force enter minecraft building phase.")
+                print(
+                    "Round had run over 7min 30sec. Force enter minecraft building phase.")
                 break
         current_time = datetime.datetime.now()
         time_stamp = current_time.timestamp()
-        date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
+        date_time: str = str(datetime.datetime.fromtimestamp(time_stamp))
         generate_blueprint_time = time() - startTime
         with (logPath/date_time).open("a") as f:
-            f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
+            f.write("buildArea: " + str(core.buildArea.toRect().size.x) +
+                    " " + str(core.buildArea.toRect().size.y) + "\n")
             f.write("round: " + str(i) + "\n")
             f.write("level: " + str(core.level) + "\n")
-            f.write("Generate Blueprint Time: " + str(generate_blueprint_time) + "\n")
-            
+            f.write("Generate Blueprint Time: " +
+                    str(generate_blueprint_time) + "\n")
+
         # print("Start building in minecraft")
 
         # core.startBuildingInMinecraft()
