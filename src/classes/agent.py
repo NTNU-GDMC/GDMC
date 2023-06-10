@@ -14,6 +14,7 @@ from ..road.pathfind import pathfind
 
 UNIT = config.unit
 SAMPLE_RATE = config.sampleRate
+MAX_SAMPLE_TIMES = config.maxSampleTimes
 NO_SUITABLE_LOCATION_PENALTY = config.noSuitableLocationPenalty
 
 
@@ -95,13 +96,18 @@ class BuildAgent(RunableAgent):
         timeStart = time.time()
 
         possibleLocations = sample(possibleLocations, numPossibleLocations)
-        nextCheckIndex = ceil(numPossibleLocations * SAMPLE_RATE)
+
+        def getNextCheckIndex(lastIndex: int = 0):
+            sampleTimes = ceil((numPossibleLocations-lastIndex) * SAMPLE_RATE)
+            return lastIndex + min(sampleTimes, MAX_SAMPLE_TIMES)
+
+        nextCheckIndex = getNextCheckIndex()
         for i in range(numPossibleLocations):
             if i == nextCheckIndex:
                 print(f"{i}/{numPossibleLocations} locations analyzed")
                 if bestLocation is not None:
                     break
-                nextCheckIndex += ceil((numPossibleLocations-i) * SAMPLE_RATE)
+                nextCheckIndex = getNextCheckIndex(i)
 
             location = possibleLocations[i]
 
