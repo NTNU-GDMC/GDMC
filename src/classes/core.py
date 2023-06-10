@@ -266,7 +266,7 @@ class Core():
             for j in range(1, w):
                 prefix[i][j] = prefix[i - 1][j] + prefix[i][j - 1] - \
                     prefix[i - 1][j - 1] + isEmpty(self.blueprint[i][j])
-        
+
         self.emptyAreaPrefix = prefix
         pass
 
@@ -276,7 +276,7 @@ class Core():
         width = ceil(width / UNIT)
         blueprintHeight, blueprintWidth = self.emptyAreaPrefix.shape[:2]
 
-        result : list[Rect] = []
+        result: list[Rect] = []
 
         for i in range(blueprintHeight - height):
             for j in range(blueprintWidth - width):
@@ -295,7 +295,7 @@ class Core():
                 used = self.emptyAreaPrefix[lh][lw] - top - left + leftTop
                 if used == 0:
                     result.append(Rect((i * UNIT, j * UNIT),
-                                  (height * UNIT, height * UNIT)))
+                                  (height * UNIT, width * UNIT)))
 
         return result
 
@@ -356,8 +356,8 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print(f"Build at {pos + globalOffset} with height {y}")
-            buildFromNBT(self._editor, structure.nbtFile,
-                         addY(pos + globalOffset, y) + structure.offsets, building.material)
+            buildFromNBT(self._editor, structure.nbtFile, addY(globalOffset),
+                         addY(pos, y) + structure.offsets, building.material)
 
             if building.entryPos is not None:
                 x, z = building.entryPos
@@ -368,7 +368,7 @@ class Core():
 
         # ====== Add road to Minecraft ======
 
-        ## Fix the road height
+        # Fix the road height
 
         for edge in self._roadNetwork.edges:
             lastY = None
@@ -389,7 +389,7 @@ class Core():
                 sureRoadHeights[node] = y
                 lastY = y
 
-        ## Build the road
+        # Build the road
 
         roadNodes = set(self._roadNetwork.subnodes)
         for node in roadNodes:

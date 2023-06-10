@@ -43,13 +43,19 @@ def NBT2Blocks(struct: nbt.NBTFile, offset: ivec3 = ivec3(0, 0, 0)):
     for blk in struct["blocks"]:
         pos = ivec3(*map(lambda p: int(p.value), blk["pos"]))
         stateTag = palatte[blk["state"].value]
-        block = Block.fromBlockStateTag(stateTag)
+        if 'nbt' in blk:
+            nbt = blk["nbt"]
+        else:
+            nbt = None
+        block = Block.fromBlockStateTag(stateTag, nbt)
         yield pos + offset, block
 
 
-def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalCoordinate: ivec3, material: str = "oak", keep=False):
+def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalOffset: ivec3, localOffset: ivec3, material: str = "oak", keep=False):
     if editor.worldSlice is None:
         raise Exception("Error while building structure: worldSlice is None")
+
+    globalCoordinate = globalOffset + localOffset
 
     option = "keep" if keep else "replace"
     size = getStructureSizeNBT(struct)
@@ -66,15 +72,13 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalCoordinate: ivec3, m
     worldSlice = editor.worldSlice
     height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     for x, z in rect.inner:
-        floory = height[x - editor.getBuildArea().offset.x, z - editor.getBuildArea().offset.z]
+        floory = height[x - globalOffset.x, z - globalOffset.z]
         editor.runCommand(f"fill {x} {floory} {z} {x} {globalCoordinate.y} {z} minecraft:cobblestone replace", syncWithBuffer=True)
     for pos, block in NBT2Blocks(struct, globalCoordinate):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
             blkString = changeBlock(material, block.id)
-            state = copy.deepcopy(block.states)
-            data = copy.deepcopy(block.data)
-            block = Block(blkString, state, data)
+            block = Block(blkString, block.states, block.data)
 
         cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
 
