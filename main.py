@@ -38,7 +38,6 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 
 # ! /usr/bin/python3
 from datetime import datetime
-import datetime
 from time import time
 from random import sample
 from src.classes.core import Core
@@ -48,6 +47,7 @@ from src.level.level_manager import LevelManager
 from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 from src.config.config import config
+from pathlib import Path
 
 if __name__ == '__main__':
     startTime = time()
@@ -55,6 +55,8 @@ if __name__ == '__main__':
     ROUND = config.gameRound
     NUM_BASIC_AGENTS = config.numBasicAgents
     NUM_SPECIAL_AGENTS = config.numSpecialAgents
+
+    LOG_PATH = Path("log")
 
     print("Initing core...")
     core = Core()
@@ -122,16 +124,21 @@ if __name__ == '__main__':
         if time() - startTime > 465:
             print("Round had run over 7min 30sec. Force enter minecraft building phase.")
             break
-    current_time = datetime.datetime.now()
+
+    current_time = datetime.now()
     time_stamp = current_time.timestamp()
-    date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
+    date_time: str = str(datetime.fromtimestamp(time_stamp))
+    log_path = LOG_PATH / date_time
+
     generate_blueprint_time = time() - startTime
-    with open(f"log/{date_time}", "a") as f:
-        f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
-        f.write("round: " + str(i) + "\n")
-        f.write("level: " + str(core.level) + "\n")
-        f.write("Generate Blueprint Time: " + str(generate_blueprint_time) + "\n")
-        
+    if not LOG_PATH.exists():
+        LOG_PATH.mkdir()
+    with log_path.open("a") as f:
+        f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
+                f"round: {i}\n"
+                f"level: {core.level}\n"
+                f"Generate Blueprint Time: {generate_blueprint_time}\n")
+
     print("Start building in minecraft")
 
     core.startBuildingInMinecraft()
@@ -139,7 +146,4 @@ if __name__ == '__main__':
     print("Done building in minecraft")
 
     print(f"Time: {time() - startTime}")
-    with open(f"log/{date_time}", "a") as f:
-        f.write("Building Time: " + str(time() - startTime - generate_blueprint_time) + "\n")
-        f.write("Total Time: " + str(time() - startTime) + "\n")
     plotBlueprint(core)
