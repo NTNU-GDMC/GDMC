@@ -96,7 +96,7 @@ class Config:
     sampleRate: float = 0.25
     """The sample rate of locations to analyze for agents"""
 
-    noSuitableLocationPenalty: int = 100
+    noSuitableLocationPenalty: int = 1000000
     """The penalty of no suitable location"""
 
     # ================ analyzer ================
