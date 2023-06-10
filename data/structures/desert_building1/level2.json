@@ -6,10 +6,10 @@
             "type": "mainEntry"
         }
     ],
-    "Size": [12, 7, 9],
+    "Size": [16, 12, 19],
     "Material": "sand",
     "Type": 1,
-    "Level": 1,
+    "Level": 2,
     "RequiredResource": {
         "human": 0,
         "wood": 0,
