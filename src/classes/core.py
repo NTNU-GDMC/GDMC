@@ -356,7 +356,7 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print(f"Build at {pos + globalOffset} with height {y}")
-            buildFromNBT(self._editor, structure.nbtFile, self.buildArea.offset,
+            buildFromNBT(self._editor, structure.nbtFile, addY(globalOffset),
                          addY(pos, y) + structure.offsets, building.material)
 
             if building.entryPos is not None:
