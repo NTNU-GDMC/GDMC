@@ -37,7 +37,7 @@ if __name__ == "__main__":
     ]
     color_discrete_sequences = [
         px.colors.qualitative.Prism,
-        px.colors.qualitative.Safe,
+        px.colors.qualitative.Vivid,
     ]
 
     for relation, color_discrete_sequence in zip(relations, color_discrete_sequences):
