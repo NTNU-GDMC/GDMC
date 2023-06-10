@@ -37,6 +37,8 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 """
 
 # ! /usr/bin/python3
+from datetime import datetime
+import datetime
 from time import time
 from random import sample
 from src.classes.core import Core
@@ -120,9 +122,16 @@ if __name__ == '__main__':
         if time() - startTime > 465:
             print("Round had run over 7min 45sec. Force enter minecraft building phase.")
             break
-
-    print(f"Time: {time() - startTime}")
-
+    current_time = datetime.datetime.now()
+    time_stamp = current_time.timestamp()
+    date_time:str = str(datetime.datetime.fromtimestamp(time_stamp))
+    generate_blueprint_time = time() - startTime
+    with open(f"log/{date_time}", "a") as f:
+        f.write("buildArea: " + str(core.buildArea.toRect().size.x) + " " + str(core.buildArea.toRect().size.y) + "\n")
+        f.write("round: " + str(i) + "\n")
+        f.write("level: " + str(core.level) + "\n")
+        f.write("Generate Blueprint Time: " + str(generate_blueprint_time) + "\n")
+        
     print("Start building in minecraft")
 
     core.startBuildingInMinecraft()
@@ -130,5 +139,7 @@ if __name__ == '__main__':
     print("Done building in minecraft")
 
     print(f"Time: {time() - startTime}")
-
+    with open(f"log/{date_time}", "a") as f:
+        f.write("Building Time: " + str(time() - startTime - generate_blueprint_time) + "\n")
+        f.write("Total Time: " + str(time() - startTime) + "\n")
     plotBlueprint(core)
