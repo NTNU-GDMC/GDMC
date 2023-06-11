@@ -151,3 +151,5 @@ if __name__ == '__main__':
     print("Done building in minecraft")
 
     print(f"Time: {time() - startTime}")
+
+    input("Press Enter to exit...")

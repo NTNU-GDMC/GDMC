@@ -36,4 +36,4 @@ def plotBlueprint(core: Core):
     ax.set_xlim(buildArea.begin.x, buildArea.end.x)
     ax.set_ylim(buildArea.begin.z, buildArea.end.z)
     ax.set_aspect("equal")
-    plt.show()
+    plt.show(block=False)
