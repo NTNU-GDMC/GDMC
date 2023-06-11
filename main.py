@@ -37,6 +37,7 @@ Use levelManager.getUnlockAgent(...), (return value type is str) (please see the
 """
 
 # ! /usr/bin/python3
+from datetime import datetime
 from time import time
 from random import sample
 from src.classes.core import Core
@@ -46,6 +47,7 @@ from src.level.level_manager import LevelManager
 from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 from src.config.config import config
+from pathlib import Path
 
 if __name__ == '__main__':
     startTime = time()
@@ -53,6 +55,8 @@ if __name__ == '__main__':
     ROUND = config.gameRound
     NUM_BASIC_AGENTS = config.numBasicAgents
     NUM_SPECIAL_AGENTS = config.numSpecialAgents
+
+    LOG_PATH = Path("log")
 
     print("Initing core...")
     core = Core()
@@ -121,7 +125,19 @@ if __name__ == '__main__':
             print("Round had run over 7min 30sec. Force enter minecraft building phase.")
             break
 
-    print(f"Time: {time() - startTime}")
+    current_time = datetime.now()
+    time_stamp = current_time.timestamp()
+    date_time: str = str(datetime.fromtimestamp(time_stamp))
+    log_path = LOG_PATH / date_time
+
+    generate_blueprint_time = time() - startTime
+    if not LOG_PATH.exists():
+        LOG_PATH.mkdir()
+    with log_path.open("a") as f:
+        f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
+                f"round: {i}\n"
+                f"level: {core.level}\n"
+                f"Generate Blueprint Time: {generate_blueprint_time}\n")
 
     plotBlueprint(core)
 
@@ -135,4 +151,3 @@ if __name__ == '__main__':
     print("Done building in minecraft")
 
     print(f"Time: {time() - startTime}")
-
