@@ -10,10 +10,10 @@
     - biome default is "".
 """
 
-import copy
 from nbt import nbt as nbt
 from gdpc import Editor, Block, Box, Rect
 from gdpc.vector_tools import ivec3, dropY
+from gdpc.geometry import placeCuboid
 from ..resource.biome_substitute import changeBlock
 
 
@@ -57,15 +57,13 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalOffset: ivec3, local
 
     globalCoordinate = globalOffset + localOffset
 
-    option = "keep" if keep else "replace"
     size = getStructureSizeNBT(struct)
     bound = Box(globalCoordinate, size)
 
     if not keep:
         begin = bound.begin
         last = bound.last
-        clearCmd = f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} barrier"
-        editor.runCommand(clearCmd, syncWithBuffer=True)
+        placeCuboid(editor, begin, last, Block("barrier"))
 
     # Fill basement
     rect = bound.toRect()
@@ -73,16 +71,15 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalOffset: ivec3, local
     height = worldSlice.heightmaps["MOTION_BLOCKING_NO_LEAVES"]
     for x, z in rect.inner:
         floory = height[x - globalOffset.x, z - globalOffset.z]
-        editor.runCommand(f"fill {x} {floory} {z} {x} {globalCoordinate.y} {z} minecraft:cobblestone replace", syncWithBuffer=True)
+        placeCuboid(editor, ivec3(x, floory, z), ivec3(
+            x, globalCoordinate.y, z), Block("cobblestone"))
     for pos, block in NBT2Blocks(struct, globalCoordinate):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
             blkString = changeBlock(material, block.id)
             block = Block(blkString, block.states, block.data)
 
-        cmd = f"setblock {pos.x} {pos.y} {pos.z} {block} {option}"
-
-        editor.runCommand(cmd, syncWithBuffer=True)
+        editor.placeBlock(pos, block)
 
 
 def getStructureSizeNBT(struct: nbt.NBTFile) -> ivec3:

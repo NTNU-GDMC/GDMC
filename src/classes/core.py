@@ -4,8 +4,9 @@ from ..road.road_network import RoadNetwork, RoadEdge
 from ..level.limit import getResourceLimit, getBuildingLimit
 from ..resource.terrain_analyzer import Resource
 from gdpc import Editor
-from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, ivec3, neighbors2D
-from typing import Literal, Any, Callable
+from gdpc.vector_tools import addY, dropY, Rect, Box, ivec2, ivec3, neighbors2D, X, Y, Z
+from gdpc.geometry import placeCuboid
+from typing import Literal, Any
 import numpy as np
 from .event import Subject, BuildEvent, UpgradeEvent
 from ..building.building import Building
@@ -364,8 +365,6 @@ class Core():
                 x, z = (x//UNIT)*UNIT, (z//UNIT)*UNIT
                 sureRoadHeights[self.roadNetwork.newNode(ivec2(x, z))] = y
 
-        self.editor.flushBuffer()
-
         # ====== Add road to Minecraft ======
 
         # Fix the road height
@@ -410,14 +409,10 @@ class Core():
                     begin, last = clearBox.begin + \
                         addY(globalOffset, 0), clearBox.last + \
                         addY(globalOffset, 0)
-                    self.editor.runCommand(
-                        f"fill {begin.x} {begin.y} {begin.z} {last.x} {last.y} {last.z} minecraft:air", syncWithBuffer=True)
+                    placeCuboid(self.editor, begin, last, "minecraft:air")
                     break
 
-            self.editor.runCommand(
-                f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
-
-        self.editor.flushBuffer()
+            placeCuboid(self.editor, pos-Y, (pos-Y)+X+Z, config.roadMaterial)
 
         # ====== Add light to Minecraft ======
 
@@ -425,22 +420,16 @@ class Core():
             return choice(list(roadNodes)).val
 
         def placeLight1(point: ivec3):
-            x, y, z = point
-            self.editor.runCommand(
-                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
-            self.editor.runCommand(
-                f"setblock {x} {y} {z} minecraft:oak_fence", syncWithBuffer=True)
-            self.editor.runCommand(
-                f"setblock {x} {y+1} {z} minecraft:lantern", syncWithBuffer=True)
+            editor = self.editor
+            editor.placeBlock(point-Y, "minecraft:cobblestone")
+            editor.placeBlock(point, "minecraft:oak_fence")
+            editor.placeBlock(point+Y, "minecraft:lantern")
 
         def placeLight2(point: ivec3):
-            x, y, z = point
-            self.editor.runCommand(
-                f"setblock {x} {y-1} {z} minecraft:cobblestone", syncWithBuffer=True)
-            self.editor.runCommand(
-                f"setblock {x} {y} {z} minecraft:cobblestone_wall", syncWithBuffer=True)
-            self.editor.runCommand(
-                f"setblock {x} {y+1} {z} minecraft:torch", syncWithBuffer=True)
+            editor = self.editor
+            editor.placeBlock(point-Y, "minecraft:cobblestone")
+            editor.placeBlock(point, "minecraft:cobblestone_wall")
+            editor.placeBlock(point+Y, "minecraft:torch")
 
         lightPositions = poissonDiskSample(
             bound=localBound,
