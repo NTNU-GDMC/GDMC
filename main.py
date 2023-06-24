@@ -48,102 +48,127 @@ from src.level.limit import getUnlockAgents
 from src.visual.blueprint import plotBlueprint
 from src.config.config import config
 from pathlib import Path
+from json import load
+from gdpc.vector_tools import ivec3, Box
+from gdpc import Editor
+from time import sleep
+
+AREA_JSON_PATH = Path("area.json")
 
 if __name__ == '__main__':
-    startTime = time()
+    with AREA_JSON_PATH.open("r") as f:
+        areas = load(f)
 
-    ROUND = config.gameRound
-    NUM_BASIC_AGENTS = config.numBasicAgents
-    NUM_SPECIAL_AGENTS = config.numSpecialAgents
+    for area in areas:
+        begin, end = ivec3(area[0]), ivec3(area[1])
+        buildArea = Box(begin, end)
+        print(f"Area: {begin} {end}")
 
-    LOG_PATH = Path("log")
+        editor = Editor(host=config.host)
+        editor.setBuildArea(buildArea)
 
-    print("Initing core...")
-    core = Core()
-    print("Done initing core")
+        center = buildArea.center
 
-    levelManager = LevelManager()
-    agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
-    RoadAgent(core)
+        editor.runCommand(f"tp @a {center.x} {150} {center.z}")
 
-    for agent in agentPool.agents:
-        print(agent)
+        sleep(5)
 
-    # iterate rounds
-    for i in range(ROUND):
-        numbersOfBuildings = [
-            core.numberOfBuildings(level) for level in (1, 2, 3)
-        ]
-        limitsOfBuildings = [
-            core.getBuildingLimit(level) for level in (1, 2, 3)
-        ]
+        startTime = time()
 
-        print(f"Round: {i}")
-        print(f"Level: {core.level}")
-        print(f"Buildings: {numbersOfBuildings}")
-        print(f"Max Buildings:  {limitsOfBuildings}")
-        print(f"Resources: {core.resources}")
+        ROUND = config.gameRound
+        NUM_BASIC_AGENTS = config.numBasicAgents
+        NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
-        core.updateResource()
+        LOG_PATH = Path("log")
 
-        unlockedAgents = getUnlockAgents(core.level)
-        print("Unlocked agents: ", unlockedAgents)
+        print("Initing core...")
+        core = Core()
+        print("Done initing core")
 
-        for unlockedAgent in unlockedAgents:
-            agentPool.unlockSpecial(unlockedAgent)
+        levelManager = LevelManager()
+        agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
+        RoadAgent(core)
 
-        print("Start running agents")
+        for agent in agentPool.agents:
+            print(agent)
 
-        restingAgents = 0
+        # iterate rounds
+        for i in range(ROUND):
+            numbersOfBuildings = [
+                core.numberOfBuildings(level) for level in (1, 2, 3)
+            ]
+            limitsOfBuildings = [
+                core.getBuildingLimit(level) for level in (1, 2, 3)
+            ]
 
-        agents = list(agentPool.agents)
-        for agent in sample(agents, len(agents)):
-            # run agent
-            success = agent.run()
+            print(f"Round: {i}")
+            print(f"Level: {core.level}")
+            print(f"Buildings: {numbersOfBuildings}")
+            print(f"Max Buildings:  {limitsOfBuildings}")
+            print(f"Resources: {core.resources}")
 
-            if not success:
-                # gather resource if the agent cannot do their job
-                restingAgents += 1
-                agent.rest()
+            core.updateResource()
 
-        core.increaseGrass()
+            unlockedAgents = getUnlockAgents(core.level)
+            print("Unlocked agents: ", unlockedAgents)
 
-        print(f"Resting agents: {restingAgents}")
+            for unlockedAgent in unlockedAgents:
+                agentPool.unlockSpecial(unlockedAgent)
 
-        if levelManager.canLevelUp(core.level, core.resources,
-                                   core.numberOfBuildings()):
-            core.levelUp()
+            print("Start running agents")
 
-        # clamp resource to limit
-        core.conformToResourceLimit()
+            restingAgents = 0
 
-        print("Round Done")
-        print("=====")
+            agents = list(agentPool.agents)
+            for agent in sample(agents, len(agents)):
+                # run agent
+                success = agent.run()
 
-        # Time limiter
-        if time() - startTime > 465:
-            print("Round had run over 7min 30sec. Force enter minecraft building phase.")
-            break
+                if not success:
+                    # gather resource if the agent cannot do their job
+                    restingAgents += 1
+                    agent.rest()
 
-    current_time = datetime.now()
-    time_stamp = current_time.timestamp()
-    date_time: str = str(datetime.fromtimestamp(time_stamp))
-    log_path = LOG_PATH / date_time
+            core.increaseGrass()
 
-    generate_blueprint_time = time() - startTime
-    if not LOG_PATH.exists():
-        LOG_PATH.mkdir()
-    with log_path.open("a") as f:
-        f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
-                f"round: {i}\n"
-                f"level: {core.level}\n"
-                f"Generate Blueprint Time: {generate_blueprint_time}\n")
+            print(f"Resting agents: {restingAgents}")
 
-    print("Start building in minecraft")
+            if levelManager.canLevelUp(core.level, core.resources,
+                                    core.numberOfBuildings()):
+                core.levelUp()
 
-    core.startBuildingInMinecraft()
+            # clamp resource to limit
+            core.conformToResourceLimit()
 
-    print("Done building in minecraft")
+            print("Round Done")
+            print("=====")
 
-    print(f"Time: {time() - startTime}")
-    plotBlueprint(core)
+            # Time limiter
+            if time() - startTime > 465:
+                print("Round had run over 7min 30sec. Force enter minecraft building phase.")
+                break
+
+        current_time = datetime.now()
+        time_stamp = current_time.timestamp()
+        date_time: str = str(datetime.fromtimestamp(time_stamp))
+        log_path = LOG_PATH / date_time
+
+        generate_blueprint_time = time() - startTime
+        if not LOG_PATH.exists():
+            LOG_PATH.mkdir()
+        with log_path.open("a") as f:
+            f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
+                    f"round: {i}\n"
+                    f"level: {core.level}\n"
+                    f"Generate Blueprint Time: {generate_blueprint_time}\n")
+
+        print("Start building in minecraft")
+
+        core.startBuildingInMinecraft()
+
+        print("Done building in minecraft")
+
+        print(f"Time: {time() - startTime}")
+        # plotBlueprint(core)
+
+        sleep(30)

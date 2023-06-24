@@ -28,6 +28,11 @@ def hashfunc(o: object) -> int:
 
 
 class Core():
+    def __del__(self):
+        buildArea = self._buildArea
+        for i in range(buildArea.begin.x, buildArea.end.x, 128):
+            for j in range(buildArea.begin.z, buildArea.end.z, 128):
+                self.editor.runCommandGlobal("forceload remove {} {} {} {}".format(i, j, i+128, j+128))
 
     def __init__(self, buildArea: Box = config.buildArea) -> None:
         """
@@ -39,6 +44,11 @@ class Core():
                         caching=config.caching, host=config.host)
         editor.doBlockUpdates = config.doBlockUpdates
         buildArea = editor.getBuildArea()
+
+        for i in range(buildArea.begin.x, buildArea.end.x, 128):
+            for j in range(buildArea.begin.z, buildArea.end.z, 128):
+                editor.runCommandGlobal("forceload add {} {} {} {}".format(i, j, i+128, j+128))
+
         # get world slice and height maps
         print("Loading world slice...")
         worldSlice = editor.loadWorldSlice(buildArea.toRect(), cache=True)
@@ -337,6 +347,23 @@ class Core():
         self.resources.iron = min(
             self.resourceLimit.iron, self._resources.iron)
 
+    def loadChunk(self, pos: ivec2):
+        """Load the chunk at pos"""
+        globalBound = self.buildArea.toRect()
+        globalOffset = globalBound.offset
+        pos = pos + globalOffset
+        self.editor.runCommand(f"tp @a {pos.x + 32} 150 {pos.y + 32}", syncWithBuffer=True)
+        self.editor.runCommand(
+            f"forceload add {pos.x} {pos.y} {pos.x+64} {pos.y+64}", syncWithBuffer=True)
+
+    def unloadChunk(self, pos: ivec2):
+        """Unload the chunk at pos"""
+        globalBound = self.buildArea.toRect()
+        globalOffset = globalBound.offset
+        pos = pos + globalOffset
+        self.editor.runCommand(
+            f"forceload remove {pos.x} {pos.y} {pos.x+64} {pos.y+64}", syncWithBuffer=True)
+
     def startBuildingInMinecraft(self):
         """Send the blueprint to Minecraft"""
 
@@ -356,8 +383,10 @@ class Core():
             area = Rect(pos, dropY(size))
             y = round(self.getHeightMap("mean", area))
             print(f"Build at {pos + globalOffset} with height {y}")
+            self.loadChunk(pos)
             buildFromNBT(self._editor, structure.nbtFile, addY(globalOffset),
                          addY(pos, y) + structure.offsets, building.material)
+            self.unloadChunk(pos)
 
             if building.entryPos is not None:
                 x, z = building.entryPos
@@ -403,7 +432,9 @@ class Core():
             sureRoadHeights[node] = y
             pos = addY(node.val+globalOffset, y)
 
-            clearBox = area.toBox(y, 2)
+            self.loadChunk(dropY(pos))
+
+            clearBox = area.toBox(y, 3)
             for x, y, z in clearBox.inner:
                 block = self.worldSlice.getBlock((x, y, z))
                 if block.id != "minecraft:air":
@@ -416,6 +447,8 @@ class Core():
 
             self.editor.runCommand(
                 f"fill {pos.x} {pos.y-1} {pos.z} {pos.x+1} {pos.y-1} {pos.z+1} {config.roadMaterial}", syncWithBuffer=True)
+
+            self.unloadChunk(dropY(pos))
 
         self.editor.flushBuffer()
 
@@ -452,8 +485,12 @@ class Core():
         )
 
         for pos in lightPositions:
+            self.loadChunk(pos)
             node = self.roadNetwork.newNode(pos)
-            y = sureRoadHeights[node]
+            if node not in sureRoadHeights:
+                y = round(self.getHeightMap("mean", Rect(pos, (UNIT, UNIT))))
+            else:
+                y = sureRoadHeights[node]
             neighbors = list(neighbors2D(pos, localBound, stride=UNIT))
             shuffle(neighbors)
             for neighbor in neighbors:
@@ -468,5 +505,6 @@ class Core():
                     choice([placeLight1, placeLight2])(
                         (x, y, z) + addY(globalOffset, 0))
                     break
+            self.unloadChunk(pos)
 
         self.editor.flushBuffer()
