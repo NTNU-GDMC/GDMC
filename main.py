@@ -79,7 +79,7 @@ if __name__ == '__main__':
         NUM_BASIC_AGENTS = config.numBasicAgents
         NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
-        LOG_PATH = Path("log")
+        # LOG_PATH = Path("log")
 
         print("Initing core...")
         core = Core()
@@ -151,16 +151,16 @@ if __name__ == '__main__':
         current_time = datetime.now()
         time_stamp = current_time.timestamp()
         date_time: str = str(datetime.fromtimestamp(time_stamp))
-        log_path = LOG_PATH / date_time
+        # log_path = LOG_PATH / date_time
 
-        generate_blueprint_time = time() - startTime
-        if not LOG_PATH.exists():
-            LOG_PATH.mkdir()
-        with log_path.open("a") as f:
-            f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
-                    f"round: {i}\n"
-                    f"level: {core.level}\n"
-                    f"Generate Blueprint Time: {generate_blueprint_time}\n")
+        # generate_blueprint_time = time() - startTime
+        # if not LOG_PATH.exists():
+        #     LOG_PATH.mkdir()
+        # with log_path.open("a") as f:
+        #     f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
+        #             f"round: {i}\n"
+        #             f"level: {core.level}\n"
+        #             f"Generate Blueprint Time: {generate_blueprint_time}\n")
 
         print("Start building in minecraft")
 
