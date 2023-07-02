@@ -56,119 +56,86 @@ from time import sleep
 AREA_JSON_PATH = Path("area.json")
 
 if __name__ == '__main__':
-    with AREA_JSON_PATH.open("r") as f:
-        areas = load(f)
+    startTime = time()
 
-    for area in areas:
-        begin, end = ivec3(area[0]), ivec3(area[1])
-        buildArea = Box(begin, end)
-        print(f"Area: {begin} {end}")
+    ROUND = config.gameRound
+    NUM_BASIC_AGENTS = config.numBasicAgents
+    NUM_SPECIAL_AGENTS = config.numSpecialAgents
 
-        editor = Editor(host=config.host)
-        editor.setBuildArea(buildArea)
+    # LOG_PATH = Path("log")
 
-        center = buildArea.center
+    print("Initing core...")
+    core = Core()
+    print("Done initing core")
 
-        editor.runCommand(f"tp @a {center.x} {150} {center.z}")
+    levelManager = LevelManager()
+    agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
+    RoadAgent(core)
 
-        sleep(5)
+    for agent in agentPool.agents:
+        print(agent)
 
-        startTime = time()
+    # iterate rounds
+    for i in range(ROUND):
+        numbersOfBuildings = [
+            core.numberOfBuildings(level) for level in (1, 2, 3)
+        ]
+        limitsOfBuildings = [
+            core.getBuildingLimit(level) for level in (1, 2, 3)
+        ]
 
-        ROUND = config.gameRound
-        NUM_BASIC_AGENTS = config.numBasicAgents
-        NUM_SPECIAL_AGENTS = config.numSpecialAgents
+        print(f"Round: {i}")
+        print(f"Level: {core.level}")
+        print(f"Buildings: {numbersOfBuildings}")
+        print(f"Max Buildings:  {limitsOfBuildings}")
+        print(f"Resources: {core.resources}")
 
-        # LOG_PATH = Path("log")
+        core.updateResource()
 
-        print("Initing core...")
-        core = Core()
-        print("Done initing core")
+        unlockedAgents = getUnlockAgents(core.level)
+        print("Unlocked agents: ", unlockedAgents)
 
-        levelManager = LevelManager()
-        agentPool = AgentPool(core, NUM_BASIC_AGENTS, NUM_SPECIAL_AGENTS)
-        RoadAgent(core)
+        for unlockedAgent in unlockedAgents:
+            agentPool.unlockSpecial(unlockedAgent)
 
-        for agent in agentPool.agents:
-            print(agent)
+        print("Start running agents")
 
-        # iterate rounds
-        for i in range(ROUND):
-            numbersOfBuildings = [
-                core.numberOfBuildings(level) for level in (1, 2, 3)
-            ]
-            limitsOfBuildings = [
-                core.getBuildingLimit(level) for level in (1, 2, 3)
-            ]
+        restingAgents = 0
 
-            print(f"Round: {i}")
-            print(f"Level: {core.level}")
-            print(f"Buildings: {numbersOfBuildings}")
-            print(f"Max Buildings:  {limitsOfBuildings}")
-            print(f"Resources: {core.resources}")
+        agents = list(agentPool.agents)
+        for agent in sample(agents, len(agents)):
+            # run agent
+            success = agent.run()
 
-            core.updateResource()
+            if not success:
+                # gather resource if the agent cannot do their job
+                restingAgents += 1
+                agent.rest()
 
-            unlockedAgents = getUnlockAgents(core.level)
-            print("Unlocked agents: ", unlockedAgents)
+        core.increaseGrass()
 
-            for unlockedAgent in unlockedAgents:
-                agentPool.unlockSpecial(unlockedAgent)
+        print(f"Resting agents: {restingAgents}")
 
-            print("Start running agents")
+        if levelManager.canLevelUp(core.level, core.resources,
+                                core.numberOfBuildings()):
+            core.levelUp()
 
-            restingAgents = 0
+        # clamp resource to limit
+        core.conformToResourceLimit()
 
-            agents = list(agentPool.agents)
-            for agent in sample(agents, len(agents)):
-                # run agent
-                success = agent.run()
+        print("Round Done")
+        print("=====")
 
-                if not success:
-                    # gather resource if the agent cannot do their job
-                    restingAgents += 1
-                    agent.rest()
+        # Time limiter
+        if time() - startTime > 465:
+            print("Round had run over 7min 30sec. Force enter minecraft building phase.")
+            break
 
-            core.increaseGrass()
+    print("Start building in minecraft")
 
-            print(f"Resting agents: {restingAgents}")
+    core.startBuildingInMinecraft()
 
-            if levelManager.canLevelUp(core.level, core.resources,
-                                    core.numberOfBuildings()):
-                core.levelUp()
+    print("Done building in minecraft")
 
-            # clamp resource to limit
-            core.conformToResourceLimit()
-
-            print("Round Done")
-            print("=====")
-
-            # Time limiter
-            if time() - startTime > 465:
-                print("Round had run over 7min 30sec. Force enter minecraft building phase.")
-                break
-
-        current_time = datetime.now()
-        time_stamp = current_time.timestamp()
-        date_time: str = str(datetime.fromtimestamp(time_stamp))
-        # log_path = LOG_PATH / date_time
-
-        # generate_blueprint_time = time() - startTime
-        # if not LOG_PATH.exists():
-        #     LOG_PATH.mkdir()
-        # with log_path.open("a") as f:
-        #     f.write(f"buildArea: {core.buildArea.toRect().size.x} {core.buildArea.toRect().size.y}\n"
-        #             f"round: {i}\n"
-        #             f"level: {core.level}\n"
-        #             f"Generate Blueprint Time: {generate_blueprint_time}\n")
-
-        print("Start building in minecraft")
-
-        core.startBuildingInMinecraft()
-
-        print("Done building in minecraft")
-
-        print(f"Time: {time() - startTime}")
-        # plotBlueprint(core)
-
-        sleep(30)
+    print(f"Time: {time() - startTime}")
+    # plotBlueprint(core)
