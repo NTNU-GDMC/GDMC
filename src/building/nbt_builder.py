@@ -75,6 +75,9 @@ def buildFromNBT(editor: Editor, struct: nbt.NBTFile, globalOffset: ivec3, local
         floory = height[x - globalOffset.x, z - globalOffset.z]
         if floory < globalCoordinate.y:
             editor.runCommand(f"fill {x} {floory} {z} {x} {globalCoordinate.y} {z} minecraft:cobblestone replace", syncWithBuffer=True)
+        else:
+            floory = worldSlice.heightmaps["MOTION_BLOCKING"][x - globalOffset.x, z - globalOffset.z]
+            editor.runCommand(f"fill {x} {floory} {z} {x} {globalCoordinate.y} {z} minecraft:air", syncWithBuffer=True)
     for pos, block in NBT2Blocks(struct, globalCoordinate):
         # FIXME: isChangeBlock and changeBlock function - SubaRya
         if material != "oak":
