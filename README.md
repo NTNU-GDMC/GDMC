@@ -27,8 +27,6 @@ This is a generator that facilitates Settlement Generation in Minecraft. It also
 3. Run `python main.py` to generate a settlement
 4. The settlement will be created in Minecraft
 
-
-
 ## Result
 
 ### Video Link
@@ -46,7 +44,6 @@ This is a generator that facilitates Settlement Generation in Minecraft. It also
 ![](./images/surface/mountain.png)
 
 ![](./images/surface/plain.png)
-
 
 ### Underground
 ![](./images/dungeon/dungeon_result_default.png)
